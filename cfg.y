@@ -1,18 +1,43 @@
 %{
 
+char yylex();
+void yyerror();
+
 %}
+
 
 %token returnskeyword funckeyword 
 %token id numberdcl logicdcl listdcl textdcl
-%token number text logic
-%token scopebegin scopeend endofstatement
-%token forkeyword in repeat ifkeyword elsekeyword whilekeyword times
+%token number text logic setupevnet turnevent closeevent
+%token scopebegin scopeend endofstatement 
+%token setpreamble board boardsize player tile
+%token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 
 %%
 Start : 
-    Funcs
+    Preamble Setup
 ;
+
+Preamble :
+	Preambles tile PreableIds setpreamble board boardsize setpreamble player PreableIds 
+;
+
+Preambles :
+	setpreamble id PreableIds Preambles
+|   
+;
+
+PreableIds :
+	id PreableIds
+|
+;
+
+
+Setup :
+	Funcs 
+;
+
 
 Funcs :
     Func Funcs
@@ -21,7 +46,27 @@ Funcs :
 
 Func :
     funckeyword id "("Args")" ReturnsType Scope
+|   onkeyword Event
 ;
+
+Event :
+	CloseEvent
+|   SetupEvent
+|   TurnEvent
+;
+
+SetupEvent : 
+	setupevnet Scope
+;
+
+TurnEvent :
+	turnevent Scope
+;
+
+CloseEvent :
+	closeevent Scope
+;
+
 
 Args :
     Exprs
@@ -74,6 +119,7 @@ Repeat :
     whilekeyword Condition Scope
 |   number times Scope
 |   forkeyword id in id Scope
+|   Scope
 ;
 
 Exprs :
@@ -138,7 +184,7 @@ P6 :
 ;
 
 Assign :
-    id assignoperator Expr
+    Id assignoperator Expr
 ;
 
 AssignInitialization :
@@ -181,4 +227,5 @@ Type :
 ;
 
 %%
+
 
