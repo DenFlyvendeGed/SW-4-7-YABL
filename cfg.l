@@ -1,69 +1,73 @@
 
 %{
 #include "cfg.tab.h"
+#include<stdio.h>
+int yywrap();
 %}
 
 %%
-\/\/.*\n {/*Comment*/ }
+\/\/.*\n   { /* Comment */ }
 \/\*.*\*\/ { /* Comment */ }
 
-"!" {/*exclamation mark*/}
-"board"  {/*board preamble*/}
-[0-9]+x[0-9] {/*board declaration*/}
-"tile"   {/*tile preamble*/}
-"player" {/*player preamble*/}
+"!" {return setpreamble; /*exclamation mark*/}
+"board"  {return board;/*board preamble*/}
+[0-9]+x[0-9] {return boardsize;/*board declaration*/}
+"tile"   {return tile;/*tile preamble*/}
+"player" {return player;/*player preamble*/}
 
+"setup" {return setupevent;/*setup event*/}
+"turn" {return turnevent;/*turn event*/}
+"close" {return closeevent;/*close event*/}
 
-"setup" {/*setup event*/}
-"turn" {/*turn event*/}
-"close" {/*close event*/}
-
-"list"   {/*list type*/}
-"text"   {/*text type*/}
-"bool"   {/*bool type*/}
+"list"   {return listdcl;/*list type*/}
+"text"   {return textdcl;/*text type*/}
+"bool"   {return logicdcl;/*bool type*/}
 "point"  {/*point type*/}
-"number" { /*number type */ }
+"number" {return numberdcl; /*number type */ }
 
-"function" { /* functionkeyword */} 
-"return" {/*return*/}
-"returns" {/*returns*/}
+"function" {return funckeyword; /* functionkeyword */} 
+"return" {return returnkeyword;/*return*/}
+"returns" {return returnskeyword;/*returns*/}
 
-"do" {/* Scope begin */}
-"end" {/* Scope End*/}
-\n   {/* End of statement*/}
+"do" {return scopebegin;/* Scope begin */}
+"end" {return scopeend;/* Scope End*/}
+[\n;] {return endofstatement;/* End of statement*/}
 
-"repeat" {/*repeat*/}
-"for" {/*for*/}
-"in" {/*in*/}
-"while" {/*while*/}
-"times" {/*times*/}
+"repeat" {return repeat;/*repeat*/}
+"for" {return forkeyword;/*for*/}
+"in" {return in;/*in*/}
+"while" {return whilekeyword;/*while*/}
+"times" {return times; /*times*/}
 
-"if" {/*if*/}
-"else" {/*else*/}
+"if" {return ifkeyword;/*if*/}
+"else" {return elsekeyword;/*else*/}
 
-"+" {/*addition*/}
-"-" {/*subtraction*/}
-"*" {/*multiplication*/}
-"/" {/*division*/}
-"remains" {/*modulo*/}
-"not" {/*not*/}
-"!="  {/*neq*/}
-"=="  {/*eq*/}
-">" {/*gt*/}
-"<" {/*lt*/}
-">=" {/*gteq*/}
-"<=" {/*lteq*/}
-"=" {/*assign operator*/}
-"and" {/*and*/}
-"or" {/*or*/}
+"+" {return addition;/*addition*/}
+"-" {return subtraction;/*subtraction*/}
+"*" {return multiplication;/*multiplication*/}
+"/" {return division;/*division*/}
+"remains" {return modulus;/*modulo*/}
+"not" {return not;/*not*/}
+"!="  {return neq;/*neq*/}
+"=="  {return eq;/*eq*/}
+">" {return gt;/*gt*/}
+"<" {return lt;/*lt*/}
+">=" {return gteq;/*gteq*/}
+"<=" {return lteq;/*lteq*/}
+"=" {return assignoperator;/*assign operator*/}
+"and" {return and;/*and*/}
+"or" {return or;/*or*/}
 
-"true" {/*true bool*/}
-"false" {/*false bool*/}
-\".*\" {/*text*/}
-[0-9]+ { /*number*/  }
-[a-zA-Z][0-9a-zA-Z]* { /* id */ }
+"true" {return logic;/*true bool*/}
+"false" {return logic;/*false bool*/}
+\".*\" {return text;/*text*/}
+[0-9]+ {return number;/*number*/  }
+[a-zA-Z][0-9a-zA-Z]* {return id; /* id */ }
+
 
 %%
 
+int yywrap() {return 0;}
+void yyerror(char * msg){printf("error %s", msg);}
 
 

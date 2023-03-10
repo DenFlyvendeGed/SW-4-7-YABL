@@ -8,7 +8,7 @@ void yyerror();
 
 %token returnskeyword funckeyword 
 %token id numberdcl logicdcl listdcl textdcl
-%token number text logic setupevnet turnevent closeevent
+%token number text logic setupevent turnevent closeevent
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
@@ -56,7 +56,7 @@ Event :
 ;
 
 SetupEvent : 
-	setupevnet Scope
+	setupevent Scope
 ;
 
 TurnEvent :
