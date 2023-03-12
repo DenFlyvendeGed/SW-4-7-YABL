@@ -1,16 +1,26 @@
-%{
 
+%{
+    #include "base.h"
 %}
 
-%token returnskeyword funckeyword 
-%token id numberdcl logicdcl listdcl textdcl
-%token number text logic
+%union
+{
+    int intvalue;
+    bool boolvalue;
+    std::string* stringvalue;
+    Variable* variable;
+}
+
+%token<Keyword> returnskeyword funckeyword 
+%token<variable> id numberdcl logicdcl listdcl textdcl
+%token<Value> number text logic
 %token scopebegin scopeend endofstatement
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %type Start
-%type<integer> P1 P2
-%type<boolean> P3 P4 P5 P6
+%type<intvalue> P1 P2
+%type<boolvalue> P3 P4 P5 P6
+
 
 %%
 Start : 

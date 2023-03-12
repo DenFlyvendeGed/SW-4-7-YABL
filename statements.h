@@ -1,8 +1,11 @@
-#include base.h
+#ifndef __STATEMENT_H
+#define __STATEMENT_H
+
+#include "base.h"
 
 
 
-class SatementAssign :public Statement
+class StatementAssign :public Statement
 {
     LocationValue* lvalue;
     AritmeticExpression* expression;
@@ -17,4 +20,9 @@ class SatementAssign :public Statement
             int temp = expression->Evaluate(context);
             lvalue->Set(temp, context);
         }
-}
+};
+
+//StatementIfThenElse
+//StatementWhile
+
+#endif
