@@ -8,6 +8,9 @@
 %token scopebegin scopeend endofstatement
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
+%type Start
+%type<integer> P1 P2
+%type<boolean> P3 P4 P5 P6
 
 %%
 Start : 
@@ -16,7 +19,7 @@ Start :
 
 Funcs :
     Func Funcs
-|   /* empty */
+|   %empty
 ;
 
 Func :
@@ -29,7 +32,7 @@ Args :
 
 ReturnsType : 
     returnskeyword Type
-|   /* empty */   
+|   %empty   
 ;
 
 Scope :
@@ -38,7 +41,7 @@ Scope :
 
 Stmts :
     Stmt endofstatement Stmts 
-|   /* empty */
+|   %empty
 ;
 
 Stmt :
@@ -49,7 +52,7 @@ Stmt :
 |   Scope
 |   Expr
 |   returnkeyword Expr
-|   /* empty */   
+|   %empty   
 ;
 
 If :
@@ -58,7 +61,7 @@ If :
 
 AfterIf :
 	elsekeyword AfterElse
-|   /* empty */
+|   %empty
 ;
 
 AfterElse :
@@ -78,7 +81,7 @@ Repeat :
 
 Exprs :
     Expr "," Exprs
-|   /* empty */
+|   %empty
 ;
 
 Expr :
@@ -87,12 +90,12 @@ Expr :
 
 Factor :
     "("Expr")"
-|   negate id
-|   number 
-|   logic
+|   negate id {$$ = !$2}
+|   number {$$ = $1}
+|   logic 
 |   text
 |   List
-|   Id
+|   Id 
 ;
 
 P0 :
@@ -143,7 +146,7 @@ Assign :
 
 AssignInitialization :
     assignoperator Expr
-|   /* empty */
+|   %empty
 ;
 
 Id :
@@ -152,7 +155,7 @@ Id :
 
 Dot :
 	"." Id
-|   /* empty */
+|   %empty
 ;
 
 Call :
@@ -166,7 +169,7 @@ Index :
 IdMutation:
 	Call IdMutation
 |   Index IdMutation
-|   /* empty */
+|   %empty
 ;
 
 List :
