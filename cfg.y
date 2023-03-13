@@ -46,7 +46,7 @@ Funcs :
 
 Func :
     funckeyword id "("Args")" ReturnsType Scope
-|   onkeyword Event
+|   Event
 ;
 
 Event :
