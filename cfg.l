@@ -2,6 +2,7 @@
 #include "cfg.tab.h"
 #include "base.h"
 #include <stdio.h>
+#include <string.h>
 int yywrap();
 %}
 
@@ -10,11 +11,11 @@ int yywrap();
 \/\*.*\*\/ { /* Comment */ }
 
 
-"!" {yylval.string = new std::string(yytext); return setpreamble; /*exclamation mark*/}
+"!" { return setpreamble; /*exclamation mark*/}
 
 
 "board"  {return board;/*board preamble*/}
-[0-9]+x[0-9] {return boardsize;/*board declaration*/}
+[0-9]+x[0-9] {yyval.string = *yytext; return boardsize;/*board declaration*/}
 "tile"   {return tile;/*tile preamble*/}
 "player" {return player;/*player preamble*/}
 
@@ -61,12 +62,12 @@ int yywrap();
 "and" {return and;/*and*/}
 "or" {return or;/*or*/}
 
-"true" {return logic;/*true bool*/}
-"false" {return logic;/*false bool*/}
-\".*\" {return text;/*text*/}
-[0-9]+ {return number;/*number*/  }
-[a-zA-Z][0-9a-zA-Z]* {return id; /* id */ }
-
+"true" {yyval.int = 1; return logic;/*true bool*/}
+"false" {yyval.int = 0; return logic;/*false bool*/}
+\".*\" {yyval.string = *yytext;return text;/*text*/}
+[0-9]+ {yyval.int = atoi(yytext); return number;/*number*/  }
+[a-zA-Z][0-9a-zA-Z]* {yyval.string = *yytext; return id; /* id */ }
+".*" {}
 
 %%
 

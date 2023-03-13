@@ -2,15 +2,42 @@
 {%
     char yylex();
     void yyerror();
-    #include "base.h"
+
+    #include <stdlib.h>
 %}
+
+%code requires
+{
+    enum node_type = {Id, Factor, Expr};
+    typedef struct node{
+        enum node_type type;
+        union{
+            char *id;
+            int num;
+        } value;
+        
+        struct node *child, *sibling;
+        
+    } node;
+
+    typedef struct list {
+        char *id;
+        union{
+            char *str
+            int num;
+        } value;
+        struct list *prev, *next;  
+
+
+    } list;
+}
 
 %union
 {
     int int;
-    bool bool;
-    std::string* string;
-    Variable* variable;
+    char *string;
+    struct list *list;
+    node *node;
 }
 
 %token returnskeyword funckeyword 
@@ -21,8 +48,10 @@
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %type Start
+%type<node> Id Factor Expr
+%type<list> List 
 %type<int> P1 P2
-%type<bool> P3 P4 P5 P6
+%type<int> P3 P4 P5 P6 //bool
 
 
 %%
@@ -44,7 +73,7 @@ PreableIds :
 |
 ;
 
-
+numberdcl
 Setup :
 	Funcs 
 ;
@@ -56,7 +85,7 @@ Funcs :
 ;
 
 Func :
-    funckeyword id "("Args")" ReturnsType Scope
+    funckeyword id '('Args')' ReturnsType Scope
 |   onkeyword Event
 ;
 
@@ -134,7 +163,7 @@ Repeat :
 ;
 
 Exprs :
-    Expr "," Exprs
+    Expr ',' Exprs
 |   %empty
 ;
 
@@ -143,13 +172,34 @@ Expr :
 ;
 
 Factor :
-    "("Expr")"
-|   negate id {$$ = !$2}
-|   number {$$ = $1}
+    '('Expr')' {
+        struct node *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct node) {
+            .type = Factor,
+            .child = $2,
+            .sibling = NULL
+        }
+        $$ = s
+        }
+|   negate id // <---
+|   number 
 |   logic 
 |   text
-|   List
+|   List 
 |   Id 
+    {
+        struct node *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct node) {
+            .type = Expr,
+            .child = $2,
+            .sibling = NULL
+        }
+        $$ = s
+        }
 ;
 
 P0 :
@@ -208,16 +258,16 @@ Id :
 ;
 
 Dot :
-	"." Id
+	'.' Id
 |   %empty
 ;
 
 Call :
-	"(" Args ")"
+	'(' Args ')'
 ;
 
 Index :
-	"[" Expr "]"
+	'[' Expr ']'
 ;
 
 IdMutation:
@@ -227,11 +277,11 @@ IdMutation:
 ;
 
 List :
-    "["Exprs"]"
+    '['Exprs']'
 ;
 
 Type :
-    numberdcl    
+    numberdcl 
 |   logicdcl    
 |   textdcl
 |   listdcl Type
