@@ -9,7 +9,10 @@ int yywrap();
 \/\/.*\n   { /* Comment */ }
 \/\*.*\*\/ { /* Comment */ }
 
+
 "!" {yylval.string = new std::string(yytext); return setpreamble; /*exclamation mark*/}
+
+
 "board"  {return board;/*board preamble*/}
 [0-9]+x[0-9] {return boardsize;/*board declaration*/}
 "tile"   {return tile;/*tile preamble*/}
