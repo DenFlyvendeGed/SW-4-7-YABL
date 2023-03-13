@@ -5,9 +5,9 @@
 
 %union
 {
-    int intvalue;
-    bool boolvalue;
-    std::string* stringvalue;
+    int int;
+    bool bool;
+    std::string* string;
     Variable* variable;
 }
 
@@ -18,8 +18,8 @@
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %type Start
-%type<intvalue> P1 P2
-%type<boolvalue> P3 P4 P5 P6
+%type<int> P1 P2
+%type<bool> P3 P4 P5 P6
 
 
 %%
