@@ -12,7 +12,7 @@
     typedef struct node{
         enum node_type type;
         union{
-            char *id;
+            char *str;
             int num;
         } value;
         
@@ -20,16 +20,114 @@
         
     } node;
 
-    typedef struct list {
-        char *id;
+
+
+
+    enum var_type = {number, logic, text, list};
+    struct varType{
+        enum var_type type;
+        struct var_type *child; //handle list...
+    };
+
+    typedef struct listElement {
+        char *id; //maybe delete??
+        struct varType *type;
         union{
-            char *str
+            char *str;
             int num;
         } value;
-        struct list *prev, *next;  
+        struct listElement *prev, *next;  
+
+    } listElement;
+
+    struct var{
+        char *id;
+        int size;
+        enum var_type type;
+        union{
+            char *str;
+            int num;
+        } value;
+    };
+
+    struct list
+    {
+        char *id;
+        int size;
+        enum var_type type;
+        struct listElement *firstChild; //lastChild?
+        //something for initialization
+    };
+
+    struct method
+    {
+        char *name;
+        union 
+        {
+            struct var *variable;
+            struct list *list;
+        } returnType;
+        struct list *params;
+        struct node *body;
+    };
+
+    struct stmtList //nodeList??
+    {
+        struct node *firstChild;
+    };
+
+    /* struct condition //expr??
+    {
+        int i;
+        int increment;
+        int goal;
 
 
-    } list;
+    }; */
+
+    struct ifTest
+    {
+        struct node *condition;
+        struct stmtList *then;
+        struct stmeList *else;
+    };
+
+    enum loop_type = {while, for, foreach};
+    struct loop
+    {
+        enum loop_type *type
+        union
+        {
+            struct whileLoop *while;
+            struct forLoop *for;
+            struct foreachLoop *foreach;
+        } loop;
+    };
+
+    struct whileLoop
+    {
+        struct node *condition;
+        struct stmtList *loop;
+    };
+
+    struct forLoop
+    {
+        int i;
+        int increment;
+        int goal;
+        struct stmtList *loop;
+    };
+
+    struct foreachLoop
+    {
+        int i;
+        int increment;
+        int goal;
+        struct List *inputList;
+        struct stmtList *loop;
+    };
+
+    
 }
 
 %union
@@ -37,20 +135,30 @@
     int int;
     char *string;
     struct list *list;
-    node *node;
+    struct node *node;
+    struct var *var;
+    struct varType *varType;
+    struct loop *loop;
+    struct whileLoop *whileLoop;
+    struct stmeList *stmtList;
 }
 
 %token returnskeyword funckeyword 
-%token id numberdcl logicdcl listdcl textdcl
-%token number text logic setupevent turnevent closeevent
+%token numberdcl logicdcl listdcl textdcl
+%token setupevent turnevent closeevent
+%token<string> text id
+%token<int> number logic
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %type Start
+%type<stmtList> Scope
+%type<loop> Repeat
+%type<varType> Type ReturnsType
 %type<node> Id Factor Expr
 %type<list> List 
-%type<int> P1 P2
+%type<int> P1 P2 //<-- might be string :(
 %type<int> P3 P4 P5 P6 //bool
 
 
@@ -73,7 +181,7 @@ PreableIds :
 |
 ;
 
-numberdcl
+/* numberdcl */
 Setup :
 	Funcs 
 ;
@@ -114,11 +222,31 @@ Args :
 
 ReturnsType : 
     returnskeyword Type
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = $2.type,
+            .child = NULL  
+        }
+        $$ = s
+    }
 |   %empty   
 ;
 
 Scope :
     scopebegin Stmts scopeend
+    {
+        struct stmtList *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct stmtList) {
+            .firstChild = $2,
+        }
+        $$ = s
+
+    }
 ;
 
 Stmts :
@@ -157,7 +285,49 @@ Condition :
 
 Repeat :
     whilekeyword Condition Scope
+    {
+
+        struct whileLoop *s1 = malloc(sizeof *s1);
+        if (!s1) YYNOMEM;
+
+        *s1 =(struct whileLoop) {
+            .condition = $2,
+            .body = $3,
+        }
+
+
+        struct loop *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct loop) {
+            .type = while,
+            .loop = s1,
+        }
+        $$ = s
+    }
 |   number times Scope
+        {
+
+        struct forLoop *s1 = malloc(sizeof *s1);
+        if (!s1) YYNOMEM;
+
+        *s1 =(struct forLoop) {
+            .i = 1,
+            .increment = 1,
+            .goal = $1,
+            .loop = $3,
+        };
+
+
+        struct loop *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct loop) {
+            .type = for,
+            .loop = s1,
+        };
+        $$ = s
+    }
 |   forkeyword id in id Scope
 |   Scope
 ;
@@ -194,12 +364,12 @@ Factor :
         if (!s) YYNOMEM;
 
         *s =(struct node) {
-            .type = Expr,
-            .child = $2,
+            .type = Factor,
+            .child = $1,
             .sibling = NULL
         }
         $$ = s
-        }
+    }
 ;
 
 P0 :
@@ -263,11 +433,11 @@ Dot :
 ;
 
 Call :
-	'(' Args ')'
+	'(' Args ')' {$$ = $2}
 ;
 
 Index :
-	'[' Expr ']'
+	'[' Expr ']' {$$ = $2}
 ;
 
 IdMutation:
@@ -276,16 +446,72 @@ IdMutation:
 |   %empty
 ;
 
-List :
-    '['Exprs']'
+List :  //maybe?
+    '['Exprs']' 
+    {
+        struct list *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct list) {
+            .id = NULL;
+            .size = $2.count;
+            .type = $2.type;
+            .firstChild = $2; 
+        };
+
+
+        $$ = $2
+    }
 ;
+
 
 Type :
     numberdcl 
-|   logicdcl    
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = number,
+            .child = NULL  
+        }
+        $$ = s
+    }
+|   logicdcl
+{
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = logic,
+            .child = NULL  
+        }
+        $$ = s
+    }    
 |   textdcl
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = text,
+            .child = NULL  
+        }
+        $$ = s
+    }
 |   listdcl Type
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = list,
+            .child = $2  
+        }
+        $$ = s
+    }
 ;
+
 
 %%
 
