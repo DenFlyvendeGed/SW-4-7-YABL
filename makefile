@@ -1,9 +1,9 @@
 DESTINATION := ./.target
+export DESTINATION
 OMAIN := $(DESTINATION)/main.o 
 OTEST := $(DESTINATION)/test.o 
-OFILES := \
-	$(DESTINATION)/cfg.tab.o \
-	$(DESTINATION)/lex.yy.o
+OFILES := $(shell find . -name "*.c" |  grep -o "[^/]*\.c" | grep -v -e "main\.c" -e "text\.c" | sed -E "s/\b(.*)\.c/\.target\/\1\.o/g")
+CFILES := $(shell find . -name "*.c" |  grep -o "[^/]*\.c" | grep -v -e "cfg.tab.c" -e "lex.yy.c" ) 
 
 $(DESTINATION):
 	mkdir $(DESTINATION)
@@ -19,7 +19,7 @@ test : $(OFILES) $(OTEST)
 $(DESTINATION)/main.o : main.c 
 	gcc -c -o $@ $^
 
-$(DESTINATION)/test.o : test.c 
+$(DESTINATION)/test.o : test.c
 	gcc -c -o $@ $^
 
 $(DESTINATION)/%.o : $(DESTINATION)/%.c
