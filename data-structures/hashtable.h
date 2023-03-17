@@ -1,6 +1,3 @@
-#ifndef YABL_HASHTABLE
-#define YABL_HASHTABLE
-
 typedef struct YablHashNode {
 	char* key;
 	void* item;
@@ -15,13 +12,13 @@ typedef struct YablHash {
 
 YablHash yabl_hash_create(int size_of_items);
 
-void* yable_hash_get(YablHash* self, char* key);
+void* yabl_hash_get(YablHash* self, char* key);
 
 /// Creates a copy of value and puts it in the hashmap
-void* yable_hash_push_cpy(YablHash* self, char* key, void* value);
+void* yabl_hash_push_cpy(YablHash* self, char* key, void* value);
 
 /// Puts the pointer in the hashmap
-void* yable_hash_push(YablHash* self, char* key, void* value);
+void* yabl_hash_push(YablHash* self, char* key, void* value);
 
 /// Deallocates the hashmap
 void yabl_hash_delete(YablHash* self);
