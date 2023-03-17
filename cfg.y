@@ -8,19 +8,25 @@
 
 %code requires
 {
+    typedef enum = {
+        node, var_type, var, list, method, function, stmtlist, ifStatement, loop, whileLoop, forLoop, foreachLoop, event
+    } type;
+
     enum node_type = {Id, Factor, Expr};
     typedef struct node{
-        enum node_type type;
+        enum type type;
+        enum node_type nodeType;
         union{
             char *str;
             int num;
         } value;
         
-        union{
+        (void *) *child, *sibling //struct node, int, char
+        /* union{
             struct node *node;
             int num;
             char *str;
-        } *child, *sibling;
+        } *child, *sibling; */
         
     } node;
 
@@ -29,13 +35,14 @@
 
     enum var_type = {number, logic, text, list};
     struct varType{
+        enum type type;
         enum var_type type;
         struct var_type *child; //handle list...
     };
 
     typedef struct listElement {
-        char *id; //maybe delete??
-        struct varType *type;
+        enum type type;
+        struct varType *vartype;
         union{
             char *str;
             int num;
@@ -45,9 +52,9 @@
     } listElement;
 
     struct var{
+        enum type type;
         char *id;
-        int size; //?
-        enum var_type type;
+        enum var_type varType;
         union{
             char *str;
             int num;
@@ -56,15 +63,16 @@
 
     struct list //list type to handle smt args funcs etc?
     {
+        enum type type;
         char *id;
         int size;
-        enum var_type type;
         struct listElement *firstChild; //lastChild?
         //something for initialization
     };
 
     struct method
     {
+        enum type type;
         char *name;
         union 
         {
@@ -77,10 +85,14 @@
 
     struct stmtList //nodeList??
     {
+        enum type type;
         union {
             struct node *node;
             struct stmtList *list;
+            struct function *func;
         } firstChild;
+
+        struct stmtList *nextSibling;
          
     };
 
@@ -95,15 +107,17 @@
 
     struct ifStatement
     {
-        struct node *condition;
-        struct stmtList *then;
-        struct stmeList *else;
+        enum type type;
+        struct node *condition; //node
+        struct stmtList *then; //stmtList
+        struct stmtList *else; //stmtList
     };
 
     enum loop_type = {while, for, foreach};
     struct loop
     {
-        enum loop_type *type;
+        enum type type;
+        enum loop_type *loopType;
         union
         {
             struct whileLoop *while;
@@ -137,6 +151,7 @@
 
     struct function
     {
+        enum type type;
         char *id;
         struct list *args;
         struct varType *returnType;
@@ -147,6 +162,7 @@
     enum event_type = {setup, turn, close};
     struct event
     {
+        enum type type;
         enum event_type *type;
         struct stmtList *scope;
     };
@@ -161,8 +177,8 @@
     struct var *var;
     struct varType *varType;
     struct loop *loop;
-    struct whileLoop *whileLoop;
-    struct stmeList *stmtList;
+    /* struct whileLoop *whileLoop; */
+    struct stmtList *stmtList;
     struct function *function;
     struct event *event;
     struct ifStatement *ifStatement;
