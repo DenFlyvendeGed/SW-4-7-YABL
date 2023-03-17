@@ -212,7 +212,6 @@ PreableIds :
 |
 ;
 
-/* numberdcl */
 Setup :
 	Funcs 
 ;
@@ -235,8 +234,7 @@ Funcs :
 ;
 
 Func :
-    funckeyword id '('Args')' ReturnsType Scope
-    {
+    funckeyword id '('Args')' ReturnsType Scope {
         struct function *s = malloc(sizeof *s);
         if (!s) YYNOMEM;
 

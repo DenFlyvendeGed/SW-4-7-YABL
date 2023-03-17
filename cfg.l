@@ -1,6 +1,5 @@
 %{
 #include "cfg.tab.h"
-#include "base.h"
 #include <stdio.h>
 #include <string.h>
 int yywrap();
@@ -68,8 +67,8 @@ int yywrap();
 [0-9]+ {yyval.int = atoi(yytext); return number;/*number*/  }
 [a-zA-Z][0-9a-zA-Z]* {yyval.string = *yytext; return id; /* id */ }
 ".*" {}
-
 %%
 
 int yywrap() {return 0;}
 void yyerror(char * msg){printf("error %s", msg);}
+
