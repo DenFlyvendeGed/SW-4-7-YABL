@@ -38,6 +38,46 @@ void* yabl_list_get(YablList self, int index){
 	return self->item;
 }
 
+void* yabl_list_pop(YablList self){
+	while(self->next != NULL){
+		self = self->next;
+	}
+	void* item = self->item;
+	free(self);
+	return item;
+}
+
+void* yabl_list_remove(YablList* self, int index){
+	YablList* temp;
+	for(int i = 0; i < index; i++){
+		temp = self;
+		self = &(*self)->next;
+	}
+	(*temp) = (*self)->next;
+	void* item = (*self)->next;
+	free(self);
+	return item;
+}
+
+void yabl_list_insert(YablList self, int index, void* item){
+	for(int i = 0; i < index; i++){
+		self = self->next;
+	}
+	YablList new = yabl_list_create();	
+	new->item = item;
+	new->next = self->next;
+	self->next = new;
+}
+
+void* yabl_list_find(YablList self, int(*compare)(void*)){
+	while(self->next != NULL){
+		if(compare(self->item)){
+			return self->item;
+		}
+	}
+	return NULL;
+}
+
 
 /// Tests
 #include "../test.h"
@@ -45,10 +85,6 @@ void* yabl_list_get(YablList self, int index){
 int yabl_list_create_test(){
 	YablList list = yabl_list_create();	
 	int result = list->next == NULL;
-	void* item = yabl_list_get(list, 6);
-	switch((ExprType)item){
-		case func:
-	}
 	yabl_list_delete(list, &free);
 	return result;
 }
