@@ -5,6 +5,11 @@ void yyerror();
 
 %}
 
+%union {
+	char string[10];
+	int number;
+}
+
 
 %token returnskeyword funckeyword 
 %token id numberdcl logicdcl listdcl textdcl
@@ -24,12 +29,12 @@ Preamble :
 ;
 
 Preambles :
-	setpreamble id PreableIds Preambles
+	setpreamble id Preambles
 |   /* empty */
 ;
 
 PreableIds :
-	id PreableIds PreableBracets
+	id PreableBracets PreableIds 
 |
 ;
 
@@ -38,7 +43,7 @@ PreableBracets:
 |   /* empty */
 ;
 
-PreableBracets:
+PreableInsideBracets:
 	number
 |   /* empty */
 ;
@@ -130,7 +135,7 @@ Repeat :
 ;
 
 Exprs :
-    Expr "," Exprs
+    Exprs "," Expr
 |   /* empty */
 ;
 
@@ -212,7 +217,7 @@ Dot :
 ;
 
 Call :
-	"(" Args ")"
+	"(" Args ")" 
 ;
 
 Index :
@@ -220,9 +225,9 @@ Index :
 ;
 
 IdMutation:
-	Call IdMutation
+	Call IdMutation 
 |   Index IdMutation
-|   Dot
+|   Dot 
 |   /* empty */
 ;
 

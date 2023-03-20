@@ -14,7 +14,7 @@ int yywrap();
 
 
 "board"  {return board;/*board preamble*/}
-[0-9]+x[0-9] {yyval.string = *yytext; return boardsize;/*board declaration*/}
+[0-9]+x[0-9] {strcpy(yylval.string,yytext); return boardsize;/*board declaration*/}
 "tile"   {return tile;/*tile preamble*/}
 "player" {return player;/*player preamble*/}
 
@@ -61,11 +61,11 @@ int yywrap();
 "and" {return and;/*and*/}
 "or" {return or;/*or*/}
 
-"true" {yyval.int = 1; return logic;/*true bool*/}
-"false" {yyval.int = 0; return logic;/*false bool*/}
-\".*\" {yyval.string = *yytext;return text;/*text*/}
-[0-9]+ {yyval.int = atoi(yytext); return number;/*number*/  }
-[a-zA-Z][0-9a-zA-Z]* {yyval.string = *yytext; return id; /* id */ }
+"true" {yylval.number = 1; return logic;/*true bool*/}
+"false" {yylval.number = 0; return logic;/*false bool*/}
+\".*\" {strcpy(yylval.string, yytext);return text;/*text*/}
+[0-9]+ {yylval.number = atoi(yytext); return number;/*number*/  }
+[a-zA-Z][0-9a-zA-Z]* {strcpy(yylval.string, yytext); return id; /* id */ }
 ".*" {}
 %%
 

@@ -1,3 +1,6 @@
+#ifndef YABL_HASHTABLE
+#define YABL_HASHTABLE
+
 typedef struct YablHashNode {
 	char* key;
 	void* item;
