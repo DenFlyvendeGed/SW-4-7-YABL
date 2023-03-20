@@ -1,7 +1,7 @@
-
 %{
 #include "cfg.tab.h"
-#include<stdio.h>
+#include <stdio.h>
+#include <string.h>
 int yywrap();
 %}
 
@@ -9,9 +9,12 @@ int yywrap();
 \/\/.*\n   { /* Comment */ }
 \/\*.*\*\/ { /* Comment */ }
 
-"!" {return setpreamble; /*exclamation mark*/}
+
+"!" { return setpreamble; /*exclamation mark*/}
+
+
 "board"  {return board;/*board preamble*/}
-[0-9]+x[0-9] {return boardsize;/*board declaration*/}
+[0-9]+x[0-9] {strcpy(yylval.string,yytext); return boardsize;/*board declaration*/}
 "tile"   {return tile;/*tile preamble*/}
 "player" {return player;/*player preamble*/}
 
@@ -58,16 +61,14 @@ int yywrap();
 "and" {return and;/*and*/}
 "or" {return or;/*or*/}
 
-"true" {return logic;/*true bool*/}
-"false" {return logic;/*false bool*/}
-\".*\" {return text;/*text*/}
-[0-9]+ {return number;/*number*/  }
-[a-zA-Z][0-9a-zA-Z]* {return id; /* id */ }
-
-
+"true" {yylval.number = 1; return logic;/*true bool*/}
+"false" {yylval.number = 0; return logic;/*false bool*/}
+\".*\" {strcpy(yylval.string, yytext);return text;/*text*/}
+[0-9]+ {yylval.number = atoi(yytext); return number;/*number*/  }
+[a-zA-Z][0-9a-zA-Z]* {strcpy(yylval.string, yytext); return id; /* id */ }
+".*" {}
 %%
 
 int yywrap() {return 0;}
 void yyerror(char * msg){printf("error %s", msg);}
-
 
