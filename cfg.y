@@ -1,18 +1,72 @@
-%{
 
-char yylex();
-void yyerror();
 
+{%
+    char yylex();
+    void yyerror();
+
+    #include <stdlib.h>
+    #include "cfg.h"
 %}
 
+%code requires
+{
+    
+}
+
+%union
+{
+    int int;
+    char *string;
+    struct Func *Func;
+    struct TypeValue *TypeValue;
+    struct Type *Type;
+    struct Repeatable *Repeatable;
+    struct Expr *Expr;
+    struct BinaryOperator *BinaryOp;
+    struct UnaryOperator *UnaryOp;
+    struct IdMutationDot *IdMutationDot;
+    struct IdMutationCall *IdMutationCall;
+    struct IdMutationIndex *IdMutationIndex;
+    struct IdMutation *IdMutation;
+    struct IfStmt *IfStmt;
+    struct Repeat *Repeat;
+    struct TimesLoop *TimesLoop;
+    struct ForLoop *ForLoop;
+    struct whileLoop *whileLoop;
+    struct RepeatLoop *RepeatLoop;
+    struct Initialization *Initialization;
+    struct Assign *Assign;
+    struct Event *Event;
+    struct Variable *Variable;
+    struct Preamble *Preamble;
+    struct PreamblBoard *PreamblBoard;
+    struct PreambleTileItem *PreambleTileItem;
+    struct PreambleTile *PreambleTile;
+    struct PreamblePlayes *PreamblePlayes;
+}
 
 %token returnskeyword funckeyword 
-%token id numberdcl logicdcl listdcl textdcl
-%token number text logic setupevent turnevent closeevent
+%token numberdcl logicdcl listdcl textdcl
+%token setupevent turnevent closeevent
+%token<string> text id
+%token<int> number logic
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
+%type
+%type<ifStatement> If 
+%type<var> Assign
+%type<event> Event SetupEvent TurnEvent CloseEvent 
+%type<function> Func
+%type<stmtList> Scope Funcs Stmts Exprs Args AfterElse AfterIf
+%type<loop> Repeat
+%type<varType> Type ReturnsType
+%type<node> Id Factor Expr //expresion skal nok væk
+%type<list> List 
+%type<int> P1 P2 //<-- might be string :(
+%type<int> P3 P4 P5 P6 //bool
+
 
 %%
 Start : 
@@ -64,14 +118,44 @@ Event :
 
 SetupEvent : 
 	setupevent Scope
+    {
+        struct event *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct event) {
+            .type = setup,
+            .scope = $2,  
+        }
+        $$ = s
+    }
 ;
 
 TurnEvent :
 	turnevent Scope
+        {
+        struct event *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct event) {
+            .type = turn,
+            .scope = $2,  
+        }
+        $$ = s
+    }
 ;
 
 CloseEvent :
 	closeevent Scope
+        {
+        struct event *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct event) {
+            .type = close,
+            .scope = $2,  
+        }
+        $$ = s
+    }
 ;
 
 
@@ -86,11 +170,32 @@ ReturnsType :
 
 Scope :
     scopebegin Stmts scopeend
+    {
+        struct stmtList *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct stmtList) {
+            .firstChild = $2,
+        }
+        $$ = s
+
+    }
 ;
 
 Stmts :
     Stmt endofstatement Stmts 
-|   /* empty */
+    {
+        struct stmtList *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct stmtList) {
+            .firstChild = $1,
+        }
+        $1.nextSibling = $3; // <----
+        $$ = s
+
+    }
+|   %empty
 ;
 
 Stmt :
@@ -101,20 +206,31 @@ Stmt :
 |   Scope
 |   Expr
 |   returnkeyword Expr
-|   /* empty */   
+|   %empty   
 ;
 
 If :
 	ifkeyword Condition Scope AfterIf
+    {
+         struct ifStatement *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct ifStatement) {
+            .condition = $2,
+            .then = $3,
+            .else = $4,
+        };
+        $$ = s
+    }
 ;
 
 AfterIf :
-	elsekeyword AfterElse
-|   /* empty */
+	elsekeyword AfterElse {$$ = $2}
+|   %empty
 ;
 
 AfterElse :
-	If
+	If // <---
 |   Scope
 ;
 
@@ -130,22 +246,65 @@ Repeat :
 ;
 
 Exprs :
-    Expr "," Exprs
-|   /* empty */
+    Expr ',' Exprs
+    { 
+        struct stmtList *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct stmtList) {
+            .firstChild = $1,
+        }
+        $1.nextSibling = $2;
+        $$ = s
+
+    }
+|   %empty
 ;
 
-Expr :
+Expr : //<--
     P6
+    {
+        struct node *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct node) {
+            .type = Expr,
+            .child = $1,
+            .sibling = NULL
+        }
+        $$ = s
+    }
 ;
 
-Factor :
-    "("Expr")"
-|   negate id
-|   number 
-|   logic
-|   text
-|   List
-|   Id
+Factor : // <-----
+    '('Expr')' {
+        struct node *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct node) {
+            .type = Factor,
+            .child = $2,
+            .sibling = NULL
+        }
+        $$ = s
+        }
+    |   negate id // <---
+    |   number 
+    |   logic 
+    |   text
+    |   List 
+    |   Id 
+    {
+        struct node *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct node) {
+            .type = Factor,
+            .child = $1,
+            .sibling = NULL
+        }
+        $$ = s
+    }
 ;
 
 P0 :
@@ -154,40 +313,40 @@ P0 :
 ;
 
 P1 :
-    P1 multiplication P0
-|   P1 division P0
-|   P1 modulus P0
-|   P0
+    P1 multiplication P0 {$$ = $1 * $3}
+|   P1 division P0 {$$ = $1 / $3}
+|   P1 modulus P0 {$$ = $1 % $3}
+|   P0 {$$ = $1}
 ;
 
 P2 :
-    P2 addition P1
-|   P2 subtraction P1
-|   P1
+    P2 addition P1 {$$ = $1 + $3}
+|   P2 subtraction P1 {$$ = $1 - $3}
+|   P1 {$$ = $1}
 ;
 
 P3 :
-    P3 gt P2
-|   P3 lt P2
-|   P3 gteq P2
-|   P3 lteq P2
-|   P2
+    P3 gt P2 {$$ = $1 > $3}
+|   P3 lt P2 {$$ = $1 < $3}
+|   P3 gteq P2 {$$ = $1 >= $3}
+|   P3 lteq P2 {$$ = $1 <= $3}
+|   P2 {$$ = $1}
 ;
 
 P4 :
-    P4 eq P3
-|   P4 neq P3
-|   P3
+    P4 eq P3 {$$ = $1 == $3}
+|   P4 neq P3 {$$ = $1 != $3}
+|   P3 {$$ = $1}
 ;
 
 P5 :
-    P5 and P4
-|   P4
+    P5 and P4 {$$ = $1 &  $3}
+|   P4 {$$ = $1}
 ;
 
 P6 :
-    P6 or P5
-|   P5
+    P6 or P5 {$$ = $1 | $3}
+|   P5 {$$ = $1}
 ;
 
 Assign :
@@ -200,7 +359,7 @@ Initialization :
 
 AssignInitialization :
     assignoperator Expr
-|   /* empty */
+|   %empty
 ;
 
 Id :
@@ -212,11 +371,11 @@ Dot :
 ;
 
 Call :
-	"(" Args ")"
+	'(' Args ')' 
 ;
 
 Index :
-	"[" Expr "]"
+	'[' Expr ']' //<---
 ;
 
 IdMutation:
@@ -226,18 +385,73 @@ IdMutation:
 |   /* empty */
 ;
 
-List :
-    "["Exprs"]"
+List :  //maybe?
+    '['Exprs']' 
+    {
+        struct list *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct list) {
+            .id = NULL;
+            .size = $2.count;
+            .type = $2.type;
+            .firstChild = $2; 
+        };
+
+
+        $$ = s
+    }
 ;
+
 
 Type :
-    numberdcl    
-|   logicdcl    
+    numberdcl 
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = number,
+            .child = NULL  
+        }
+        $$ = s
+    }
+|   logicdcl
+{
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = logic,
+            .child = NULL  
+        }
+        $$ = s
+    }    
 |   textdcl
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = text,
+            .child = NULL  
+        }
+        $$ = s
+    }
 |   listdcl Type
+    {
+        struct varType *s = malloc(sizeof *s);
+        if (!s) YYNOMEM;
+
+        *s =(struct varType) {
+            .type = list,
+            .child = $2  
+        }
+        $$ = s
+    }
 ;
 
-%%
 
+%%
 
 
