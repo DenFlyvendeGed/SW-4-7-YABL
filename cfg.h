@@ -10,7 +10,7 @@ typedef union {
 	struct Typedcl* list;
 	BasicTypes type;
 } TypeValue;
-typedef struct {
+typedef struct Typedcl{
 	Nonterminals nonterminal;	
 	TypeValue typeval;	
 } Type;
@@ -166,7 +166,7 @@ typedef struct {
 
 typedef struct {
 	LoopType loop_type;	
-} RepeateLoop;
+} RepeatLoop;
 
 
 /// Initialization
