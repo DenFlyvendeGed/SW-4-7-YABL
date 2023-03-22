@@ -1,4 +1,4 @@
-CFLAGS :=
+CFLAGS := -g
 
 
 DESTINATION := ./.target
@@ -19,14 +19,14 @@ $(DESTINATION):
 
 # Main	
 yabl : $(DESTINATION) $(OFILES) $(OMAIN)
-	gcc -o $@ $(OFILES) $(OMAIN)
+	gcc -o $@ $(OFILES) $(OMAIN) $(CFLAGS)
 
 clean:
 	rm -rf $(DESTINATION)
 
 #Test
 test : $(DESTINATION) $(OFILES) $(OTEST) 
-	gcc -o $@ $(OFILES) $(OTEST)
+	gcc -o $@ $(OFILES) $(OTEST) $(CFLAGS)
 
 $(DESTINATION)/%.o : %.c 
 	gcc -c -o $@ $^ $(CFLAGS)
