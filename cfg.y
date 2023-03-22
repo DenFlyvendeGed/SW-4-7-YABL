@@ -17,7 +17,7 @@
 {
     int int;
     char *string;
-    struct Func *Func;
+    struct Func *Function;
     struct TypeValue *TypeValue;
     struct Type *Type;
     struct Repeatable *Repeatable;
@@ -55,16 +55,20 @@
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %type
-%type<ifStatement> If 
-%type<var> Assign
-%type<event> Event SetupEvent TurnEvent CloseEvent 
-%type<function> Func
-%type<stmtList> Scope Funcs Stmts Exprs Args AfterElse AfterIf
-%type<loop> Repeat
-%type<varType> Type ReturnsType
-%type<node> Id Factor Expr //expresion skal nok væk
-%type<list> List 
-%type<int> P1 P2 //<-- might be string :(
+%type<IfStmt> If 
+%type<Variable> Assign
+%type<Event> Event SetupEvent TurnEvent CloseEvent 
+%type<Function> Func
+%type<Repeatable>  Funcs Stmts Exprs Args Scope
+%type AfterElse AfterIf
+%type<IdMutation> IdMutation
+%type Index
+%type Call
+%type<Repeat> Repeat
+%type<TypeValue> Type ReturnsType
+%type<Expr> Id Factor Expr //expresion skal nok væk
+%type List 
+%type<> P1 P2 //<-- might be string :(
 %type<int> P3 P4 P5 P6 //bool
 
 
@@ -92,7 +96,7 @@ PreableBracets:
 |   /* empty */
 ;
 
-PreableBracets:
+PreambleBracets:
 	number
 |   /* empty */
 ;
@@ -367,7 +371,7 @@ Id :
 ;
 
 Dot :
-	"." Id
+	'.' Id
 ;
 
 Call :
@@ -380,6 +384,10 @@ Index :
 
 IdMutation:
 	Call IdMutation
+    {
+        ($1)->type = $2;
+        $$ = $1;
+    }
 |   Index IdMutation
 |   Dot
 |   /* empty */
@@ -388,18 +396,7 @@ IdMutation:
 List :  //maybe?
     '['Exprs']' 
     {
-        struct list *s = malloc(sizeof *s);
-        if (!s) YYNOMEM;
-
-        *s =(struct list) {
-            .id = NULL;
-            .size = $2.count;
-            .type = $2.type;
-            .firstChild = $2; 
-        };
-
-
-        $$ = s
+        $$ = NULL //Create List 
     }
 ;
 
@@ -407,21 +404,21 @@ List :  //maybe?
 Type :
     numberdcl 
     {
-        struct varType *s = malloc(sizeof *s);
+        struct Typedcl *s = malloc(sizeof *s);
         if (!s) YYNOMEM;
 
-        *s =(struct varType) {
+        *s =(struct TypeValue) {
             .type = number,
             .child = NULL  
         }
         $$ = s
     }
 |   logicdcl
-{
-        struct varType *s = malloc(sizeof *s);
+    {
+        struct TypeValue *s = malloc(sizeof *s);
         if (!s) YYNOMEM;
 
-        *s =(struct varType) {
+        *s =(struct TypeValue) {
             .type = logic,
             .child = NULL  
         }
@@ -429,23 +426,23 @@ Type :
     }    
 |   textdcl
     {
-        struct varType *s = malloc(sizeof *s);
+        struct TypeValue *s = malloc(sizeof *s);
         if (!s) YYNOMEM;
 
-        *s =(struct varType) {
+        *s =(struct TypeValue) {
             .type = text,
-            .child = NULL  
+            .list = NULL  
         }
         $$ = s
     }
 |   listdcl Type
     {
-        struct varType *s = malloc(sizeof *s);
+        struct TypeValue *s = malloc(sizeof *s);
         if (!s) YYNOMEM;
 
-        *s =(struct varType) {
+        *s =(struct TypeValue) {
             .type = list,
-            .child = $2  
+            .list = $2  
         }
         $$ = s
     }

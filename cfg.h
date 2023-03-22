@@ -1,10 +1,10 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation} Nonterminals;
 
 
 
-typedef enum {number, text, logic} BasicTypes;
+typedef enum {number, text, logic, list} BasicTypes;
 struct Typedcl;
 typedef union {
 	struct Typedcl* list;
@@ -127,7 +127,7 @@ typedef struct{
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
-	IdMutations id_mutation;	
+	IdMutations id_mutation;
 	void* child;
 } IdMutation;
 
