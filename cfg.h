@@ -1,6 +1,6 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization} Nonterminals;
 
 
 
@@ -35,32 +35,32 @@ typedef struct {
 } Repeatable;
 
 typedef Repeatable Exprs;
-Exprs create_exprs();
-void  destroy_exprs();
+Exprs createExprs();
+void  destroyExprs();
 
 typedef Repeatable Stmts;
-Stmts create_stmts();
-void destroy_stmts();
+Stmts createStmts();
+void destroyStmts();
 
 typedef Repeatable Scope;
-Scope create_scope();
-void destroy_scope();
+Scope createScope();
+void destroyScope();
 
 typedef Repeatable Args;
-Args create_args();
-void destroy_args();
+Args createArgs();
+void destroyArgs();
 
 typedef Repeatable Funcs;
-Funcs create_funcs();
-void  destroy_funcs();
+Funcs createFuncs();
+void  destroyFuncs();
 
 typedef Repeatable ListConstant;
-ListConstant create_funcs();
-void destroy_funcs();
+ListConstant createFuncs();
+void destroyFuncs();
 
 typedef Repeatable Preambles;
-Funcs create_preambles();
-void  destroy_preambles();
+Funcs createPreambles();
+void  destroyPreambles();
 
 typedef char* Id;
 
@@ -82,6 +82,9 @@ typedef struct Expr{
 	ExprType expr_type;
 	void* child;
 } Expr;
+
+
+
 typedef enum {
 	bo_plus, bo_minus, bo_divsion, bo_mul, bo_modulus, 
 	bo_not, bo_eq, bo_neq, bo_gt, bo_gteq, bo_lt, bo_lteq,
@@ -225,4 +228,7 @@ typedef struct {
 	Nonterminals nonterminal;
 	YablList ids;
 } PreamblePlayers;
+
+Exprs exprsAddExpr(Exprs self, Expr expr);
+
 
