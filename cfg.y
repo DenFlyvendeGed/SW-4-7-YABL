@@ -5,6 +5,11 @@ void yyerror();
 
 %}
 
+%union {
+	char string[10];
+	int number;
+}
+
 
 %token returnskeyword funckeyword 
 %token id numberdcl logicdcl listdcl textdcl
@@ -16,7 +21,7 @@ void yyerror();
 
 %%
 Start : 
-    Preamble Setup
+    Preamble Funcs
 ;
 
 Preamble :
@@ -24,19 +29,26 @@ Preamble :
 ;
 
 Preambles :
-	setpreamble id PreableIds Preambles
-|   
+	setpreamble id Preambles
+|   /* empty */
 ;
 
 PreableIds :
-	id PreableIds
+	id PreableBracets PreableIds 
 |
 ;
 
-
-Setup :
-	Funcs 
+PreableBracets:
+	"[" PreableInsideBracets "]"
+|   /* empty */
 ;
+
+PreableInsideBracets:
+	number
+|   /* empty */
+;
+
+
 
 
 Funcs :
@@ -90,7 +102,7 @@ Stmt :
     Assign
 |   If
 |   repeat Repeat 
-|   Type id AssignInitialization
+|   Initialization AssignInitialization
 |   Scope
 |   Expr
 |   returnkeyword Expr
@@ -117,13 +129,13 @@ Condition :
 
 Repeat :
     whilekeyword Condition Scope
-|   number times Scope
-|   forkeyword id in id Scope
+|   Expr times Scope
+|   forkeyword id in Id Scope
 |   Scope
 ;
 
 Exprs :
-    Expr "," Exprs
+    Exprs "," Expr
 |   /* empty */
 ;
 
@@ -187,22 +199,25 @@ Assign :
     Id assignoperator Expr
 ;
 
+Initialization :
+	Type Id
+;
+
 AssignInitialization :
     assignoperator Expr
 |   /* empty */
 ;
 
 Id :
-   id IdMutation Dot
+   id IdMutation 
 ;
 
 Dot :
 	"." Id
-|   /* empty */
 ;
 
 Call :
-	"(" Args ")"
+	"(" Args ")" 
 ;
 
 Index :
@@ -210,8 +225,9 @@ Index :
 ;
 
 IdMutation:
-	Call IdMutation
+	Call IdMutation 
 |   Index IdMutation
+|   Dot 
 |   /* empty */
 ;
 
@@ -227,5 +243,6 @@ Type :
 ;
 
 %%
+
 
 

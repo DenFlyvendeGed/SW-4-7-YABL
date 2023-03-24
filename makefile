@@ -1,29 +1,38 @@
+CFLAGS := -g
+
+
 DESTINATION := ./.target
-export DESTINATION
+DATA_STRUCTURES:= $(DESTINATION)/data-structures
 OMAIN := $(DESTINATION)/main.o 
 OTEST := $(DESTINATION)/test.o 
-OFILES := $(shell find . -name "*.c" |  grep -o "[^/]*\.c" | grep -v -e "main\.c" -e "text\.c" | sed -E "s/\b(.*)\.c/\.target\/\1\.o/g")
-CFILES := $(shell find . -name "*.c" |  grep -o "[^/]*\.c" | grep -v -e "cfg\.tab\.c" -e "lex\.yy\.c" ) 
+OFILES := \
+	$(DESTINATION)/cfg.tab.o \
+	$(DESTINATION)/lex.yy.o \
+	$(DATA_STRUCTURES)/hashtable.o \
+	$(DATA_STRUCTURES)/list.o 
 
 $(DESTINATION):
-	mkdir $(DESTINATION)
-
-yabl : $(OFILES) $(OMAIN)
-	gcc -o $@ $^
-
-test : $(OFILES) $(OTEST)
-	gcc -o $@ $^
-	
+	if [ ! -d $(DESTINATION) ] ; then mkdir $(DESTINATION) ; fi;
+	if [ ! -d $(DATA_STRUCTURES) ] ; then mkdir $(DATA_STRUCTURES) ; fi
 
 
-$(DESTINATION)/main.o : main.c 
-	gcc -c -o $@ $^
 
-$(DESTINATION)/test.o : test.c
-	gcc -c -o $@ $^
+# Main	
+yabl : $(DESTINATION) $(OFILES) $(OMAIN)
+	gcc -o $@ $(OFILES) $(OMAIN) $(CFLAGS)
+
+clean:
+	rm -rf $(DESTINATION)
+
+#Test
+test : $(DESTINATION) $(OFILES) $(OTEST) 
+	gcc -o $@ $(OFILES) $(OTEST) $(CFLAGS)
+
+$(DESTINATION)/%.o : %.c 
+	gcc -c -o $@ $^ $(CFLAGS)
 
 $(DESTINATION)/%.o : $(DESTINATION)/%.c
-	gcc -c -o $@ $^
+	gcc -c -o $@ $^ $(CFLAGS)
 
 $(DESTINATION)/cfg.tab.c : cfg.y
 	bison -d -Wcounterexamples $^ -o $@
