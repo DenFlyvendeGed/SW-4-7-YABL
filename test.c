@@ -34,11 +34,11 @@ void doTest(char* name, int result){
 int main() {
 	printf("\x1b[1m~ RUNNING TESTS ~\x1b[0m\n");
 	test();
-	printf("\x1b[1m~ FINNISHED TESTS ~\x1b[0m\n");
-	printf("|-------------------|\n");
-	printf("| SUCCEDED | FAILED |\n");
-	printf("| %8d | %6d |\n", YABL_TEST_SUCCESS, YABL_TEST_FAILED);
-	printf("|-------------------|\n");
+	printf("\n\x1b[1m~ FINNISHED TESTS ~\x1b[0m\n");
+	printf("┌──────────┬────────┐\n");
+	printf("│ SUCCEDED │ FAILED │\n");
+	printf("│ %8d │ %6d │\n", YABL_TEST_SUCCESS, YABL_TEST_FAILED);
+	printf("└──────────┴────────┘\n");
 
 	return YABL_TEST_FAILED == 0 ? 0 : -1;
 }
