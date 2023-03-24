@@ -6,7 +6,7 @@ typedef struct YablHashNode {
 } YablHashNode;
 
 typedef struct YablHash {
-    int size_of_items;
+    int sizeOfList;
     void*** map; // idea is that this is the array itself
     int(*hashFunc)(char*);
     YablHashNode * first;

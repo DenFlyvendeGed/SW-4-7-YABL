@@ -1,4 +1,5 @@
 #include "hashtable.h"
+#include "list.h"
 #define SIZE 20
 
 typedef struct Node {
@@ -10,9 +11,10 @@ int hashFunc(char* key){
  return *key % SIZE;
 }
 
-YablHash yablHashCreate(int size_of_items) {
+YablHash yablHashCreate(int sizeOfList) {
     YablHash rtn;
-    rtn.map = malloc(sizeof(void **)*20);
+    rtn.sizeOfList;
+    rtn.map = malloc(sizeof(void **)*(rtn.sizeOfList));
     rtn.hashFunc = &hashFunc;
     return rtn;
 }
@@ -25,13 +27,17 @@ void* yablHashGet(YablHash* self, char* key){
 
 /// Puts the pointer in the hashmap
 void* yablHashPush(YablHash* self, char* key, char* key2, void* value){
-    if( !(self->map[self->hashFunc(key)]) ){
-        void** list = malloc(sizeof(void *)*20);
+    if( !(self->map[self->hashFunc(key)]) ){ // if there is no pointer at index
+        void** list = malloc(sizeof(value)*20);
         list[*key2] = value;
         self->map[self->hashFunc(key)] = list;
     }else{
-        void** list = self->map[self->hashFunc(key)];
+        void** list;
+        if(list[self->hashFunc(key2)]){
+           list= (void**)realloc(list, sizeof(value)*20+1);
+        }
         list[self->hashFunc(key2)] = value; 
+        self->map[self->hashFunc(key)] = list;
     }
 }
 
@@ -41,7 +47,7 @@ void* yablHashPushCpy(YablHash* self, char* key, void* value){
 }
 
 void yablHashDelete(YablHash *self) {
-    for (int i = 0; i < ((sizeof(self->map))/(sizeof(void**))); ++i) {
+    for (int i = 0; i < ((sizeof(self->map))/(sizeof(void**))); i++) {
         if(self->map[i]){
             free(self->map[i]);
         }
