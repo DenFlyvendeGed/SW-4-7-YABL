@@ -1,6 +1,6 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, listConstants, preambles, arg, event, ifstmt, repeatstmt, assign, initialization, returnstmt} Nonterminals;
 
 
 
@@ -79,7 +79,7 @@ typedef struct {
 typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expressoin} ExprType;
 typedef struct Expr{
 	Nonterminals nonterminal;
-	ExprType expr_type;
+	ExprType exprType;
 	void* child;
 } Expr;
 typedef enum {
@@ -127,7 +127,7 @@ typedef struct{
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
-	IdMutations id_mutation;	
+	IdMutations idMutation;	
 	void* child;
 } IdMutation;
 
@@ -176,6 +176,7 @@ typedef struct {
 	Id variable;
 } Initialization;
 
+
 /// assing
 typedef struct {
 	Nonterminals nonterminal;
@@ -187,11 +188,11 @@ typedef struct {
 typedef enum {event_setup, event_turn, event_close} Events;
 typedef struct {
 	Nonterminals nonterminal;
-	Events event_type;
+	Events eventType;
 	Scope scope;
 } Event;
 
-// Variable
+// Vblariable
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
@@ -207,7 +208,7 @@ typedef struct {
 
 typedef struct {
 	Nonterminals nonterminal;
-	struct {int x, y;} dimentions;
+	struct {int x, y;} dimensions;
 } PreambelBoard;
 
 typedef struct {
