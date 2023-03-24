@@ -6,7 +6,7 @@ void destroyList();
 
     // int int;
     // char *string;
-    
+
     //constant
     Constant createConstant()
     {
@@ -68,10 +68,10 @@ void destroyList();
     };
 
     // struct Repeatable *Repeatable;
-    Repeatable creatRepeatable()
+    Repeatable creatRepeatable(Nonterminals nonterminal)
     {
         Repeatable* p = malloc(sizeof(Repeatable));
-
+        p->nonterminal = nonterminal;
         return *p;  
     };
 
