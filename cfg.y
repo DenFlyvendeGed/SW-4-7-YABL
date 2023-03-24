@@ -99,6 +99,13 @@ PreambleBracets:
 |   /* empty */
 ;
 
+PreableInsideBracets:
+	number
+|   /* empty */
+;
+
+
+
 
 Funcs :
     Func Funcs
@@ -435,5 +442,6 @@ Type :
 
 
 %%
+
 
 

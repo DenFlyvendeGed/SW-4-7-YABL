@@ -41,7 +41,7 @@ void destroyList();
     Repeat createRepeat()
     {
         Repeat *p = malloc(sizeof(Repeat));
-        p->loop_type = lt_repeatloop;
+        
 
         return *p;
     };
@@ -135,7 +135,7 @@ void destroyList();
     {
         Event *p = malloc(sizeof(Event));
         p->nonterminal = event;
-        p->scope = NULL; //createList
+        
         return *p;
     };
     void destroyEvent(Event* p)
@@ -271,3 +271,4 @@ void destroyList();
     {
         destroyList(p->children);
     };
+

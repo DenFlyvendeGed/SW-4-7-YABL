@@ -10,6 +10,7 @@ typedef union {
 	struct Typedcl* list;
 	BasicTypes type;
 } TypeValue;
+
 typedef struct Typedcl{
 	Nonterminals nonterminal;	
 	TypeValue typeval;	
@@ -82,8 +83,6 @@ typedef struct Expr{
 	ExprType expr_type;
 	void* child;
 } Expr;
-
-
 
 typedef enum {
 	bo_plus, bo_minus, bo_divsion, bo_mul, bo_modulus, 
