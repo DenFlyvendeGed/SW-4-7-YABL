@@ -6,18 +6,300 @@ void destroyList();
 
     // int int;
     // char *string;
-    // struct Func *Function;
-    // struct TypeValue *TypeValue;
-    // struct Type *Type;
-    // struct Repeatable *Repeatable;
-    // struct Expr *Expr;
-    // struct BinaryOperator *BinaryOp;
-    // struct UnaryOperator *UnaryOp;
-    // struct IdMutationDot *IdMutationDot;
-    // struct IdMutationCall *IdMutationCall;
-    // struct IdMutationIndex *IdMutationIndex;
-    // struct IdMutation *IdMutation;
     
+    //constant
+    Constant createConstant()
+    {
+        Constant* p = malloc(sizeof(Constant));
+
+    };
+
+    void destroyConstant(Constant* p)
+    {
+        free(p);
+    };
+
+
+    // struct Func *Function;
+    Func createFunc()
+    {
+        Func* p = malloc(sizeof(Func));
+        p->nonterminal = func;
+
+        return *p;
+    };
+
+    void destroyFunc(Func* p)
+    {
+        destroyArgs(&(p->args));
+        destroyType(&(p->returntype));
+        destroyScope(&(p->scope));
+        free(p);
+    }
+
+    // struct TypeValue *TypeValue;
+    TypeValue createTypeValue()
+    {
+        TypeValue* p = malloc(sizeof(TypeValue));
+
+        return *p;
+    };
+
+    void destroyTypeValue(TypeValue* p)
+    {
+        if(p->type == list)
+            destroyType(&p->list);
+        free(p);
+    };
+
+    // struct Type *Type;
+    Type createType()
+    {
+        Type* p = malloc(sizeof(Type));
+        p->nonterminal = type;
+
+        return *p;
+    };
+
+    void destroyType(Type* p)
+    {
+        destroyTypeVal(&(p->typeval));
+        free(p);
+    };
+
+    // struct Repeatable *Repeatable;
+    Repeatable creatRepeatable()
+    {
+        Repeatable* p = malloc(sizeof(Repeatable));
+
+        return *p;  
+    };
+
+    void destroyRepeatable(Repeatable* p)
+    {
+        switch (p->nonterminal)
+        {
+        case exprs:
+            destroyExprs(&(p->children));
+            break;
+        case stmts:
+            destroyStmts(&(p->children));
+            break;
+        case scope:
+            destroyScope(&(p->children));
+            break;
+        case args:
+            destroyArgs(&(p->children));
+            break;
+
+        case funcs:
+            destroyFuncs(&(p->children));
+            break;
+        case listConstant:
+            destroyListConstant(&(p->children));
+            break;
+        case preambles:
+            destroyPreambles(&(p->children));
+            break;
+        default:
+            //error
+            break;
+        };
+        free(p);
+    };
+
+
+    // struct Expr *Expr;
+    Expr createExpr()
+    {
+        Expr* p = malloc(sizeof(Expr));
+        p->nonterminal = expr;
+
+        return *p;
+    }
+
+    void destroyExpr(Expr* p)
+    {
+        switch(p->expr_type)
+        {
+            case et_constant:
+                destroyConstant(&(p->child));
+                break;
+            case et_id_mutation:
+                destroyIdMutation(&(p->child));
+                break;
+            case et_unary_operator:
+                destroyUnaryOperator(&(p->child));
+                break;
+            case et_binary_operator:
+                destroyBinaryOperator(&(p->child));
+                break;
+            case et_expression:
+                destroyExpr(&(p->child));
+                break;
+        };
+        free(p);
+    };
+
+    // struct BinaryOperator *BinaryOp;
+    BinaryOperator createBinaryOperator()
+    {
+        BinaryOperator* p = malloc(sizeof(BinaryOperator));
+        p->nonterminal = binaryOperator;
+
+        return *p;
+    };
+
+    void destroyBinaryOperator(BinaryOperator* p)
+    {
+        destroyExpr(&(p->childExpr1));
+        destroyExpr(&(p->childExpr2));
+        free(p);
+    };
+
+
+    // struct UnaryOperator *UnaryOp;
+    UnaryOperator createUnaryOperator()
+    {
+        UnaryOperator *p = malloc(sizeof(UnaryOperator));
+        p->nonterminal = unaryOperator;
+
+        return *p;
+    };
+
+    void destroyUnaryOperator(UnaryOperator* p)
+    {
+        destroyExpr(&(p->child_expr));
+        free(p);
+    };
+
+    // struct IdMutationDot *IdMutationDot;
+    IdMutationDot createIdMutationDot()
+    {
+        IdMutationDot *p = malloc(sizeof(IdMutationDot));
+        p->child_type = im_none;
+
+        return *p;
+    };
+
+    void destroyIdMutationDot(IdMutationDot* p)
+    {
+         switch(p->child_type)
+        {
+            case im_none:
+                free(p);
+                break;
+            case im_dot:
+                destroyIdMutationDot(&(p->child));
+                free(p);
+                break;
+            case im_call:
+                destroyIdMutationCall(&(p->child));
+                free(p);
+                break;
+            case im_index:
+                destroyIdMutationIndex(&(p->child));
+                free(p);
+        };
+    };
+
+
+    // struct IdMutationCall *IdMutationCall;
+    IdMutationCall createIdMutationCall()
+    {
+        IdMutationCall *p = malloc(sizeof(IdMutationCall));
+        p->child_type = im_none;
+
+        return *p;
+    };
+
+    void destroyIdMutationCall(IdMutationCall* p)
+    {
+        destroyArgs(&(p->args));
+        switch(p->child_type)
+        {
+            case im_none:
+                free(p);
+                break;
+            case im_dot:
+                destroyIdMutationDot(&(p->child));
+                free(p);
+                break;
+            case im_call:
+                destroyIdMutationCall(&(p->child));
+                free(p);
+                break;
+            case im_index:
+                destroyIdMutationIndex(&(p->child));
+                free(p);
+        };
+
+    };
+
+
+    // struct IdMutationIndex *IdMutationIndex;
+    IdMutationIndex createIdMutationIndex()
+    {
+        IdMutationIndex *p = malloc(sizeof(IdMutationIndex));
+        p->child_type = im_none;
+
+        return *p;
+    };
+
+    void destroyIdMutatuinIndex(IdMutationIndex* p)
+    {
+        destroyExpr(&(p->index));
+        switch(p->child_type)
+        {
+            case im_none:
+                free(p);
+                break;
+            case im_dot:
+                destroyIdMutationDot(&(p->child));
+                free(p);
+                break;
+            case im_call:
+                destroyIdMutationCall(&(p->child));
+                free(p);
+                break;
+            case im_index:
+                destroyIdMutationIndex(&(p->child));
+                free(p);
+        };
+    };
+
+
+
+    // struct IdMutation *IdMutation;
+    IdMutation createIdMutation()
+    {
+        IdMutation *p = malloc(sizeof(IdMutation));
+        p->nonterminal = idMutation;
+        p->id_mutation = im_none;
+        return *p;
+    };
+
+    void destroyIdMutation(IdMutation* p)
+    {
+        switch(p->id_mutation)
+        {
+            case im_none:
+                free(p);
+                break;
+            case im_dot:
+                destroyIdMutationDot(&(p->child));
+                free(p);
+                break;
+            case im_call:
+                destroyIdMutationCall(&(p->child));
+                free(p);
+                break;
+            case im_index:
+                destroyIdMutationIndex(&(p->child));
+                free(p);
+        };
+    };
+
 
     // struct IfStmt *IfStmt;
     IfStmt createIfStmt()

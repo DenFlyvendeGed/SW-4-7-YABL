@@ -1,6 +1,6 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization, unaryOperator, binaryOperator, exprs, stmts, scope, args, funcs, listConstant, preambles, type} Nonterminals;
 
 
 
@@ -76,7 +76,7 @@ typedef struct {
 
 // Expr
 
-typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expressoin} ExprType;
+typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expression} ExprType;
 typedef struct Expr{
 	Nonterminals nonterminal;
 	ExprType expr_type;
@@ -89,9 +89,10 @@ typedef enum {
 } BinaryOperators;
 
 typedef struct {
+	Nonterminals nonterminal;
 	BinaryOperators bo;
-	Expr child_expr1;
-	Expr child_expr2;
+	Expr childExpr1;
+	Expr childExpr2;
 } BinaryOperator;
 
 typedef enum {
@@ -99,6 +100,7 @@ typedef enum {
 } UnaryOperators;
 
 typedef struct {
+	Nonterminals nonterminal;
 	UnaryOperators uo;
 	Expr child_expr;
 } UnaryOperator;
