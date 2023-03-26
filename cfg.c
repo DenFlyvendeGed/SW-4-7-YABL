@@ -8,7 +8,7 @@ void destroyList();
     // char *string;
 
     //constant
-    Constant createConstant()
+    Constant createConstant(Number num, Logic bool, char* Text) //<------
     {
         Constant* p = malloc(sizeof(Constant));
 
@@ -21,10 +21,14 @@ void destroyList();
 
 
     // struct Func *Function;
-    Func createFunc()
+    Func createFunc(Id name, Args funcArgs, Type returnType, Scope funcScope)
     {
         Func* p = malloc(sizeof(Func));
         p->nonterminal = func;
+        p->name = name;
+        p->args = funcArgs;
+        p->returntype = returnType;
+        p->scope = funcScope;
 
         return *p;
     };
@@ -38,10 +42,16 @@ void destroyList();
     }
 
     // struct TypeValue *TypeValue;
-    TypeValue createTypeValue()
+    TypeValue createTypeValue(BasicTypes varType, Type* listChild) //<--------
     {
         TypeValue* p = malloc(sizeof(TypeValue));
-
+        if(varType != NULL)
+            p->type = varType;
+        else if(listChild != NULL)
+            p->list = listChild;
+        else
+            //error
+            ;
         return *p;
     };
 
@@ -53,11 +63,11 @@ void destroyList();
     };
 
     // struct Type *Type;
-    Type createType()
+    Type createType(TypeValue value)
     {
         Type* p = malloc(sizeof(Type));
         p->nonterminal = type;
-
+        p->typeval = value;
         return *p;
     };
 
@@ -68,10 +78,11 @@ void destroyList();
     };
 
     // struct Repeatable *Repeatable;
-    Repeatable creatRepeatable(Nonterminals nonterminal)
+    Repeatable creatRepeatable(Nonterminals nonterminal, YablList list)
     {
         Repeatable* p = malloc(sizeof(Repeatable));
         p->nonterminal = nonterminal;
+        p->children = list;
         return *p;  
     };
 
@@ -110,17 +121,19 @@ void destroyList();
 
 
     // struct Expr *Expr;
-    Expr createExpr()
+    Expr createExpr(ExprType ExprType, void* child)
     {
         Expr* p = malloc(sizeof(Expr));
         p->nonterminal = expr;
+        p->child = child;
+
 
         return *p;
     }
 
     void destroyExpr(Expr* p)
     {
-        switch(p->expr_type)
+        switch(p->exprType)
         {
             case et_constant:
                 destroyConstant(&(p->child));
@@ -142,10 +155,13 @@ void destroyList();
     };
 
     // struct BinaryOperator *BinaryOp;
-    BinaryOperator createBinaryOperator()
+    BinaryOperator createBinaryOperator(BinaryOperators bOp, Expr childExpr1, Expr childExpr2)
     {
         BinaryOperator* p = malloc(sizeof(BinaryOperator));
         p->nonterminal = binaryOperator;
+        p->bo = bOp;
+        p->childExpr1 = childExpr1;
+        p->childExpr2 = childExpr2;
 
         return *p;
     };
@@ -159,32 +175,36 @@ void destroyList();
 
 
     // struct UnaryOperator *UnaryOp;
-    UnaryOperator createUnaryOperator()
+    UnaryOperator createUnaryOperator(UnaryOperators uOp, Expr childExpr)
     {
         UnaryOperator *p = malloc(sizeof(UnaryOperator));
         p->nonterminal = unaryOperator;
+        p->childExpr = childExpr;
+        p->uo = uOp;
 
         return *p;
     };
 
     void destroyUnaryOperator(UnaryOperator* p)
     {
-        destroyExpr(&(p->child_expr));
+        destroyExpr(&(p->childExpr));
         free(p);
     };
 
     // struct IdMutationDot *IdMutationDot;
-    IdMutationDot createIdMutationDot()
+    IdMutationDot createIdMutationDot(IdMutations childType, void* child, Id name)
     {
         IdMutationDot *p = malloc(sizeof(IdMutationDot));
-        p->child_type = im_none;
+        p->childType = childType;
+        p->child = child;
+        p->name = name;
 
         return *p;
     };
 
     void destroyIdMutationDot(IdMutationDot* p)
     {
-         switch(p->child_type)
+         switch(p->childType)
         {
             case im_none:
                 free(p);
@@ -205,18 +225,19 @@ void destroyList();
 
 
     // struct IdMutationCall *IdMutationCall;
-    IdMutationCall createIdMutationCall()
+    IdMutationCall createIdMutationCall(IdMutations childType, void* child, Args mutationArgs)
     {
         IdMutationCall *p = malloc(sizeof(IdMutationCall));
-        p->child_type = im_none;
-
+        p->childType = childType;
+        p->child = child;
+        p->args = mutationArgs;
         return *p;
     };
 
     void destroyIdMutationCall(IdMutationCall* p)
     {
         destroyArgs(&(p->args));
-        switch(p->child_type)
+        switch(p->childType)
         {
             case im_none:
                 free(p);
@@ -238,10 +259,12 @@ void destroyList();
 
 
     // struct IdMutationIndex *IdMutationIndex;
-    IdMutationIndex createIdMutationIndex()
+    IdMutationIndex createIdMutationIndex(IdMutations childType, void* child, Expr index)
     {
         IdMutationIndex *p = malloc(sizeof(IdMutationIndex));
-        p->child_type = im_none;
+        p->childType = childType;
+        p->child = child;
+        p->index = index;
 
         return *p;
     };
@@ -249,7 +272,7 @@ void destroyList();
     void destroyIdMutatuinIndex(IdMutationIndex* p)
     {
         destroyExpr(&(p->index));
-        switch(p->child_type)
+        switch(p->childType)
         {
             case im_none:
                 free(p);
@@ -271,17 +294,19 @@ void destroyList();
 
 
     // struct IdMutation *IdMutation;
-    IdMutation createIdMutation()
+    IdMutation createIdMutation(Id name, void* child, IdMutations mutationType)
     {
         IdMutation *p = malloc(sizeof(IdMutation));
         p->nonterminal = idMutation;
-        p->id_mutation = im_none;
+        p->idMutation = mutationType;
+        p->name = name;
+        p->child = child;
         return *p;
     };
 
     void destroyIdMutation(IdMutation* p)
     {
-        switch(p->id_mutation)
+        switch(p->idMutation)
         {
             case im_none:
                 free(p);
@@ -302,10 +327,13 @@ void destroyList();
 
 
     // struct IfStmt *IfStmt;
-    IfStmt createIfStmt()
+    IfStmt createIfStmt(Exprs cond, Scope condTrue, Scope condFalse)
     {
         IfStmt *p = malloc(sizeof(IfStmt));
         p->nonterminal = ifstmt;
+        p->condition = cond;
+        p->then = condTrue;
+        p->elsestmt = condFalse;
 
         return *p;
     };
@@ -320,33 +348,39 @@ void destroyList();
 
 
     // struct Repeat *Repeat;
-    Repeat createRepeat()
+    Repeat createRepeat(void* loop, Scope repeatScope)
     {
         Repeat *p = malloc(sizeof(Repeat));
-        p->loop_type = lt_repeatloop;
-
+        p->nonterminal = repeat;
+        p->loopType = loop;
+        p->scope = repeatScope;
         return *p;
     };
+
+    //<--------------------------------- destroy??
 
     // struct TimesLoop *TimesLoop;
-    TimesLoop createTimesLoop()
+    TimesLoop createTimesLoop(Expr goal)
     {
         TimesLoop *p = malloc(sizeof(TimesLoop));
-        p->loop_type = lt_timesloop;
+        p->loopType = lt_timesloop;
+        p->goal = goal;
 
         return *p;
     };
 
-    destroyTimesLoop(TimesLoop* p)
+    void destroyTimesLoop(TimesLoop* p)
     {
         free(p);
     };
 
     // struct ForLoop *ForLoop;
-    ForLoop createForLoop()
+    ForLoop createForLoop(Id varName, Id inputName)
     {
         ForLoop *p = malloc(sizeof(ForLoop));
-        p->loop_type = lt_forloop;
+        p->loopType = lt_forloop;
+        p->variable_name = varName;
+        p->input_name = inputName;
 
         return *p;
     };
@@ -357,11 +391,11 @@ void destroyList();
     };
 
     // struct whileLoop *whileLoop;
-    WhileLoop createWhileLoop()
+    WhileLoop createWhileLoop(Expr cond)
     {
         WhileLoop *p = malloc(sizeof(WhileLoop));
-        p->loop_type = lt_whileloop;
-
+        p->loopType = lt_whileloop;
+        p->condition = cond;
         return *p;
     };
 
@@ -375,7 +409,7 @@ void destroyList();
     RepeatLoop createRepeatLoop()
     {
         RepeatLoop *p = malloc(sizeof(RepeatLoop));
-        p->loop_type = lt_repeatloop;
+        p->loopType = lt_repeatloop;
 
         return *p;
     };
@@ -386,13 +420,16 @@ void destroyList();
     };
 
     // struct Initialization *Initialization;
-    Initialization createInitialization()
+    Initialization createInitialization(Id var, Type varType)
     {
         Initialization *p = malloc(sizeof(Initialization));
         p->nonterminal = initialization;
+        p->type = varType;
+        p->variable = var;
 
         return *p;
     };
+
     destroyInitialization(Initialization* p)
     {
         destroyType(&(p->type));
@@ -400,11 +437,14 @@ void destroyList();
     };
 
     // struct Assign *Assign;
-    Assign createAssign()
+    Assign createAssign(Id var, Expr exp)
     {
         Assign *p = malloc(sizeof(Assign));
         p->nonterminal = assign;
+        p->variable = var;
+        p->expression = exp;
 
+        return *p;
     };
     void destroyAssign(Assign* p)
     {
@@ -413,11 +453,12 @@ void destroyList();
     }
 
     // struct Event *Event;
-    Event createEvent()
+    Event createEvent(Scope eventScope, Events eventType)
     {
         Event *p = malloc(sizeof(Event));
         p->nonterminal = event;
-        p->scope = NULL; //createList
+        p->scope = eventScope;
+        p->eventType = eventType;
         return *p;
     };
     void destroyEvent(Event* p)
@@ -427,11 +468,12 @@ void destroyList();
     };
 
     // struct Variable *Variable;
-    Variable createVariable()
+    Variable createVariable(Id name, Type type)
     {
         Variable *p = malloc(sizeof(Variable));
         p->nonterminal = variable;
-
+        p->name = name;
+        p->type = type;
         return *p;
     };
 
@@ -458,13 +500,12 @@ void destroyList();
 
 
     // typedef Repeatable Exprs;
-     Exprs createExprs() 
-     {
+    Exprs createExprs() 
+    {
         Exprs *p = malloc(sizeof(Exprs));
         p->nonterminal = expr;
-        p->children = NULL; //createList
         return *p;
-     };
+    };
     void  destroyExprs(Exprs* p)
     {
         destroyList(p->children);
@@ -475,7 +516,6 @@ void destroyList();
      {
         Stmts *p = malloc(sizeof(Stmts));
         p->nonterminal = stmts;
-        p->children = NULL; //CreateList
 
         return *p;
      };
@@ -489,7 +529,6 @@ void destroyList();
     {
         Scope *p = malloc(sizeof(Scope));
         p->nonterminal = scope;
-        p->children = NULL; //CreateList
 
         return *p;
     };
@@ -503,7 +542,6 @@ void destroyList();
     {
      Args *p = malloc(sizeof(Args));
         p->nonterminal = args;
-        p->children = NULL; //CreateList
 
         return *p;
     };
@@ -517,7 +555,6 @@ void destroyList();
     {
         Funcs *p = malloc(sizeof(Funcs));
         p->nonterminal = funcs;
-        p->children = NULL; //CreateList
 
         return *p;
     };
@@ -530,9 +567,7 @@ void destroyList();
     ListConstant createListConstant()
     {
         ListConstant *p = malloc(sizeof(ListConstant));
-        p->nonterminal = list; //??
-        p->children = NULL; //CreateList
-
+        p->nonterminal = listConstants; //??
         return *p;
     };
     void destroyListConstant(ListConstant* p)
@@ -544,8 +579,7 @@ void destroyList();
     Funcs createPreambles()
     {
         Funcs *p = malloc(sizeof(Funcs));
-        p->nonterminal = funcs;
-        p->children = NULL; //CreateList
+        p->nonterminal = preambles;
 
         return *p;
     };
