@@ -1,6 +1,6 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization, unaryOperator, binaryOperator, exprs, stmts, listConstants, scope, args, funcs, listConstant, preambles, type, repeat} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, repeat} Nonterminals;
 
 
 
@@ -12,7 +12,7 @@ typedef union {
 } TypeValue;
 typedef struct Typedcl{
 	Nonterminals nonterminal;	
-	TypeValue typeval;	
+	TypeValue* typeval;	
 } Type;
 
 // Constants
@@ -31,7 +31,7 @@ typedef union {
 // Repeatables 
 typedef struct {
 	Nonterminals nonterminal;
-	YablList children;
+	YablList* children;
 } Repeatable;
 
 typedef Repeatable Exprs;
@@ -69,9 +69,9 @@ typedef char* Id;
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
-	Args args;
-	Type returntype;
-	Scope scope;
+	Args* args;
+	Type* returntype;
+	Scope* scope;
 } Func;
 
 // Expr
@@ -91,8 +91,8 @@ typedef enum {
 typedef struct {
 	Nonterminals nonterminal;
 	BinaryOperators bo;
-	Expr childExpr1;
-	Expr childExpr2;
+	Expr* childExpr1;
+	Expr* childExpr2;
 } BinaryOperator;
 
 typedef enum {
@@ -102,7 +102,7 @@ typedef enum {
 typedef struct {
 	Nonterminals nonterminal;
 	UnaryOperators uo;
-	Expr childExpr;
+	Expr* childExpr;
 } UnaryOperator;
 
 // Id Mutation
@@ -115,13 +115,13 @@ typedef struct{
 } IdMutationDot;
 
 typedef struct{
-	Args args;
+	Args* args;
 	IdMutations childType;
 	void* child;
 } IdMutationCall;
 
 typedef struct{
-	Expr index;
+	Expr* index;
 	IdMutations childType;
 	void* child;
 } IdMutationIndex;
@@ -136,9 +136,9 @@ typedef struct {
 /// if
 typedef struct {
 	Nonterminals nonterminal;
-	Exprs condition;
-	Scope then;
-	Scope elsestmt;
+	Exprs* condition;
+	Scope* then;
+	Scope* elsestmt;
 } IfStmt;
 
 /// repeat
@@ -146,12 +146,12 @@ typedef enum {lt_timesloop, lt_forloop, lt_whileloop, lt_repeatloop} LoopType;
 typedef struct {
 	Nonterminals nonterminal;
 	void * loopType; //change name??
-	Scope scope;
+	Scope* scope;
 } Repeat;
 
 typedef struct {
 	LoopType loopType;	
-	Expr goal;	
+	Expr* goal;	
 } TimesLoop;
 
 typedef struct {
@@ -163,7 +163,7 @@ typedef struct {
 
 typedef struct {
 	LoopType loopType;	
-	Expr condition;
+	Expr* condition;
 } WhileLoop;
 
 typedef struct {
@@ -174,7 +174,7 @@ typedef struct {
 /// Initialization
 typedef struct {
 	Nonterminals nonterminal;
-	Type type;
+	Type* type;
 	Id variable;
 } Initialization;
 
@@ -182,29 +182,29 @@ typedef struct {
 typedef struct {
 	Nonterminals nonterminal;
 	Id variable;
-	Expr expression;
+	Expr* expression;
 } Assign;
 
 // Events
 typedef enum {event_setup, event_turn, event_close} Events;
 typedef struct {
 	Nonterminals nonterminal;
-	Events eventType;
-	Scope scope;
+	Events* eventType;
+	Scope* scope;
 } Event;
 
 // Variable
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
-	Type type;
+	Type* type;
 } Variable;
 
 // Preamble
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;
-	YablList ids;
+	YablList* ids;
 } Preamble;
 
 typedef struct {
@@ -220,58 +220,58 @@ typedef struct {
 
 typedef struct {
 	Nonterminals nonterminal;
-	YablList tile_items;
+	YablList* tile_items;
 } PreambelTile;
 
 typedef struct {
 	Nonterminals nonterminal;
-	YablList ids;
+	YablList* ids;
 } PreamblePlayers;
 
 
 Constant createConstant(Number num, Logic bool, char* Text);
 void destroyConstant(Constant* p);
-Func createFunc(Id name, Args funcArgs, Type returnType, Scope funcScope);
+Func createFunc(Id name, Args* funcArgs, Type* returnType, Scope* funcScope);
 void destroyFunc(Func* p);
 TypeValue createTypeValue(BasicTypes varType, Type* listChild);
 void destroyTypeValue(TypeValue* p);
-Type createType(TypeValue value);
+Type createType(TypeValue* value);
 void destroyType(Type* p);
-Repeatable creatRepeatable(Nonterminals nonterminal, YablList list);
+Repeatable creatRepeatable(Nonterminals nonterminal, YablList* list);
 void destroyRepeatable(Repeatable* p);
 Expr createExpr(ExprType ExprType, void* child);
 void destroyExpr(Expr* p);
-BinaryOperator createBinaryOperator(BinaryOperators bOp, Expr childExpr1, Expr childExpr2);
+BinaryOperator createBinaryOperator(BinaryOperators bOp, Expr* childExpr1, Expr* childExpr2);
 void destroyBinaryOperator(BinaryOperator* p);
-UnaryOperator createUnaryOperator(UnaryOperators uOp, Expr childExpr);
+UnaryOperator createUnaryOperator(UnaryOperators uOp, Expr* childExpr);
 void destroyUnaryOperator(UnaryOperator* p);
 IdMutationDot createIdMutationDot(IdMutations childType, void* child, Id name);
 void destroyIdMutationDot(IdMutationDot* p);
-IdMutationCall createIdMutationCall(IdMutations childType, void* child, Args mutationArgs);
+IdMutationCall createIdMutationCall(IdMutations childType, void* child, Args* mutationArgs);
 void destroyIdMutationCall(IdMutationCall* p);
-IdMutationIndex createIdMutationIndex(IdMutations childType, void* child, Expr index);
+IdMutationIndex createIdMutationIndex(IdMutations childType, void* child, Expr* index);
 void destroyIdMutatuinIndex(IdMutationIndex* p);
 IdMutation createIdMutation(Id name, void* child, IdMutations mutationType);
 void destroyIdMutation(IdMutation* p);
-IfStmt createIfStmt(Exprs cond, Scope condTrue, Scope condFalse);
+IfStmt createIfStmt(Exprs* cond, Scope* condTrue, Scope* condFalse);
 void destroyIfStmt(IfStmt* p);
-Repeat createRepeat(void* loop, Scope repeatScope);
+Repeat createRepeat(void* loop, Scope* repeatScope);
 
-TimesLoop createTimesLoop(Expr goal);
+TimesLoop createTimesLoop(Expr* goal);
 void destroyTimesLoop(TimesLoop* p);
 ForLoop createForLoop(Id varName, Id inputName);
 void destroyForLoop(ForLoop *p);
-WhileLoop createWhileLoop(Expr cond);
+WhileLoop createWhileLoop(Expr* cond);
 void destroyWhileloop(WhileLoop* p);
 RepeatLoop createRepeatLoop();
 void destroyRepeatLoop(RepeatLoop* p);
-Initialization createInitialization(Id var, Type varType);
-destroyInitialization(Initialization* p);
-Assign createAssign(Id var, Expr exp);
+Initialization createInitialization(Id var, Type* varType);
+void destroyInitialization(Initialization* p);
+Assign createAssign(Id var, Expr* exp);
 void destroyAssign(Assign* p);
-Event createEvent(Scope eventScope, Events eventType);
+Event createEvent(Scope* eventScope, Events* eventType);
 void destroyEvent(Event* p);
-Variable createVariable(Id name, Type type);
+Variable createVariable(Id name, Type* type);
 void destroyVariable(Variable* p);
 
 Exprs createExprs();
