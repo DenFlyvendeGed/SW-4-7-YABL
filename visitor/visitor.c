@@ -1,5 +1,4 @@
-#include "../cfg.h"
-#include "../data-structures/list.h"
+#include "visitor.h"
 
 //Visitor function
 void visitor(){
