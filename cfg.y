@@ -118,7 +118,7 @@ Func :
 ;
 
 Event :
-	CloseEvent
+	CloseEvent 
 |   SetupEvent
 |   TurnEvent
 ;
@@ -138,31 +138,11 @@ SetupEvent :
 ;
 
 TurnEvent :
-	turnevent Scope
-        {
-        struct event *s = malloc(sizeof *s);
-        if (!s) YYNOMEM;
-
-        *s =(struct event) {
-            .type = turn,
-            .scope = $2,  
-        }
-        $$ = s
-    }
+	turnevent Scope { $$ = createTurnEvent(et_turn, $2); }
 ;
 
 CloseEvent :
-	closeevent Scope
-        {
-        struct event *s = malloc(sizeof *s);
-        if (!s) YYNOMEM;
-
-        *s =(struct event) {
-            .type = close,
-            .scope = $2,  
-        }
-        $$ = s
-    }
+	closeevent Scope { $$ = createEvent(et_close, $2); }
 ;
 
 
