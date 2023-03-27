@@ -46,15 +46,15 @@ void visitRepeatable(Repeatable* self){
 }
 
 void visitExprs(Exprs* self){
-    yabl_list_foreach(self->children, &visitExpr);
+    yabl_list_foreach(*self->children, &visitExpr);
 }
 
 void visitStmts(Stmts* self){
-    yabl_list_foreach(self->children,&visitStmt);
+    yabl_list_foreach(*self->children,&visitStmt);
 }
 
 void visitScope(Scope* self){
-    yabl_list_foreach(self->children, &visitScope);
+    yabl_list_foreach(*self->children, &visitScope);
 }
 
 void visitArgs(Args* self){
@@ -62,7 +62,7 @@ void visitArgs(Args* self){
 }
 
 void visitFuncs(Funcs* self){
-    yabl_list_foreach(self->children, &visitFunc);
+    yabl_list_foreach(*self->children, &visitFunc);
 }
 
 void visitListConstant(ListConstant* self){
@@ -90,7 +90,7 @@ void visitExpr(Expr* self){
     case et_binary_operator:
         visitBinaryOp(self->child);
         break;
-    case et_expressoin:
+    case et_expression:
         visitExpr(self->child);
         break;
     default:
@@ -102,22 +102,22 @@ void visitStmt(Nonterminals* self){
     switch (*self)
     {
     case assign:
-        visitAssign(self);
+        visitAssign((Assign*)self);
         break;
     case ifstmt:
-        visitIfStmt(self);
+        visitIfStmt((IfStmt*)self);
         break;
     case repeatstmt:
-        visitRepeat(self);
+        visitRepeat((Repeat*)self);
         break;
     case initialization:
-        visitInitialization(self);
+        visitInitialization((Initialization*)self);
         break;
     case scope:
-        visitScope(self);
+        visitScope((Scope*)self);
         break;
     case expr:
-        visitExpr(self);
+        visitExpr((Expr*)self);
         break;
     case returnstmt:
         visitReturnStmt(self);
@@ -131,10 +131,10 @@ void visitFunc(Func* self){
     switch (self->nonterminal)
     {
     case func:
-        visitArgs(&self->args);
-        visitType(&self->returntype);
-        visitScope(&self->scope);
-        visitIdMutation(&self->name);
+        visitArgs(self->args);
+        visitType(self->returntype);
+        visitScope(self->scope);
+        visitId(&self->name);
         break;
     case event:
         visitEvent(self);
@@ -166,45 +166,45 @@ void visitIdMutation(IdMutation* self){
 }
 
 void visitUnaryop(UnaryOperator* self){
-    visitExpr(&self->child_expr);
+    visitExpr(self->childExpr);
 }
 
 void visitBinaryOp(BinaryOperator* self){
-    visitExpr(&self->child_expr1);
-    visitExpr(&self->child_expr2);
+    visitExpr(self->childExpr1);
+    visitExpr(self->childExpr2);
 }
 
 void visitAssign(Assign* self){
-    visitExpr(&self->expression);
+    visitExpr(self->expression);
 }
 
 void visitIfStmt(IfStmt* self){
-    visitExpr(&self->condition);
-    visitScope(&self->then);
-    visitScope(&self->elsestmt);
+    visitExprs(self->condition);
+    visitScope(self->then);
+    visitScope(self->elsestmt);
 }
 
 void visitRepeat(Repeat* self){
     switch (self->nonterminal)
     {
     case lt_timesloop:
-        visitTimesLoop(self->loop_type);
+        visitTimesLoop(self->loopType);
         break;
     case lt_forloop:
-        visitForLoop(self->loop_type);
+        visitForLoop(self->loopType);
         break;
     case lt_whileloop:
-        visitWhileLoop(self->loop_type);
+        visitWhileLoop(self->loopType);
         break;
     case lt_repeatloop:
-        visitRepeatLoop(self->loop_type);
+        visitRepeatLoop(self->loopType);
         
         break;
     
     default:
         break;
     }
-    visitScope(&self->scope);
+    visitScope(self->scope);
 }
 
 //Mangler
@@ -213,46 +213,46 @@ void visitReturnStmt(self){
 }
 
 void visitInitialization(Initialization* self){
-    visitType(&self->type);
+    visitType(self->type);
 }
 
 void visitType(Type* self){
-    visitTypeValue(&self->typeval);
+    visitTypeValue(self->typeval);
 }
 
 //--------------------------------------
 
 void visitIdMutationDot(IdMutationDot* self){
-    visitIdMutation(self->child_type);
+    visitIdMutation(self->child);
 }
 
 void visitIdMutationCall(IdMutationCall* self){
-    visitArgs(&self->args);
-    visitIdMutation(self->child_type);
+    visitArgs(self->args);
+    visitIdMutation(self->child);
 }
 
 void visitIdMutationIndex(IdMutationIndex* self){
-    visitExpr(&self->index);
-    visitIdMutation(self->child_type);
+    visitExpr(self->index);
+    visitIdMutation(self->child);
 }
 
 void visitTimesLoop(TimesLoop* self){
-    visitExpr(&self->goal);
+    visitExpr(self->goal);
 }
 
 void visitForLoop(ForLoop* self){
-    visitId(self->input_name);
+    visitId(&self->input_name);
 }
 
 void visitWhileLoop(WhileLoop* self){
-    visitExpr(&self->condition);
+    visitExpr(self->condition);
 }
 
 void visitRepeatLoop(RepeatLoop* self){
 }
 
 void visitTypeValue(TypeValue* self){
-    visitBasicType(self->type);
+    //visitBasicType(self->type); enum
     visitTypeDCL(self->list);
 }
 
@@ -263,7 +263,7 @@ void visitId(Id* self){
     
 }
 
-void visitBasicType(BasicTypes* self){
+void visitBasicType(BasicTypes* self){ //det er en enum
     switch (*self)
     {
     case number:
@@ -281,7 +281,7 @@ void visitBasicType(BasicTypes* self){
 }
 
 void visitTypeDCL(Type* self){
-    visitTypeValue(&self->typeval);
+    visitTypeValue(self->typeval);
 }
 
 void visitEvent(Event* self){
@@ -299,12 +299,12 @@ void visitEvent(Event* self){
     default:
         break;
     }
-    visitScope(&self->scope);
+    visitScope(self->scope);
 }
 
 void visitVariable(Variable* self){
-    visitId(self->name);
-    visitType(&self->type);
+    visitId(&self->name);
+    visitType(self->type);
 }
 
 void visitPreambleBoard(PreambelBoard* self){
@@ -312,14 +312,14 @@ void visitPreambleBoard(PreambelBoard* self){
 }
 
 void visitPreambleTileItem(PreambleTileItem* self){
-    visitId(self->name);
+    visitId(&self->name);
 }
 
 void visitPreambleTile(PreambelTile* self){
-    yabl_list_foreach(self->tile_items, &visitId);
+    yabl_list_foreach(*self->tile_items, visitId);
 }
 
 void visitPreamblePlayer(PreamblePlayers* self){
-    yabl_list_foreach(self->ids, &visitId);
+    yabl_list_foreach(*self->ids, visitId);
 }
 

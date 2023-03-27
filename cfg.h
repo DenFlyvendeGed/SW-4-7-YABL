@@ -1,6 +1,6 @@
 #include "./data-structures/list.h"
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, PreamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, repeat} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, repeat} Nonterminals;
 
 
 
@@ -230,7 +230,7 @@ typedef struct {
 } PreamblePlayers;
 
 
-Constant createConstant(Number num, Logic bool, char* Text);
+Constant createConstant(Number num, Logic intBool, char* Text);
 void destroyConstant(Constant* p);
 Func createFunc(Id name, Args* funcArgs, Type* returnType, Scope* funcScope);
 void destroyFunc(Func* p);
