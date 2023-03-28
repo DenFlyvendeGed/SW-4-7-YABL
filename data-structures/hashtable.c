@@ -1,62 +1,59 @@
 #include "hashtable.h"
 #include "list.h"
-#define SIZE 20
 
 typedef struct Node {
     char* key;
     void* item;
 } Node;
 
-int hashFunc(char* key){
- return *key % SIZE;
-}
 
-YablHash yablHashCreate(int sizeOfList) {
+YablHash yablHashCreate(int sizeOfList, void(*hashFunc)(char *)) {
     YablHash rtn;
     rtn.sizeOfList;
     rtn.map = malloc(sizeof(void **)*(rtn.sizeOfList));
-    rtn.hashFunc = &hashFunc;
+    rtn.hashFunc = hashFunc;
     return rtn;
 }
 
-void* yablHashGet(YablHash* self, char* key){
+void* yablHashGet(YablHash* self, char* key, void* value){
 	int hashIndex = self->hashFunc(key);
-    void* value = self->map[hashIndex];
-    return value;
+    void* item = yablListFind(self->map[hashIndex], compare(value));
+    return item;
 }// returns item as a void pointer
 
 /// Puts the pointer in the hashmap
-void* yablHashPush(YablHash* self, char* key, char* key2, void* value){
+void* yablHashPush(YablHash* self, char* key, void* value){
     if( !(self->map[self->hashFunc(key)]) ){ // if there is no pointer at index
-        void** list = malloc(sizeof(value)*20);
-        list[*key2] = value;
-        self->map[self->hashFunc(key)] = list;
+        self->map[self->hashFunc(key)] = yablListCreate();
+        yablListPush(self->map[self->hashFunc(key)], value);
     }else{
-        void** list;
-        if(list[self->hashFunc(key2)]){
-           list= (void**)realloc(list, sizeof(value)*20+1);
-        }
-        list[self->hashFunc(key2)] = value; 
-        self->map[self->hashFunc(key)] = list;
+        yablListPush(self->map[self->hashFunc(key)], value);
     }
 }
 
-/// Creates a copy of value and puts it in the hashmap
-void* yablHashPushCpy(YablHash* self, char* key, void* value){
-
+/// Creates a copy of value and puts it in the hashmap, mainly for if values go out of scope
+void* yablHashPushCpy(YablHash* self, char* key, void* value, int size_of_value){
+    char * cpy = malloc(size_of_value);
+	for(int i = 0; i < size_of_value; i++)
+		cpy[i] = ((char*)value)[i];
+	yablHashPush(self, key, cpy);
 }
 
-void yablHashDelete(YablHash *self) {
+void yablHashDelete(YablHash *self, void(*delete_var)(void*)) {
     for (int i = 0; i < ((sizeof(self->map))/(sizeof(void**))); i++) {
         if(self->map[i]){
-            free(self->map[i]);
+            yablListDelete(self->map[i], delete_var);
         }
     }
     free(self->map);
 }
 
 /// Loops through all components in the map
-void yablHashForeach(char* key, void (*foreach)(void *)){
-
+void yablHashForeach(YablHash *self, char* key, void(*foreach)(void *, va_list), int n_args, ...){
+    for (int i = 0; i < ((sizeof(self->map))/(sizeof(void**))); i++){
+        YablList list = self->map[i];
+        yablListForeach(list, *foreach, n_args);
+    }
 }
+
 

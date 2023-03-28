@@ -12,12 +12,12 @@ typedef struct YablHash {
     YablHashNode * first;
 } YablHash;
 
-YablHash yablHashCreate(int size_of_items);
+YablHash yablHashCreate(int size_of_items, void(*hashFunc)(char *));
 
-void* yablHashGet(YablHash* self, char* key);
+void* yablHashGet(YablHash* self, char* key, void* value);
 
 /// Creates a copy of value and puts it in the hashmap
-void* yablHashPushCpy(YablHash* self, char* key, void* value);
+void* yablHashPushCpy(YablHash* self, char* key, void* value,  int size_of_value);
 
 /// Puts the pointer in the hashmap
 void* yablHashPush(YablHash* self, char* key, char* key2, void* value);
@@ -26,7 +26,7 @@ void* yablHashPush(YablHash* self, char* key, char* key2, void* value);
 void yablHashDelete(YablHash* self);
 
 /// Loops through all components in the map
-void yablHashForeach(char* key, void (*foreach)(void *));
+void yablHashForeach(YablHash* self, char* key, void (*foreach)(void *));
 
 //#endif // !YABL_HASHTABLE
 
