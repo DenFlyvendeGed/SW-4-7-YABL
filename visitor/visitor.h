@@ -1,43 +1,50 @@
 
 #include "../cfg.h"
 #include "../data-structures/list.h"
+#include <stdio.h>
+#include <string.h>
 
+typedef struct {
+    BasicTypes type;
+    void* value; 
+} Data;
+Data* createData(BasicTypes dType, void* value);
 
-void visitPreamble(Preamble* self);
-void visitRepeatable(Repeatable* self);
-void visitExprs(Exprs* self);
-void visitStmts(Stmts* self);
-void visitScope(Scope* self);
-void visitArgs(Args* self);
-void visitFuncs(Funcs* self);
-void visitListConstant(ListConstant* self);
-void visitPreambles(Preambles* self);
-void visitExpr(Expr* self);
-void visitStmt(Nonterminals* self);
-void visitFunc(Func* self);
-void visitIdMutation(IdMutation* self);
-void visitUnaryop(UnaryOperator* self);
-void visitBinaryOp(BinaryOperator* self);
-void visitAssign(Assign* self);
-void visitIfStmt(IfStmt* self);
-void visitRepeat(Repeat* self);
-//void visitReturnStmt(self);
-void visitInitialization(Initialization* self);
-void visitType(Type* self);
-void visitIdMutationDot(IdMutationDot* self);
-void visitIdMutationCall(IdMutationCall* self);
-void visitIdMutationIndex(IdMutationIndex* self);
-void visitTimesLoop(TimesLoop* self);
-void visitForLoop(ForLoop* self);
-void visitWhileLoop(WhileLoop* self);
-void visitRepeatLoop(RepeatLoop* self);
-void visitTypeValue(TypeValue* self);
-void visitId(Id* self);
-void visitBasicType(BasicTypes* self);
-void visitTypeDCL(Type* self);
-void visitEvent(Event* self);
-void visitVariable(Variable* self);
-void visitPreambleBoard(PreambelBoard* self);
-void visitPreambleTileItem(PreambleTileItem* self);
-void visitPreambleTile(PreambelTile* self);
-void visitPreamblePlayer(PreamblePlayers* self);
+Data*visitPreamble(Preamble* self);
+Data*visitRepeatable(Repeatable* self);
+Data*visitExprs(Exprs* self);
+Data*visitStmts(Stmts* self);
+Data*visitScope(Scope* self);
+Data*visitArgs(Args* self);
+Data*visitFuncs(Funcs* self);
+Data*visitListConstant(ListConstant* self);
+Data*visitPreambles(Preambles* self);
+Data*visitExpr(Expr* self);
+Data*visitStmt(Nonterminals* self);
+Data*visitFunc(Func* self);
+Data*visitIdMutation(IdMutation* self);
+Data*visitUnaryop(UnaryOperator* self);
+Data*visitBinaryOp(BinaryOperator* self);
+Data*visitAssign(Assign* self);
+Data*visitIfStmt(IfStmt* self);
+Data*visitRepeat(Repeat* self);
+//Data*visitReturnStmt(self);
+Data*visitInitialization(Initialization* self);
+Data*visitType(Type* self);
+Data*visitIdMutationDot(IdMutationDot* self);
+Data*visitIdMutationCall(IdMutationCall* self);
+Data*visitIdMutationIndex(IdMutationIndex* self);
+Data*visitTimesLoop(TimesLoop* self);
+Data*visitForLoop(ForLoop* self);
+Data*visitWhileLoop(WhileLoop* self);
+Data*visitRepeatLoop(RepeatLoop* self);
+Data*visitTypeValue(TypeValue* self);
+Data*visitId(Id* self);
+Data*visitBasicType(BasicTypes* self);
+Data*visitTypeDCL(Type* self);
+Data*visitEvent(Event* self);
+Data*visitVariable(Variable* self);
+Data*visitPreambleBoard(PreambelBoard* self);
+Data*visitPreambleTileItem(PreambleTileItem* self);
+Data*visitPreambleTile(PreambelTile* self);
+Data*visitPreamblePlayer(PreamblePlayers* self);

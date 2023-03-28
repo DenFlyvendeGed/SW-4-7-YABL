@@ -126,6 +126,7 @@ void destroyList();
         Expr* p = malloc(sizeof(Expr));
         p->nonterminal = expr;
         p->child = child;
+        p->exprType = ExprType;
 
 
         return *p;
