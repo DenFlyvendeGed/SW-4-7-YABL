@@ -1,9 +1,6 @@
 #include "visitor.h"
 #include "stdlib.h"
 
-//Jeg kan ikke huske borders :)
-#define NUMBERMAX 255
-#define NUMBERMIN -255
 //Visitor function
 Data* visitor(){
 }
@@ -21,32 +18,34 @@ Data* visitPreamble(Preamble* self){
 }
 
 Data* visitRepeatable(Repeatable* self){
+    
     switch (self->nonterminal)
     {
     case exprs:
-        visitExprs(self);
+        return visitExprs(self);
         break;
     case stmts:
-        visitStmts(self);
+        return visitStmts(self);
         break;
     case scope:
-        visitScope(self);
+        return visitScope(self);
         break;
     case args:
-        visitArgs(self);
+        return visitArgs(self);
         break;
     case funcs:
-        visitFuncs(self);
+        return visitFuncs(self);
         break;
     case listConstants:
-        visitListConstant(self);
+        return visitListConstant(self);
         break; 
     case preambles:
-        visitPreambles(self);
+        return visitPreambles(self);
         break;
     default:
         break;
     }
+
 }
 
 Data* visitExprs(Exprs* self){
@@ -81,83 +80,61 @@ Data* visitPreambles(Preambles* self){
 //--------------------------------------
 
 Data*  visitExpr(Expr* self){
-    Data*  d;
 
-    if(self->child == NULL) {
-        //throw error 
-    } 
+
+    Data* child;
     switch (self->exprType)
     {
     case et_constant:
         //need a way to check type
          
-        //Logic
-        if(*(int*)self->child <= 1 && *(int*)self->child >= 0){
-            //true
-            d = createData((BasicTypes)logic, self->child);
-        }
-        else{
-            //false
-        }
-
-        //Number
-        if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
-            //true
-            d = createData((BasicTypes)number, self->child);
-        }
-        else{
-            //false
-        }
-
-        //Text
-        d = createData((BasicTypes)text, self->child);
-        //idk what to check <-----
-
         break;
     case et_id_mutation:
-        d = visitIdMutation(self->child);
+        child = visitIdMutation(self->child);
         break;
     case et_unary_operator:
-        d = visitUnaryop(self->child);
+        child = visitUnaryop(self->child);
         break;
     case et_binary_operator:
-        d = visitBinaryOp(self->child);
+        child = visitBinaryOp(self->child);
         break;
     case et_expression:
-        d = visitExpr(self->child);
+        child = visitExpr(self->child);
         break;
     default:
         printf("Expr type error"); //<-------------- error
         break;
     }
-    return d;
+
+    return tcExpr(self, child);
 }
 
 Data* visitStmt(Nonterminals* self){
     switch (*self)
     {
     case assign:
-        visitAssign((Assign*)self);
+        return visitAssign((Assign*)self);
         break;
     case ifstmt:
-        visitIfStmt((IfStmt*)self);
+        return visitIfStmt((IfStmt*)self);
         break;
     case repeatstmt:
         visitRepeat((Repeat*)self);
         break;
     case initialization:
-        visitInitialization((Initialization*)self);
+        return visitInitialization((Initialization*)self);
         break;
     case scope:
-        visitScope((Scope*)self);
+        return visitScope((Scope*)self);
         break;
     case expr:
-        visitExpr((Expr*)self);
+        return visitExpr((Expr*)self);
         break;
     case returnstmt: //<-----
-        visitReturnStmt(self);
+        return visitReturnStmt(self);
         break;
     default:
+        return createError(ECoutOfRange);
         break;
     }
 }
@@ -166,15 +143,17 @@ Data* visitFunc(Func* self){
     switch (self->nonterminal)
     {
     case func:
-        visitArgs(self->args);
-        visitType(self->returntype);
-        visitScope(self->scope);
-        visitId(&self->name);
+        Data* args = visitArgs(self->args);
+        Data* returnType = visitType(self->returntype);
+        Data* scope = visitScope(self->scope);
+        Data* id = visitId(&self->name);
+        return tcFunc(self, args, returnType, scope, id);
         break;
     case event:
-        visitEvent(self);
+        return visitEvent(self);
         break;
     default:
+    return createError(ECoutOfRange);
         break;
     }
 }
@@ -202,120 +181,14 @@ Data* visitIdMutation(IdMutation* self){
 }
 
 Data* visitUnaryop(UnaryOperator* self){
-    if(self->uo != 0){
-        //error
-    }
+   
     visitExpr(self->childExpr);
 }
 
 Data* visitBinaryOp(BinaryOperator* self){
+    Data* child1 = visitExpr(self->childExpr1);
+    Data* child2 = visitExpr(self->childExpr2);
     
-    if(self->bo < 0 || self->bo > 13)
-    {
-        //error
-    }
-
-    //2 exprs
-    if(self->childExpr1 == NULL && self->childExpr2 == NULL)
-    {
-
-        Data* child1 = visitExpr(self->childExpr1);
-        Data* child2 = visitExpr(self->childExpr2);
-
-        //logic + logic
-        if(child1->type == logic && child2->type == logic){
-            switch (self->bo) {
-                //returns logic
-                case bo_not: //maybe not <----
-                    break;   
-                case bo_eq:
-                    break;
-                case bo_neq:
-                    break;
-                case bo_gt:
-                    break;
-                case bo_gteq:
-                    break;
-                case bo_lt:
-                case bo_lteq:
-                case bo_and:
-                case bo_or:
-                break;
-
-                default:
-                    //error
-                    break;
-            }
-        }
-        //number + number
-        if(child1->type == number && child2->type == number){
-            switch (self->bo) {
-                //returns number
-                case bo_plus:
-                    break;
-                case bo_minus:
-                    break;
-                case bo_divsion:
-                    break;
-                case bo_mul:
-                    break;
-                case bo_modulus:
-                    break;
-
-                //returns logic
-                case bo_eq:
-                    break;
-                case bo_neq:
-                    break;
-                case bo_gt:
-                    break;
-                case bo_gteq:
-                    break;
-                case bo_lt:
-                case bo_lteq:
-                
-                    break;
-                default:
-                    //error
-                    break;
-            }
-        }
-        //text + text
-        if(child1->type == text && child2->type == text){
-            switch (self->bo) {
-                //returns text
-                case bo_plus:
-                    break;
-
-                //returns logic
-                case bo_eq:
-                case bo_neq:
-                    break;
-
-                //returns logic based on length ? <-----
-                case bo_gt:
-                case bo_lt:
-                case bo_gteq:
-                case bo_lteq:
-
-                default:
-                    //error
-                    break;
-            }
-        }
-    }
-
-    //1 expr
-    // else if(self->childExpr1 != NULL)
-    // {
-    //     Data* child = visitExpr(self->childExpr1);
-
-        
-    // }
-    else
-    {
-        //error
-    }
 
 
 
@@ -324,17 +197,22 @@ Data* visitBinaryOp(BinaryOperator* self){
 }
 
 Data* visitAssign(Assign* self){
-    visitExpr(self->expression);
+    Data* id = visitId(&self->variable);
+    Data* expr = visitExpr(self->expression);
+
+    return tcAssign(self, id, expr)
 }
 
 Data* visitIfStmt(IfStmt* self){
-    visitExprs(self->condition);
-    visitScope(self->then);
-    visitScope(self->elsestmt);
+    Data* expr = visitExprs(self->condition);
+    Data* scope1 = visitScope(self->then);
+    Data* scope2 = visitScope(self->elsestmt);
+
+    return tcIfStmt(self, expr, scope1, scope2);
 }
 
 Data* visitRepeat(Repeat* self){
-    switch (self->nonterminal)
+    switch (*(LoopType*)self->loopType)
     {
     case lt_timesloop:
         visitTimesLoop(self->loopType);
@@ -362,11 +240,15 @@ Data* visitReturnStmt(self){
 }
 
 Data* visitInitialization(Initialization* self){
-    visitType(self->type);
+    Data* type = visitType(self->type);
+
+    return tcInitialization(self, type);
 }
 
 Data* visitType(Type* self){
-    visitTypeValue(self->typeval);
+    Data* type = visitTypeValue(self->typeval);
+
+    return tcType(self, type);
 }
 
 //--------------------------------------
@@ -388,6 +270,7 @@ Data*  visitIdMutationDot(IdMutationDot* self){
             //errror
             break;
     }
+    visitId(&self->name);
     Data* d = visitIdMutation(self->child);
     //check if d has error
     return d;
@@ -408,7 +291,6 @@ Data*  visitIdMutationCall(IdMutationCall* self){
             //errror
             break;
     }
-
     Data* d = visitIdMutation(self->child);
 
 
@@ -423,7 +305,7 @@ Data*  visitIdMutationCall(IdMutationCall* self){
     
 }
 
-Data* evisitIdMutationIndex(IdMutationIndex* self){
+Data* visitIdMutationIndex(IdMutationIndex* self){
 
 
     visitExpr(self->index);
@@ -445,8 +327,8 @@ Data* visitWhileLoop(WhileLoop* self){
 Data* visitRepeatLoop(RepeatLoop* self){
 }
 
-Data* visitTypeValue(TypeValue* self){
-    //visitBasicType(self->type); enum
+Data* visitTypeValue(TypeValue* self){ //måske der skal laves switch for at checke hvilken der er gældne
+    visitBasicType(&self->type);
     visitTypeDCL(self->list);
 }
 
@@ -479,21 +361,22 @@ Data* visitTypeDCL(Type* self){
 }
 
 Data* visitEvent(Event* self){
-    switch (self->nonterminal)
-    {
-    case event_setup:
-        visitFunc(self->eventType);
-        break;
-    case event_turn:
-        visitFunc(self->eventType);
-        break;
-    case event_close:
-        visitFunc(self->eventType);
-        break;
-    default:
-        break;
-    }
-    visitScope(self->scope);
+    // switch (self->nonterminal)
+    // {
+    // case event_setup:
+    //     visitFunc(self->eventType);  //eventType er enum
+    //     break;
+    // case event_turn:
+    //     visitFunc(self->eventType);
+    //     break;
+    // case event_close:
+    //     visitFunc(self->eventType);
+    //     break;
+    // default:
+    //     break;
+    // }
+    Data* scope = visitScope(self->scope);
+    return tcEvent(self, scope);
 }
 
 Data* visitVariable(Variable* self){
@@ -518,11 +401,3 @@ Data* visitPreamblePlayer(PreamblePlayers* self){
 }
 
 
-Data*  createData(BasicTypes dType, void* value)
-{
-    Data*  d = malloc(sizeof(Data));
-    d->type = dType;
-    d->value = value;
-
-    return d;
-};

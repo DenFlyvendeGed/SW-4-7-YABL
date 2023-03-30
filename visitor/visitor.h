@@ -1,14 +1,10 @@
 
-#include "../cfg.h"
-#include "../data-structures/list.h"
-#include <stdio.h>
-#include <string.h>
+#include "typeChecker.h"
 
-typedef struct {
-    BasicTypes type;
-    void* value; 
-} Data;
-Data* createData(BasicTypes dType, void* value);
+
+
+
+
 
 Data*visitPreamble(Preamble* self);
 Data*visitRepeatable(Repeatable* self);

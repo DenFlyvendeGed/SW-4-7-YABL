@@ -6,7 +6,7 @@ typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, if
 
 typedef enum {number, text, logic, list} BasicTypes;
 struct Typedcl;
-typedef union {
+typedef union { //måske der skal laves switch for at checke hvilken der er gældne
 	struct Typedcl* list;
 	BasicTypes type;
 } TypeValue;
@@ -145,7 +145,7 @@ typedef struct {
 typedef enum {lt_timesloop, lt_forloop, lt_whileloop, lt_repeatloop} LoopType;
 typedef struct {
 	Nonterminals nonterminal;
-	void * loopType; //change name??
+	void * loopType; //change name?? pointer til en af de nedenstående loop typer
 	Scope* scope;
 } Repeat;
 
@@ -157,8 +157,8 @@ typedef struct {
 typedef struct {
 	LoopType loopType;	
 	// Might need some list constant
-	char* variable_name;
-	Id input_name;
+	char* variableName; //Id???
+	Id inputName;
 } ForLoop;
 
 typedef struct {
@@ -190,11 +190,11 @@ typedef struct {
 typedef enum {event_setup, event_turn, event_close} Events;
 typedef struct {
 	Nonterminals nonterminal;
-	Events* eventType;
+	Events eventType;
 	Scope* scope;
 } Event;
 
-// Vblariable
+// Variable
 typedef struct {
 	Nonterminals nonterminal;
 	Id name;

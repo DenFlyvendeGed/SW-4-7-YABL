@@ -380,8 +380,8 @@ void destroyList();
     {
         ForLoop *p = malloc(sizeof(ForLoop));
         p->loopType = lt_forloop;
-        p->variable_name = varName;
-        p->input_name = inputName;
+        p->variableName = varName;
+        p->inputName = inputName;
 
         return *p;
     };
