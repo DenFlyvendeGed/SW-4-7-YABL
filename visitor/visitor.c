@@ -153,7 +153,7 @@ Data* visitFunc(Func* self){
         return visitEvent(self);
         break;
     default:
-    return createError(ECoutOfRange);
+        return createError(ECoutOfRange);
         break;
     }
 }
@@ -161,23 +161,25 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
-
+    Data* id = visitId(&self->name);
+    Data* child;
     switch (self->idMutation)
     {
     case im_none:
         break;
     case im_dot:
-        visitIdMutationDot(self->child);
+        child = visitIdMutationDot(self->child);
         break;
     case im_call:
-        visitIdMutationCall(self->child);
+        child = visitIdMutationCall(self->child);
         break;
     case im_index:
-        visitIdMutationIndex(self->child);
+        child = visitIdMutationIndex(self->child);
         break;
     default:
         break;
     }
+    return tcIdMutation(self, child, id);
 }
 
 Data* visitUnaryop(UnaryOperator* self){
@@ -212,26 +214,31 @@ Data* visitIfStmt(IfStmt* self){
 }
 
 Data* visitRepeat(Repeat* self){
+    Data* loopHeader;
     switch (*(LoopType*)self->loopType)
     {
     case lt_timesloop:
-        visitTimesLoop(self->loopType);
+        loopHeader = visitTimesLoop(self->loopType);
         break;
     case lt_forloop:
-        visitForLoop(self->loopType);
+        loopHeader = visitForLoop(self->loopType);
         break;
     case lt_whileloop:
-        visitWhileLoop(self->loopType);
+        loopHeader = visitWhileLoop(self->loopType);
         break;
     case lt_repeatloop:
-        visitRepeatLoop(self->loopType);
+        loopHeader = visitRepeatLoop(self->loopType);
         
         break;
     
     default:
+        loopHeader = createError(ECoutOfRange);
         break;
     }
-    visitScope(self->scope);
+    Data* scope = visitScope(self->scope);
+
+    return tcRepeat(self, loopHeader, scope);
+
 }
 
 //Mangler
@@ -254,82 +261,60 @@ Data* visitType(Type* self){
 //--------------------------------------
 
 Data*  visitIdMutationDot(IdMutationDot* self){
-    if(self->name == NULL || strcmp(self->name, "")){
-        //Error <---
-    }
-    switch (self->childType) {
-        case im_dot: 
-        case im_call: 
-        case im_index:
-            self->child != NULL ? 1: 0;//error 
-            break;
-        case im_none:
-            self->child != NULL ? 0: 1;//error?
-            break;
-        default:
-            //errror
-            break;
-    }
-    visitId(&self->name);
-    Data* d = visitIdMutation(self->child);
-    //check if d has error
-    return d;
+    
+    Data* name = visitId(&self->name);
+    Data* child = visitIdMutation(self->child);
+
+    return tcIdMutationDot(self, name, child);
 }
 
 Data*  visitIdMutationCall(IdMutationCall* self){
     
-    switch (self->childType) { 
-        case im_dot: 
-        case im_call: 
-        case im_index:
-            self->child != NULL ? 1: 0;//error 
-            break;
-        case im_none:
-            self->child != NULL ? 0: 1;//error?
-            break;
-        default:
-            //errror
-            break;
-    }
-    Data* d = visitIdMutation(self->child);
+ 
+    Data* child = visitIdMutation(self->child);
 
+    Data*  argData = visitArgs(self->args);
 
-    //check if function require args ?
-    if(self->args == NULL){
-        //depends on child;
-    }
-    else{
-        //again should depend on if child needs
-        Data*  argData = visitArgs(self->args);
-    }
-    
+    return tcIdMutationCall(self, child, argData);
 }
 
 Data* visitIdMutationIndex(IdMutationIndex* self){
 
 
-    visitExpr(self->index);
-    visitIdMutation(self->child);
+    Data* expr = visitExpr(self->index);
+    Data* child = visitIdMutation(self->child);
+
+    return tcIdMutationIndex(self, expr, child);
 }
 
 Data* visitTimesLoop(TimesLoop* self){
-    visitExpr(self->goal);
+    Data* goalExpr = visitExpr(self->goal);
+
+    return tcTimesLoop(self, goalExpr);
 }
 
 Data* visitForLoop(ForLoop* self){
-    visitId(&self->input_name);
+    Data* id = visitId(&self->inputName);
+
+    return tcForLoop(self, id);
 }
 
 Data* visitWhileLoop(WhileLoop* self){
-    visitExpr(self->condition);
+    Data* expr = visitExpr(self->condition);
+
+    return tcWhileLoop(self, expr);
 }
 
-Data* visitRepeatLoop(RepeatLoop* self){
+Data* visitRepeatLoop(RepeatLoop* self){ // <--
+
+    return tcRepeatLoop(self);
 }
 
-Data* visitTypeValue(TypeValue* self){ //måske der skal laves switch for at checke hvilken der er gældne
-    visitBasicType(&self->type);
-    visitTypeDCL(self->list);
+Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for at checke hvilken der er gældne
+    Data* basicType = visitBasicType(&self->type);
+    Data* typeDcl = visitTypeDCL(self->list);
+
+    return tcTypeValue(self, basicType, typeDcl)
 }
 
 //--------------------------------------
@@ -357,7 +342,9 @@ Data* visitBasicType(BasicTypes* self){ //det er en enum
 }
 
 Data* visitTypeDCL(Type* self){
-    visitTypeValue(self->typeval);
+    Data* tval = visitTypeValue(self->typeval);
+
+    return tcTypeDCL(self, tval);
 }
 
 Data* visitEvent(Event* self){
@@ -380,8 +367,10 @@ Data* visitEvent(Event* self){
 }
 
 Data* visitVariable(Variable* self){
-    visitId(&self->name);
-    visitType(self->type);
+    Data* id = visitId(&self->name);
+    Data* type = visitType(self->type);
+
+    return tcVariable(self, type, id);
 }
 
 Data* visitPreambleBoard(PreambelBoard* self){

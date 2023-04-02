@@ -217,24 +217,90 @@ Data* tcType(Type* self, Data* typeVal){ //might not be needed
     return typeVal;
 }
 
-Data* tcIdMutation(IdMutation* self, Data* child);
-Data* tcIdMutationDot(IdMutationDot* self, Data* name, Data* idMutation);
-Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args);
-Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation);
+Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
+    if(id->errorCode >= 0)
+        return id;
+    if(child != NULL && child->errorCode >= 0)
+        return child;
 
-Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope);
-Data* tcTimesLoop(TimesLoop* self, Data* goalExpr);
-Data* tcForLoop(ForLoop* self, Data* inputName);
-Data* tcWhileLoop(WhileLoop* self, Data* cond);
-Data* tcRepeatLoop(RepeatLoop* self);
+    switch (self->idMutation) {
+        case im_none:
+            break;
+        case im_dot:
+        case im_call:
+        case im_index:
+            if(child == NULL)
+                return createError(ECmissingChild);
+            break;
+    }
+    return tcAccept();
+}
+Data* tcIdMutationDot(IdMutationDot* self, Data* name, Data* idMutation) //<----
+{
+    return tcIdMutation((IdMutation*)self, idMutation , name);
+}
+Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
+{
+    return tcIdMutation((IdMutation*)self, idMutation , args); //args only used to pass error code
+}
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
+{
+    return tcIdMutation((IdMutation*)self, idMutation , expr); //expr should be able to return  datatype if needed
+}
+
+Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
+{
+    if(loopHeader->errorCode >= 0)
+        return loopHeader;
+    if(scope->errorCode >= 0)
+        return scope;
+    
+    return tcAccept();
+}
+Data* tcTimesLoop(TimesLoop* self, Data* goalExpr)
+{
+    if(goalExpr->errorCode >= 0)
+        return goalExpr;
+    
+    return tcAccept();
+}
+Data* tcForLoop(ForLoop* self, Data* inputName)
+{
+    if(inputName->errorCode >= 0)
+        return inputName;
+    
+    return tcAccept();
+}
+Data* tcWhileLoop(WhileLoop* self, Data* cond){[
+    if(cond->errorCode >= 0)
+        return cond;
+
+    return tcAccept();
+]}
+
+Data* tcRepeatLoop(RepeatLoop* self){
+    return tcAccept();
+}
 
 Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl); //<---- union, der kan kun være real data i en af dem
-Data* tcId(Id* self);
+Data* tcId(Id* self); //<----
 Data* tcBasicType(BasicTypes* self); //<----- enum
-Data* tcTypeDCL(Type* self, Data* typeval);
+Data* tcTypeDCL(Type* self, Data* typeval){
+    if(typeval->errorCode >= 0)
+        return typeval;
+    
+    return tcAccept();
+}
 
 
-Data* tcVariable(Variable* self, Data* type, Data* id);
+Data* tcVariable(Variable* self, Data* type, Data* id){
+    if(type->errorCode >= 0)
+        return  type;
+    if(id->errorCode >= 0)
+        return id;
+
+    return tcAccept();
+}
 
 //work in progress
 Data* tcPreambleBoard(PreambelBoard* self);
@@ -257,4 +323,12 @@ Data* createError(ErrorCode error){
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
 
+}
+
+Data* tcAccept()
+{
+    Data*  d = malloc(sizeof(Data));
+    d->errorCode = -1;
+
+    return d;
 }

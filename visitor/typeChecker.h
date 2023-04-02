@@ -20,6 +20,7 @@ typedef struct {
 //Data constructers
 Data* createData(BasicTypes dType,  void* value);
 Data* createError(ErrorCode error);
+Data* tcAccept();
 
 
 Data* tcPreamble(Preamble* self);
@@ -50,7 +51,7 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope);
 Data* tcInitialization(Initialization* self, Data* type);
 Data* tcType(Type* self, Data* typeVal);
 
-Data* tcIdMutation(IdMutation* self, Data* child);
+Data* tcIdMutation(IdMutation* self, Data* child, Data* id);
 Data* tcIdMutationDot(IdMutationDot* self, Data* name, Data* idMutation);
 Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args);
 Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation);
