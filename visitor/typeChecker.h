@@ -8,7 +8,7 @@
 #define NUMBERMAX 255
 #define NUMBERMIN -255
 
-typedef enum  {ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
+typedef enum  {ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
 
 typedef struct {
     BasicTypes type;
@@ -18,7 +18,7 @@ typedef struct {
 } Data;
 
 //Data constructers
-Data* createData(BasicTypes dType,  void* value);
+Data* createData(BasicTypes dType);
 Data* createError(ErrorCode error);
 Data* tcAccept();
 
