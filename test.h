@@ -4,6 +4,7 @@
 
 void doTest(char*, int);
 void testHeader(char*);
+int runTests();
 
 #endif // !YABL_TEST
 

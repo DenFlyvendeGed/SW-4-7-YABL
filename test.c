@@ -31,7 +31,7 @@ void doTest(char* name, int result){
 }
 
 
-int main() {
+int runTests() {
 	printf("\x1b[1m~ RUNNING TESTS ~\x1b[0m\n");
 	test();
 	printf("\n\x1b[1m~ FINNISHED TESTS ~\x1b[0m\n");

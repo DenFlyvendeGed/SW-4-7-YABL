@@ -1,0 +1,30 @@
+
+Preamble :
+	Preambles tile PreableIds setpreamble board boardsize setpreamble player PreableIds 
+;
+
+Preambles :
+	setpreamble id PreableIds Preambles
+|   %empty
+;
+
+PreableIds :
+	id PreableIds PreableBracets
+|   %empty
+;
+
+PreableBracets:
+	"[" PreableInsideBracets "]"
+|   %empty
+;
+
+PreambleBracets:
+	number
+|   %empty
+;
+
+PreableInsideBracets:
+	number
+|   %empty
+;
+
