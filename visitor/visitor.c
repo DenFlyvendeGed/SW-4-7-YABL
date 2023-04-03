@@ -1,5 +1,6 @@
 #include "visitor.h"
 #include "stdlib.h"
+#include <stdio.h>
 
 //Visitor function
 Data* visitor(){
@@ -15,6 +16,7 @@ Data* visit(self){
 
 //Mangler
 Data* visitPreamble(Preamble* self){
+    return tcAccept();
 }
 
 Data* visitRepeatable(Repeatable* self){
@@ -50,31 +52,37 @@ Data* visitRepeatable(Repeatable* self){
 
 Data* visitExprs(Exprs* self){
     yabl_list_foreach(*self->children, &visitExpr);
+    return tcAccept(); //<----
 }
 
 Data* visitStmts(Stmts* self){
     yabl_list_foreach(*self->children,&visitStmt);
+    return tcAccept(); //<----
 }
 
 Data* visitScope(Scope* self){
     yabl_list_foreach(*self->children, &visitScope);
+    return tcAccept(); //<----
 }
 
 Data* visitArgs(Args* self){
     visitExprs(self);
+    return tcAccept(); //<----
 }
 
 Data* visitFuncs(Funcs* self){
     yabl_list_foreach(*self->children, &visitFunc);
+    return tcAccept(); //<----
 }
 
 Data* visitListConstant(ListConstant* self){
     visitExprs(self);
+    return tcAccept(); //<----
 }
 
 //Mangler
 Data* visitPreambles(Preambles* self){
-
+    return tcAccept(); //<----
 }
 
 //--------------------------------------
@@ -83,6 +91,7 @@ Data*  visitExpr(Expr* self){
 
 
     Data* child;
+    Data* rval;
     switch (self->exprType)
     {
     case et_constant:
@@ -105,8 +114,9 @@ Data*  visitExpr(Expr* self){
         printf("Expr type error"); //<-------------- error
         break;
     }
-
-    return tcExpr(self, child);
+    rval = tcExpr(self, child);
+    free(child);
+    return rval;
 }
 
 Data* visitStmt(Nonterminals* self){
@@ -137,9 +147,11 @@ Data* visitStmt(Nonterminals* self){
         return createError(ECoutOfRange);
         break;
     }
+
 }
 
 Data* visitFunc(Func* self){
+    Data* rval;
     switch (self->nonterminal)
     {
     case func:
@@ -147,15 +159,20 @@ Data* visitFunc(Func* self){
         Data* returnType = visitType(self->returntype);
         Data* scope = visitScope(self->scope);
         Data* id = visitId(&self->name);
-        return tcFunc(self, args, returnType, scope, id);
+        rval = tcFunc(self, args, returnType, scope, id);
+        free(args);
+        free(returnType);
+        free(scope);
+        free(id);
         break;
     case event:
-        return visitEvent(self);
+        rval = visitEvent(self);
         break;
     default:
         return createError(ECoutOfRange);
         break;
     }
+    return rval;
 }
 
 //--------------------------------------
@@ -163,6 +180,7 @@ Data* visitFunc(Func* self){
 Data* visitIdMutation(IdMutation* self){
     Data* id = visitId(&self->name);
     Data* child;
+    Data* rval;
     switch (self->idMutation)
     {
     case im_none:
@@ -179,41 +197,63 @@ Data* visitIdMutation(IdMutation* self){
     default:
         break;
     }
-    return tcIdMutation(self, child, id);
+    rval = tcIdMutation(self, child, id);
+    free(child);
+    free(id);
+    return rval;
 }
 
 Data* visitUnaryop(UnaryOperator* self){
-   
-    visitExpr(self->childExpr);
+    Data* rval;
+    Data* expr = visitExpr(self->childExpr);
+
+    rval = tcUnaryop(self, expr);
+    free(expr);
+    return rval;
 }
 
 Data* visitBinaryOp(BinaryOperator* self){
+    Data* rval;
     Data* child1 = visitExpr(self->childExpr1);
     Data* child2 = visitExpr(self->childExpr2);
     
 
+    rval = tcBinaryOp(self, child1, child2);
+    free(child1);
+    free(child2);
 
-
-
-
+    return rval;
 }
 
 Data* visitAssign(Assign* self){
+    Data* rval;
     Data* id = visitId(&self->variable);
     Data* expr = visitExpr(self->expression);
 
-    return tcAssign(self, id, expr)
+    rval = tcAssign(self, id, expr);
+    free(id);
+    free(expr);
+
+    return rval;
 }
 
 Data* visitIfStmt(IfStmt* self){
+    Data* rval;
     Data* expr = visitExprs(self->condition);
     Data* scope1 = visitScope(self->then);
     Data* scope2 = visitScope(self->elsestmt);
 
-    return tcIfStmt(self, expr, scope1, scope2);
+
+    rval = tcIfStmt(self, expr, scope1, scope2);
+    free(expr);
+    free(scope1);
+    free(scope2);
+
+    return rval;
 }
 
 Data* visitRepeat(Repeat* self){
+    Data* rval;
     Data* loopHeader;
     switch (*(LoopType*)self->loopType)
     {
@@ -237,72 +277,106 @@ Data* visitRepeat(Repeat* self){
     }
     Data* scope = visitScope(self->scope);
 
-    return tcRepeat(self, loopHeader, scope);
+    rval = tcRepeat(self, loopHeader, scope);
+    free(loopHeader);
+    free(scope);
 
+    return rval;
 }
 
-//Mangler
+//Mangler <-----
 Data* visitReturnStmt(self){
-
+    return tcAccept();
 }
 
 Data* visitInitialization(Initialization* self){
+    Data* rval;
     Data* type = visitType(self->type);
 
-    return tcInitialization(self, type);
+    rval = tcInitialization(self, type);
+    free(type);
+
+    return rval;
 }
 
 Data* visitType(Type* self){
+    Data* rval;
     Data* type = visitTypeValue(self->typeval);
 
-    return tcType(self, type);
+    rval = tcType(self, type);
+    free(type);
+    return rval;
 }
 
 //--------------------------------------
 
 Data*  visitIdMutationDot(IdMutationDot* self){
+    Data* rval;
     
     Data* name = visitId(&self->name);
     Data* child = visitIdMutation(self->child);
 
-    return tcIdMutationDot(self, name, child);
+    rval = tcIdMutationDot(self, name, child);
+    free(name);
+    free(child);
+
+    return rval;
 }
 
 Data*  visitIdMutationCall(IdMutationCall* self){
-    
+    Data* rval;
  
     Data* child = visitIdMutation(self->child);
-
     Data*  argData = visitArgs(self->args);
 
-    return tcIdMutationCall(self, child, argData);
-}
+    rval = tcIdMutationCall(self, child, argData);
+    free(child);
+    free(argData);
+    
+    return rval;
+}   
 
 Data* visitIdMutationIndex(IdMutationIndex* self){
-
+    Data* rval;
 
     Data* expr = visitExpr(self->index);
     Data* child = visitIdMutation(self->child);
 
-    return tcIdMutationIndex(self, expr, child);
+    rval = tcIdMutationIndex(self, expr, child);
+    free(expr);
+    free(child);
+
+    return rval;
 }
 
 Data* visitTimesLoop(TimesLoop* self){
+    Data* rval;
     Data* goalExpr = visitExpr(self->goal);
 
-    return tcTimesLoop(self, goalExpr);
+    rval = tcTimesLoop(self, goalExpr);
+    free(goalExpr);
+
+    return rval;
 }
 
 Data* visitForLoop(ForLoop* self){
+    Data* rval;
     Data* id = visitId(&self->inputName);
 
-    return tcForLoop(self, id);
+    rval = tcForLoop(self, id);
+    free(id);
+
+    return rval;
 }
 
 Data* visitWhileLoop(WhileLoop* self){
+    Data* rval;
     Data* expr = visitExpr(self->condition);
 
-    return tcWhileLoop(self, expr);
+    rval = tcWhileLoop(self, expr);
+    free(expr);
+
+    return rval;
 }
 
 Data* visitRepeatLoop(RepeatLoop* self){ // <--
@@ -311,20 +385,25 @@ Data* visitRepeatLoop(RepeatLoop* self){ // <--
 }
 
 Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for at checke hvilken der er gældne
+    Data* rval;
     Data* basicType = visitBasicType(&self->type);
     Data* typeDcl = visitTypeDCL(self->list);
 
-    return tcTypeValue(self, basicType, typeDcl)
+    rval = tcTypeValue(self, basicType, typeDcl);
+    free(basicType);
+    free(typeDcl);
+
+    return rval;
 }
 
 //--------------------------------------
 
 //mangler
-Data* visitId(Id* self){
-    
+Data* visitId(Id* self){ //<---
+    return tcAccept();
 }
 
-Data* visitBasicType(BasicTypes* self){ //det er en enum
+Data* visitBasicType(BasicTypes* self){ //det er en enum <---
     switch (*self)
     {
     case number:
@@ -342,51 +421,54 @@ Data* visitBasicType(BasicTypes* self){ //det er en enum
 }
 
 Data* visitTypeDCL(Type* self){
+    Data* rval;
     Data* tval = visitTypeValue(self->typeval);
 
-    return tcTypeDCL(self, tval);
+    rval = tcTypeDCL(self, tval);
+    free(tval);
+
+    return rval;
 }
 
 Data* visitEvent(Event* self){
-    // switch (self->nonterminal)
-    // {
-    // case event_setup:
-    //     visitFunc(self->eventType);  //eventType er enum
-    //     break;
-    // case event_turn:
-    //     visitFunc(self->eventType);
-    //     break;
-    // case event_close:
-    //     visitFunc(self->eventType);
-    //     break;
-    // default:
-    //     break;
-    // }
+    Data* rval;
+
     Data* scope = visitScope(self->scope);
-    return tcEvent(self, scope);
+    rval = tcEvent(self, scope);
+    free(scope);
+
+    return rval;
 }
 
 Data* visitVariable(Variable* self){
+    Data* rval;
     Data* id = visitId(&self->name);
     Data* type = visitType(self->type);
 
-    return tcVariable(self, type, id);
+    rval = tcVariable(self, type, id);
+    free(id);
+    free(type);
+
+    return rval;
 }
 
 Data* visitPreambleBoard(PreambelBoard* self){
-
+    return tcAccept();
 }
 
 Data* visitPreambleTileItem(PreambleTileItem* self){
     visitId(&self->name);
+    return tcAccept();
 }
 
 Data* visitPreambleTile(PreambelTile* self){
     yabl_list_foreach(*self->tile_items, visitId);
+    return tcAccept();
 }
 
 Data* visitPreamblePlayer(PreamblePlayers* self){
     yabl_list_foreach(*self->ids, visitId);
+    return tcAccept();
 }
 
 

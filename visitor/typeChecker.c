@@ -18,7 +18,9 @@ Data* tcPreambles(Preambles* self);
 
 Data* tcExpr(Expr* self, Data* child)
 {
-    if(self->child == NULL) {
+    if(self == NULL)
+        return createError(ECempty);
+    if(child->errorCode == ECempty) {
         return createError(ECmissingChild); 
     } 
     if(self->exprType == et_constant)
@@ -26,23 +28,25 @@ Data* tcExpr(Expr* self, Data* child)
         //Logic
         if(*(int*)self->child <= 1 && *(int*)self->child >= 0){
             //true
-            return createData((BasicTypes)logic, self->child);
+            return createData((BasicTypes)logic);
         }
         else{
+            return createError(ECtypeExeption);
             //false
         }
 
         //Number
         if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
             //true
-            return createData((BasicTypes)number, self->child);
+            return createData((BasicTypes)number);
         }
         else{
+            return createError(ECtypeExeption)
             //false
         }
 
         //Text
-        return createData((BasicTypes)text, self->child);
+        return createData((BasicTypes)text);
         //idk what to check <-----
 
     }
@@ -53,15 +57,16 @@ Data* tcExpr(Expr* self, Data* child)
 
 //Data* tcStmt(Nonterminals* self); //return visit data
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
-    //check for error further down
+    if(self == NULL)
+        return createError(ECempty);
     if(args->errorCode >= 0)
-        return args;
+        return createError(args->errorCode);
     if(returntype->errorCode >= 0)
-        return returntype;
+        return createError(returntype->errorCode);
     if(scope->errorCode >= 0)
-        return scope;
+        return createError(scope->errorCode);
     if(id->errorCode >= 0)
-        return id;
+        return createError(id->errorCode);
     
     //check scope and args id's match? <--------
 
@@ -75,6 +80,8 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
 }
 
 Data* tcEvent(Event* self, Data* scope){ //<---
+    if(self == NULL)
+        return createError(ECempty);
     if(scope->errorCode)
         return scope;
     //<---- return eventType?
@@ -83,6 +90,8 @@ Data* tcEvent(Event* self, Data* scope){ //<---
 
 Data* tcUnaryop(UnaryOperator* self, Data* expr)
 {
+    if(self == NULL)
+        return createError(ECempty);
      if(self->uo != 0){
         return createError(ECoutOfRange);
     }
@@ -90,7 +99,8 @@ Data* tcUnaryop(UnaryOperator* self, Data* expr)
     return expr; //error or not expr contains relavent data
 }
 Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal samenligningen retuneres?
-
+    if(self == NULL)
+        return createError(ECempty);
     if(self->bo < 0 || self->bo > 13)
     {
         return createError(ECoutOfRange);
@@ -112,10 +122,12 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                 case bo_lteq:
                 case bo_and:
                 case bo_or:
+                    return createData(logic);
                     //return createData(logic, void *value);
                     break;
 
                 default:
+                    return createError(ECtypeExeption);
                     //error
                     break;
             }
@@ -129,6 +141,7 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                 case bo_divsion:
                 case bo_mul:
                 case bo_modulus:
+                    return createData(number);
                     break;
 
                 //returns logic
@@ -138,7 +151,7 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                 case bo_gteq:
                 case bo_lt:
                 case bo_lteq:
-                
+                    return createData(logic);
                     break;
 
                 default:
@@ -152,11 +165,13 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
             switch (self->bo) {
                 //returns text
                 case bo_plus:
+                    return createData(text);
                     break;
 
                 //returns logic
                 case bo_eq:
                 case bo_neq:
+                    return createData(logic);
                     break;
 
                 //returns logic based on length ? <-----
@@ -185,6 +200,8 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
 }
 
 Data* tcAssign(Assign* self, Data* id, Data* expr){
+    if(self == NULL)
+        return createError(ECempty);
     if(id->errorCode >=0)
         return id;
     if(expr->errorCode >=0)
@@ -193,12 +210,14 @@ Data* tcAssign(Assign* self, Data* id, Data* expr){
     //<--- need return data type that handles assign
 }
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
+    if(self == NULL)
+        return createError(ECempty);
     if(condition->errorCode >= 0)
-        return condition;
+        return createError(condition->errorCode);
     if(thenScope->errorCode >= 0)
-        return thenScope;
+        return createError(thenScope->errorCode);
     if(elseScope->errorCode >= 0)
-        return elseScope;
+        return createError(elseScope->errorCode);
 
     if(condition->type != logic)
         return createError(ECtypeExeption);
@@ -208,8 +227,10 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
 
 //Data* tcReturnStmt(self);
 Data* tcInitialization(Initialization* self, Data* type){ //might not be needed
+    if(self == NULL)
+        return createError(ECempty);
     if(type->errorCode >= 0)
-        return type;
+        return createError(type->errorCode);
 
     return type;
 }
@@ -218,10 +239,12 @@ Data* tcType(Type* self, Data* typeVal){ //might not be needed
 }
 
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
+    if(self == NULL)
+        return createError(ECempty);
     if(id->errorCode >= 0)
-        return id;
+        return createError(id->errorCode);
     if(child != NULL && child->errorCode >= 0)
-        return child;
+        return createError(child->errorCode);
 
     switch (self->idMutation) {
         case im_none:
@@ -250,35 +273,45 @@ Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
 
 Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
 {
+    if(self == NULL)
+        return createError(ECempty);
     if(loopHeader->errorCode >= 0)
-        return loopHeader;
+        return createError(loopHeader->errorCode);
     if(scope->errorCode >= 0)
-        return scope;
+        return createError(scope->errorCode);
     
     return tcAccept();
 }
 Data* tcTimesLoop(TimesLoop* self, Data* goalExpr)
 {
+    if(self == NULL)
+        return createError(ECempty);
     if(goalExpr->errorCode >= 0)
-        return goalExpr;
+        return createError(goalExpr->errorCode);
     
     return tcAccept();
 }
 Data* tcForLoop(ForLoop* self, Data* inputName)
 {
+    if(self == NULL)
+        return createError(ECempty);
     if(inputName->errorCode >= 0)
-        return inputName;
+        return createError(inputName->errorCode);
     
     return tcAccept();
 }
 Data* tcWhileLoop(WhileLoop* self, Data* cond){[
+    if(self == NULL)
+        return createError(ECempty);
     if(cond->errorCode >= 0)
-        return cond;
+        return createError(cond->errorCode);
 
     return tcAccept();
 ]}
 
 Data* tcRepeatLoop(RepeatLoop* self){
+    if(self == NULL)
+        return createError(ECempty);
     return tcAccept();
 }
 
@@ -286,18 +319,22 @@ Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl); //<---- union, de
 Data* tcId(Id* self); //<----
 Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval){
+    if(self == NULL)
+        return createError(ECempty);
     if(typeval->errorCode >= 0)
-        return typeval;
+        return createError(typeval->errorCode);
     
     return tcAccept();
 }
 
 
 Data* tcVariable(Variable* self, Data* type, Data* id){
+    if(self == NULL)
+        return createError(ECempty);
     if(type->errorCode >= 0)
-        return  type;
+        return  createError(type->errorCode);
     if(id->errorCode >= 0)
-        return id;
+        return createError(id->errorCode);
 
     return tcAccept();
 }
@@ -309,11 +346,11 @@ Data* tcPreambleTile(PreambelTile* self);
 Data* tcPreamblePlayer(PreamblePlayers* self);
 
 
-Data*  createData(BasicTypes dType, void* value)
+Data*  createData(BasicTypes dType)
 {
     Data*  d = malloc(sizeof(Data));
     d->type = dType;
-    d->value = value;
+    // d->value = value;
     d->errorCode = -1;
 
     return d;
