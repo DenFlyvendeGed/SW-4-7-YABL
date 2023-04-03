@@ -41,7 +41,7 @@ Data* tcExpr(Expr* self, Data* child)
             return createData((BasicTypes)number);
         }
         else{
-            return createError(ECtypeExeption)
+            return createError(ECtypeExeption);
             //false
         }
 
@@ -300,14 +300,14 @@ Data* tcForLoop(ForLoop* self, Data* inputName)
     
     return tcAccept();
 }
-Data* tcWhileLoop(WhileLoop* self, Data* cond){[
+Data* tcWhileLoop(WhileLoop* self, Data* cond){
     if(self == NULL)
         return createError(ECempty);
     if(cond->errorCode >= 0)
         return createError(cond->errorCode);
 
     return tcAccept();
-]}
+}
 
 Data* tcRepeatLoop(RepeatLoop* self){
     if(self == NULL)
