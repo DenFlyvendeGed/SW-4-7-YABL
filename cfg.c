@@ -1,8 +1,65 @@
 #include "cfg.h"
+#include "data-structures/list.h"
 #include <stdlib.h>
-// Type dcl
+#include <string.h>
 
 void destroyList();
+
+char* copystringalloc(char* src){
+	char* cpy = malloc(strlen(src) + 1)	;
+	if( cpy == NULL ) return NULL;
+	strcpy(src, cpy);
+	return cpy;
+}
+
+Repeatable* createRepeatable(Nonterminals nonterminal){
+	Repeatable* self = malloc(sizeof(Repeatable));
+	self->nonterminal = nonterminal;
+	self->children = yablListCreate();
+	return self;
+}
+
+
+void universalDestroyFunction(void* nonterminal) {
+	switch (*(Nonterminals*)nonterminal) {
+		case type    : destroyType(nonterminal)    ; break;
+		case constant: destroyConstant(nonterminal); break;
+
+		case expr : destroyExpr(nonterminal) ; break;
+		case exprs: destroyExprs(nonterminal); break;
+		case stmts: destroyStmts(nonterminal); break;
+		case scope: destroyScope(nonterminal); break;
+		case stmt : break;
+		case funcs: destroyFuncs(nonterminal); break;
+		case func : destroyFunc(nonterminal) ; break;
+		case args : destroyArgs(nonterminal) ; break;
+		case arg  : break;
+
+		case event : destroyEvent(nonterminal) ; break;
+		case ifstmt: destroyIfStmt(nonterminal); break;
+		case assign: destroyAssign(nonterminal); break;
+					 
+
+		case repeatstmt: destroyRepeat(nonterminal)    ; break;
+		case idMutation: destroyIdMutation(nonterminal); break;
+		case variable  : destroyVariable(nonterminal)  ; break;
+
+		case initialization: destroyInitialization(nonterminal); break;
+		case unaryOperator : destroyUnaryOperator(nonterminal) ; break;
+		case binaryOperator: destroyBinaryOperator(nonterminal); break;
+		case listConstant  : destroyListConstant(nonterminal)  ; break;
+		case listConstants : break;
+
+		case preamblePlayers: break;
+		case preambles: break;
+		default:;
+	}
+}
+
+void destroyRepeatable(Repeatable* self){
+	yablListDelete(self->children, &universalDestroyFunction);
+	free(self);
+}
 
 // int int;
 // char *string;
@@ -49,8 +106,8 @@ void destroyFunc(Func* p)
 TypeValue* createTypeValue(BasicTypes varType, Type* listChild) //<--------
 {
 	TypeValue* p = malloc(sizeof(TypeValue));
-		p->type = varType;
-		p->list = listChild;
+	p->type = varType;
+	p->list = listChild;
 	return p;
 }
 
@@ -75,47 +132,6 @@ void destroyType(Type* p)
 	free(p);
 }
 
-// struct Repeatable *Repeatable;
-Repeatable* creatRepeatable(Nonterminals nonterminal, YablList* list)
-{
-	Repeatable* p = malloc(sizeof(Repeatable));
-	p->nonterminal = nonterminal;
-	p->children = list;
-	return p;  
-}
-
-void destroyRepeatable(Repeatable* p)
-{
-	switch (p->nonterminal)
-	{
-	case exprs:
-		destroyExprs((p->children));
-		break;
-	case stmts:
-		destroyStmts((p->children));
-		break;
-	case scope:
-		destroyScope((p->children));
-		break;
-	case args:
-		destroyArgs((p->children));
-		break;
-
-	case funcs:
-		destroyFuncs((p->children));
-		break;
-	case listConstant:
-		destroyListConstant((p->children));
-		break;
-	case preambles:
-		destroyPreambles((p->children));
-		break;
-	default:
-		//error
-		break;
-	}
-	free(p);
-}
 
 
 // struct Expr *Expr;
@@ -201,6 +217,8 @@ IdMutationDot* createIdMutationDot(IdMutation* child)
 
 void destroyIdMutationDot(IdMutationDot* p)
 {
+	destroyIdMutation(p->child);
+	free(p);
 }
 
 
@@ -216,9 +234,8 @@ IdMutationCall* createIdMutationCall(void* child, Exprs* mutationArgs)
 
 void destroyIdMutationCall(IdMutationCall* p)
 {
-	destroyArgs((p->args));
+	destroyExprs((p->args));
 	free(p);
-
 }
 
 
@@ -235,6 +252,7 @@ IdMutationIndex* createIdMutationIndex(void* child, Expr* index)
 void destroyIdMutatuinIndex(IdMutationIndex* p)
 {
 	destroyExpr((p->index));
+	free(p);
 }
 
 
@@ -252,9 +270,9 @@ IdMutation* createIdMutation(Id name, void* child)
 void destroyIdMutation(IdMutation* p)
 {
 	switch (*(IdMutations*)p->child) {
-		case im_index: destroyIdMutationIndex(p->child);
-		case im_dot: destroyIdMutationDot(p->child);
-		case im_call: destroyIdMutationCall(p->child);
+		case im_index: destroyIdMutationIndex(p->child); break;
+		case im_dot: destroyIdMutationDot(p->child); break;
+		case im_call: destroyIdMutationCall(p->child); break;
 		case im_value: ;
 		case im_none: ;
 	}
@@ -294,7 +312,17 @@ Repeat* createRepeat(void* loop, Scope* repeatScope)
 	return p;
 }
 
-//<--------------------------------- destroy??
+void destroyRepeat(Repeat* self){
+	switch (*(LoopType*)self->loopType) {
+		case lt_timesloop:  destroyTimesLoop(self->loopType); break;
+		case lt_forloop:    destroyForLoop(self->loopType); break;
+		case lt_whileloop:  destroyWhileloop(self->loopType); break;
+		case lt_repeatloop: destroyRepeatLoop(self->loopType); break;
+	}
+
+	destroyScope(self->scope);
+	free(self);
+}
 
 // struct TimesLoop *TimesLoop;
 TimesLoop* createTimesLoop(Expr* goal)
@@ -302,12 +330,12 @@ TimesLoop* createTimesLoop(Expr* goal)
 	TimesLoop *p = malloc(sizeof(TimesLoop));
 	p->loopType = lt_timesloop;
 	p->goal = goal;
-
 	return p;
 }
 
 void destroyTimesLoop(TimesLoop* p)
 {
+	destroyExpr(p->goal);
 	free(p);
 }
 
@@ -339,7 +367,7 @@ WhileLoop* createWhileLoop(Expr* cond)
 
 void destroyWhileloop(WhileLoop* p)
 {
-	destroyExpr((p->condition));
+	destroyExpr(p->condition);
 	free(p);
 }
 
@@ -376,18 +404,18 @@ void destroyInitialization(Initialization* p)
 }
 
 // struct Assign *Assign;
-Assign* createAssign(Id var, Expr* exp)
+Assign* createAssign(IdMutation* var, Expr* exp)
 {
 	Assign *p = malloc(sizeof(Assign));
 	p->nonterminal = assign;
 	p->variable = var;
 	p->expression = exp;
-
 	return p;
 }
 void destroyAssign(Assign* p)
 {
 	destroyExpr((p->expression));
+	destroyIdMutation(p->variable);
 	free(p);
 }
 
@@ -426,8 +454,7 @@ void destroyVariable(Variable* p)
 // typedef Repeatable Exprs;
 Exprs* createExprs() 
 {
-	Exprs *p = malloc(sizeof(Exprs));
-	p->nonterminal = expr;
+	Exprs* p = createRepeatable(exprs);
 	return p;
 }
 
@@ -438,16 +465,14 @@ void  destroyExprs(Exprs* p)
 
 // typedef Repeatable Stmts;
 Stmts* createStmts()
- {
-	Stmts *p = malloc(sizeof(Stmts));
-	p->nonterminal = stmts;
-
+{
+	Stmts* p = createRepeatable(stmts);
 	return p;
- }
+}
 void destroyStmts(Stmts* p)
 {
-	destroyList(p->children);
-};
+	destroyRepeatable(p);
+}
 
 // typedef Repeatable Scope;
 Scope* createScope(Stmts* p)
@@ -456,42 +481,44 @@ Scope* createScope(Stmts* p)
 }
 void destroyScope(Scope* p)
 {
-	destroyList(p->children);
+	destroyRepeatable(p);
 }
 
 // typedef Repeatable Args;
 Args* createArgs()
 {
-	Args *p = malloc(sizeof(Args));
-	p->nonterminal = args;
+	Args* p = createRepeatable(args);
 	return p;
 }
 void destroyArgs(Args* p)
 {
-	destroyList(p->children);
+	destroyRepeatable(p);
 }
 
 // typedef Repeatable Funcs;
 Funcs* createFuncs()
 {
-	Funcs *p = malloc(sizeof(Funcs));
-	p->nonterminal = funcs;
-
+	Funcs* p = createRepeatable(funcs);
 	return p;
 }
 void  destroyFuncs(Funcs* p)
 {
-	destroyList(p->children);
+	destroyRepeatable(p);
 }
 
 // typedef Repeatable ListConstant;
 ListConstant* createListConstant(Exprs* exprs)
 {
-	exprs->nonterminal = listConstant;
-	return (ListConstant*)exprs;
+	ListConstant* self = malloc(sizeof(ListConstant));
+	self->nonterminal = listConstant;
+	self->exprs = exprs;
+	return self;
 }
+
 void destroyListConstant(ListConstant* p)
 {
+	destroyExprs(p->exprs);
+	free(p);
 }
 
 // typedef Repeatable Preambles;
@@ -502,6 +529,7 @@ Funcs createPreambles()
 
 	return *p;
 }
+
 void  destroyPreambles(Funcs* p)
 {
 }

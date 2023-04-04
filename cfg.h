@@ -43,7 +43,7 @@ typedef struct{
 // Repeatables 
 typedef struct {
 	Nonterminals nonterminal;
-	YablList* children;
+	YablList children;
 } Repeatable;
 
 typedef Repeatable Exprs;
@@ -176,7 +176,7 @@ typedef struct {
 /// assing
 typedef struct {
 	Nonterminals nonterminal;
-	Id variable;
+	IdMutation* variable;
 	Expr* expression;
 } Assign;
 
@@ -282,6 +282,7 @@ IfStmt* createIfStmt(Expr* cond, Scope* condTrue, Scope* condFalse);
 void destroyIfStmt(IfStmt* p);
 
 Repeat* createRepeat(void* loop, Scope* repeatScope);
+void destroyRepeat(Repeat* self);
 
 TimesLoop* createTimesLoop(Expr* goal);
 void destroyTimesLoop(TimesLoop* p);
@@ -298,7 +299,7 @@ void destroyRepeatLoop(RepeatLoop* p);
 Initialization* createInitialization(Id var, Type* varType, Expr* initialValue);
 void destroyInitialization(Initialization* p);
 
-Assign* createAssign(Id var, Expr* exp);
+Assign* createAssign(IdMutation* var, Expr* exp);
 void destroyAssign(Assign* p);
 
 Event* createEvent(Scope* eventScope, Events eventType);

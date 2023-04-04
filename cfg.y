@@ -172,58 +172,58 @@ Expr :
 
 Factor :
     '('Expr')' { $$ = $2; }
-|   negate Factor{ $$ = (Expr*)createUnaryOperator(uo_negate, $2); }
-|   number { $$ = (Expr*)createConstant(td_number, $1); }
-|   logic { $$ = (Expr*)createConstant(td_logic, $1); }
-|   text { $$ = (Expr*)createConstant(td_text, $1); }
-|   List { $$ = (Expr*)$1; }
-|   Id { $$ = (Expr*)$1; } 
+|   negate Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
+|   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
+|   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
+|   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
+|   List { $$ = createExpr(et_constant, $1); }
+|   Id { $$ = createExpr(et_id_mutation, $1); } 
 ;
 
 P0 :
-    not Factor { $$ = (Expr*)createUnaryOperator(uo_not, $2); }
+    not Factor { $$ = createExpr(et_unary_operator, createUnaryOperator(uo_not, $2)); }
 |   Factor { $$ = $1; }
 ;
 
 P1 :
-    P1 multiplication P0 { $$ = (Expr*)createBinaryOperator(bo_mul, $1, $3); }
-|   P1 division P0 { $$ = (Expr*)createBinaryOperator(bo_division, $1, $3); }
-|   P1 modulus P0 { $$ = (Expr*)createBinaryOperator(bo_modulus, $1, $3); }
+    P1 multiplication P0 { $$ = createExpr(et_unary_operator, createBinaryOperator(bo_mul, $1, $3)); }
+|   P1 division P0 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_division, $1, $3)); }
+|   P1 modulus P0 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_modulus, $1, $3)); }
 |   P0 { $$ = $1; }
 ;
 
 P2 :
-    P2 addition P1 { $$ = (Expr*)createBinaryOperator(bo_plus, $1, $3); }
-|   P2 subtraction P1 { $$ = (Expr*)createBinaryOperator(bo_minus, $1, $3); }
+    P2 addition P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_plus, $1, $3)); }
+|   P2 subtraction P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_minus, $1, $3)); }
 |   P1 { $$ = $1; }
 ;
 
 P3 :
-    P3 gt P2 { $$ = (Expr*)createBinaryOperator(bo_gt, $1, $3); }
-|   P3 lt P2 { $$ = (Expr*)createBinaryOperator(bo_lt, $1, $3); }
-|   P3 gteq P2 { $$ = (Expr*)createBinaryOperator(bo_gteq, $1, $3); }
-|   P3 lteq P2 { $$ = (Expr*)createBinaryOperator(bo_lteq, $1, $3); }
+    P3 gt P2 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_gt, $1, $3)); }
+|   P3 lt P2 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_lt, $1, $3)); }
+|   P3 gteq P2 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_gteq, $1, $3)); }
+|   P3 lteq P2 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_lteq, $1, $3)); }
 |   P2 { $$ = $1; }
 ;
 
 P4 :
-    P4 eq P3 { $$ = (Expr*)createBinaryOperator(bo_eq, $1, $3); }
-|   P4 neq P3 { $$ = (Expr*)createBinaryOperator(bo_neq, $1, $3); }
+    P4 eq P3 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_eq, $1, $3)); }
+|   P4 neq P3 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_neq, $1, $3)); }
 |   P3 { $$ = $1; }
 ;
 
 P5 :
-    P5 and P4 { $$ = (Expr*)createBinaryOperator(bo_and, $1, $3); }
+    P5 and P4 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_and, $1, $3)); }
 |   P4 { $$ = $1; }
 ;
 
 P6 :
-    P6 or P5 { $$ = (Expr*)createBinaryOperator(bo_or, $1, $3); }
+    P6 or P5 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_or, $1, $3)); }
 |   P5 { $$ = $1; }
 ;
 
 Assign :
-    Id assignoperator Expr { $$ = createAssign($1, $3); }
+    IdMutation assignoperator Expr { $$ = createAssign($1, $3); }
 ;
 
 Initialization :

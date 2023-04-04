@@ -10,7 +10,7 @@ typedef struct YablListNode{
 
 typedef YablListNode* YablList;
 
-YablList yabl_list_create();
+YablList yablListCreate();
 void  yablListPush(YablList self, void* item);
 void  yablListPushCpy(YablList self, void* item, int sizeOfItem);
 void* yablListGet(YablList self, int index);
