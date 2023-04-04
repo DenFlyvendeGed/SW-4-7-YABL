@@ -13,7 +13,6 @@ void pIndent(int indent){
 void prettyPrint(char string[], int indent){
     pIndent(indent);
     printf("%s\n", string);
-    free(string);
 }
 
 //Visitor function
