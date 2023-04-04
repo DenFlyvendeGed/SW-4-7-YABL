@@ -2,47 +2,76 @@
 #include "stdlib.h"
 #include <stdio.h>
 
+#define PPRINTFLAG 1
+
+
+void pIndent(int indent){
+    for(int i=1; i<=indent; i++){
+        printf("    ");
+    }
+}
+void prettyPrint(char string[], int indent){
+    pIndent(indent);
+    printf("%s\n", string);
+    free(string);
+}
+
 //Visitor function
 Data* visitor(){
 }
 
 //Visit function
-Data* visit(self){
-    visitPreamble(self.preamble);
-    visitRepeatable(self.func);
+Data* visit(self){ //Start <----
+    int indent = 0;
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("start", indent);
+    }
+    indent++;
+    visitPreamble(self.preamble, indent);
+    visitRepeatable(self.func, indent);
 }
 
 //--------------------------------------
 
 //Mangler
-Data* visitPreamble(Preamble* self){
+Data* visitPreamble(Preamble* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Preamble", indent);
+    }
+    indent++;
     return tcAccept();
 }
 
-Data* visitRepeatable(Repeatable* self){
-    
+Data* visitRepeatable(Repeatable* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Repeatable", indent);
+    }
+    indent++;
     switch (self->nonterminal)
     {
     case exprs:
-        return visitExprs(self);
+        return visitExprs(self, indent);
         break;
     case stmts:
-        return visitStmts(self);
+        return visitStmts(self, indent);
         break;
     case scope:
-        return visitScope(self);
+        return visitScope(self, indent);
         break;
     case args:
-        return visitArgs(self);
+        return visitArgs(self, indent);
         break;
     case funcs:
-        return visitFuncs(self);
+        return visitFuncs(self, indent);
         break;
     case listConstants:
-        return visitListConstant(self);
+        return visitListConstant(self, indent);
         break; 
     case preambles:
-        return visitPreambles(self);
+        return visitPreambles(self, indent);
         break;
     default:
         break;
@@ -50,45 +79,84 @@ Data* visitRepeatable(Repeatable* self){
 
 }
 
-Data* visitExprs(Exprs* self){
-    yabl_list_foreach(*self->children, &visitExpr);
+Data* visitExprs(Exprs* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Exprs", indent);
+    }
+    indent++;
+    yabl_list_foreach(*self->children, &visitExpr); //<---- fix these
     return tcAccept(); //<----
 }
 
-Data* visitStmts(Stmts* self){
+Data* visitStmts(Stmts* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Stmts", indent);
+    }
+    indent++;
     yabl_list_foreach(*self->children,&visitStmt);
     return tcAccept(); //<----
 }
 
-Data* visitScope(Scope* self){
+Data* visitScope(Scope* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Scope", indent);
+    }
+    indent++;
     yabl_list_foreach(*self->children, &visitScope);
     return tcAccept(); //<----
 }
 
-Data* visitArgs(Args* self){
-    visitExprs(self);
+Data* visitArgs(Args* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Args", indent);
+    }
+    indent++;
+    visitExprs(self, indent);
     return tcAccept(); //<----
 }
 
-Data* visitFuncs(Funcs* self){
+Data* visitFuncs(Funcs* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Funcs", indent);
+    }
+    indent++;
     yabl_list_foreach(*self->children, &visitFunc);
     return tcAccept(); //<----
 }
 
-Data* visitListConstant(ListConstant* self){
-    visitExprs(self);
+Data* visitListConstant(ListConstant* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Constants", indent);
+    }
+    indent++;
+    visitExprs(self, indent);
     return tcAccept(); //<----
 }
 
 //Mangler
-Data* visitPreambles(Preambles* self){
+Data* visitPreambles(Preambles* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Preambles", indent);
+    }
+    indent++;
     return tcAccept(); //<----
 }
 
 //--------------------------------------
 
-Data*  visitExpr(Expr* self){
-
+Data*  visitExpr(Expr* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Expr", indent);
+    }
+    indent++;
 
     Data* child;
     Data* rval;
@@ -99,16 +167,16 @@ Data*  visitExpr(Expr* self){
          
         break;
     case et_id_mutation:
-        child = visitIdMutation(self->child);
+        child = visitIdMutation(self->child, indent);
         break;
     case et_unary_operator:
-        child = visitUnaryop(self->child);
+        child = visitUnaryop(self->child, indent);
         break;
     case et_binary_operator:
-        child = visitBinaryOp(self->child);
+        child = visitBinaryOp(self->child, indent);
         break;
     case et_expression:
-        child = visitExpr(self->child);
+        child = visitExpr(self->child, indent);
         break;
     default:
         printf("Expr type error"); //<-------------- error
@@ -119,29 +187,34 @@ Data*  visitExpr(Expr* self){
     return rval;
 }
 
-Data* visitStmt(Nonterminals* self){
+Data* visitStmt(Nonterminals* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Stmt", indent);
+    }
+    indent++;
     switch (*self)
     {
     case assign:
-        return visitAssign((Assign*)self);
+        return visitAssign((Assign*)self, indent);
         break;
     case ifstmt:
-        return visitIfStmt((IfStmt*)self);
+        return visitIfStmt((IfStmt*)self, indent);
         break;
     case repeatstmt:
-        visitRepeat((Repeat*)self);
+        visitRepeat((Repeat*)self, indent);
         break;
     case initialization:
-        return visitInitialization((Initialization*)self);
+        return visitInitialization((Initialization*)self, indent);
         break;
     case scope:
-        return visitScope((Scope*)self);
+        return visitScope((Scope*)self, indent);
         break;
     case expr:
-        return visitExpr((Expr*)self);
+        return visitExpr((Expr*)self, indent);
         break;
     case returnstmt: //<-----
-        return visitReturnStmt(self);
+        return visitReturnStmt(self, indent);
         break;
     default:
         return createError(ECoutOfRange);
@@ -150,15 +223,20 @@ Data* visitStmt(Nonterminals* self){
 
 }
 
-Data* visitFunc(Func* self){
+Data* visitFunc(Func* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Func", indent);
+    }
+    indent++;
     Data* rval;
     switch (self->nonterminal)
     {
     case func:
-        Data* args = visitArgs(self->args);
-        Data* returnType = visitType(self->returntype);
-        Data* scope = visitScope(self->scope);
-        Data* id = visitId(&self->name);
+        Data* args = visitArgs(self->args, indent);
+        Data* returnType = visitType(self->returntype, indent);
+        Data* scope = visitScope(self->scope, indent);
+        Data* id = visitId(&self->name, indent);
         rval = tcFunc(self, args, returnType, scope, id);
         free(args);
         free(returnType);
@@ -166,7 +244,7 @@ Data* visitFunc(Func* self){
         free(id);
         break;
     case event:
-        rval = visitEvent(self);
+        rval = visitEvent(self, indent);
         break;
     default:
         return createError(ECoutOfRange);
@@ -177,8 +255,14 @@ Data* visitFunc(Func* self){
 
 //--------------------------------------
 
-Data* visitIdMutation(IdMutation* self){
-    Data* id = visitId(&self->name);
+Data* visitIdMutation(IdMutation* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("IdMutation", indent);
+    }
+    indent++;
+
+    Data* id = visitId(&self->name, indent);
     Data* child;
     Data* rval;
     switch (self->idMutation)
@@ -186,13 +270,13 @@ Data* visitIdMutation(IdMutation* self){
     case im_none:
         break;
     case im_dot:
-        child = visitIdMutationDot(self->child);
+        child = visitIdMutationDot(self->child, indent);
         break;
     case im_call:
-        child = visitIdMutationCall(self->child);
+        child = visitIdMutationCall(self->child, indent);
         break;
     case im_index:
-        child = visitIdMutationIndex(self->child);
+        child = visitIdMutationIndex(self->child, indent);
         break;
     default:
         break;
@@ -203,19 +287,29 @@ Data* visitIdMutation(IdMutation* self){
     return rval;
 }
 
-Data* visitUnaryop(UnaryOperator* self){
+Data* visitUnaryop(UnaryOperator* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Unaryop", indent);
+    }
+    indent++;
     Data* rval;
-    Data* expr = visitExpr(self->childExpr);
+    Data* expr = visitExpr(self->childExpr, indent);
 
     rval = tcUnaryop(self, expr);
     free(expr);
     return rval;
 }
 
-Data* visitBinaryOp(BinaryOperator* self){
+Data* visitBinaryOp(BinaryOperator* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("BinaryOp", indent);
+    }
+    indent++;
     Data* rval;
-    Data* child1 = visitExpr(self->childExpr1);
-    Data* child2 = visitExpr(self->childExpr2);
+    Data* child1 = visitExpr(self->childExpr1, indent);
+    Data* child2 = visitExpr(self->childExpr2, indent);
     
 
     rval = tcBinaryOp(self, child1, child2);
@@ -225,10 +319,15 @@ Data* visitBinaryOp(BinaryOperator* self){
     return rval;
 }
 
-Data* visitAssign(Assign* self){
+Data* visitAssign(Assign* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Assign", indent);
+    }
+    indent++;
     Data* rval;
-    Data* id = visitId(&self->variable);
-    Data* expr = visitExpr(self->expression);
+    Data* id = visitId(&self->variable, indent);
+    Data* expr = visitExpr(self->expression, indent);
 
     rval = tcAssign(self, id, expr);
     free(id);
@@ -237,11 +336,16 @@ Data* visitAssign(Assign* self){
     return rval;
 }
 
-Data* visitIfStmt(IfStmt* self){
+Data* visitIfStmt(IfStmt* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("IfStmt", indent);
+    }
+    indent++;
     Data* rval;
-    Data* expr = visitExprs(self->condition);
-    Data* scope1 = visitScope(self->then);
-    Data* scope2 = visitScope(self->elsestmt);
+    Data* expr = visitExprs(self->condition, indent);
+    Data* scope1 = visitScope(self->then, indent);
+    Data* scope2 = visitScope(self->elsestmt, indent);
 
 
     rval = tcIfStmt(self, expr, scope1, scope2);
@@ -252,22 +356,28 @@ Data* visitIfStmt(IfStmt* self){
     return rval;
 }
 
-Data* visitRepeat(Repeat* self){
+Data* visitRepeat(Repeat* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Repeat", indent);
+    }
+    indent++;
+
     Data* rval;
     Data* loopHeader;
     switch (*(LoopType*)self->loopType)
     {
     case lt_timesloop:
-        loopHeader = visitTimesLoop(self->loopType);
+        loopHeader = visitTimesLoop(self->loopType, indent);
         break;
     case lt_forloop:
-        loopHeader = visitForLoop(self->loopType);
+        loopHeader = visitForLoop(self->loopType, indent);
         break;
     case lt_whileloop:
-        loopHeader = visitWhileLoop(self->loopType);
+        loopHeader = visitWhileLoop(self->loopType, indent);
         break;
     case lt_repeatloop:
-        loopHeader = visitRepeatLoop(self->loopType);
+        loopHeader = visitRepeatLoop(self->loopType, indent);
         
         break;
     
@@ -275,7 +385,7 @@ Data* visitRepeat(Repeat* self){
         loopHeader = createError(ECoutOfRange);
         break;
     }
-    Data* scope = visitScope(self->scope);
+    Data* scope = visitScope(self->scope, indent);
 
     rval = tcRepeat(self, loopHeader, scope);
     free(loopHeader);
@@ -285,13 +395,19 @@ Data* visitRepeat(Repeat* self){
 }
 
 //Mangler <-----
-Data* visitReturnStmt(self){
+Data* visitReturnStmt(self, indent){
+
     return tcAccept();
 }
 
-Data* visitInitialization(Initialization* self){
+Data* visitInitialization(Initialization* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Initialization", indent);
+    }
+    indent++;
     Data* rval;
-    Data* type = visitType(self->type);
+    Data* type = visitType(self->type, indent);
 
     rval = tcInitialization(self, type);
     free(type);
@@ -299,9 +415,14 @@ Data* visitInitialization(Initialization* self){
     return rval;
 }
 
-Data* visitType(Type* self){
+Data* visitType(Type* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Type", indent);
+    }
+    indent++;
     Data* rval;
-    Data* type = visitTypeValue(self->typeval);
+    Data* type = visitTypeValue(self->typeval, indent);
 
     rval = tcType(self, type);
     free(type);
@@ -310,11 +431,16 @@ Data* visitType(Type* self){
 
 //--------------------------------------
 
-Data*  visitIdMutationDot(IdMutationDot* self){
+Data*  visitIdMutationDot(IdMutationDot* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("IdMutationDot", indent);
+    }
+    indent++;
     Data* rval;
     
-    Data* name = visitId(&self->name);
-    Data* child = visitIdMutation(self->child);
+    Data* name = visitId(&self->name, indent);
+    Data* child = visitIdMutation(self->child, indent);
 
     rval = tcIdMutationDot(self, name, child);
     free(name);
@@ -323,11 +449,17 @@ Data*  visitIdMutationDot(IdMutationDot* self){
     return rval;
 }
 
-Data*  visitIdMutationCall(IdMutationCall* self){
+Data*  visitIdMutationCall(IdMutationCall* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("IdMutationCall", indent);
+    }
+    indent++;
+
     Data* rval;
  
-    Data* child = visitIdMutation(self->child);
-    Data*  argData = visitArgs(self->args);
+    Data* child = visitIdMutation(self->child, indent);
+    Data*  argData = visitArgs(self->args, indent);
 
     rval = tcIdMutationCall(self, child, argData);
     free(child);
@@ -336,11 +468,16 @@ Data*  visitIdMutationCall(IdMutationCall* self){
     return rval;
 }   
 
-Data* visitIdMutationIndex(IdMutationIndex* self){
+Data* visitIdMutationIndex(IdMutationIndex* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("IdMutationIndex", indent);
+    }
+    indent++;
     Data* rval;
 
-    Data* expr = visitExpr(self->index);
-    Data* child = visitIdMutation(self->child);
+    Data* expr = visitExpr(self->index, indent);
+    Data* child = visitIdMutation(self->child, indent);
 
     rval = tcIdMutationIndex(self, expr, child);
     free(expr);
@@ -349,9 +486,14 @@ Data* visitIdMutationIndex(IdMutationIndex* self){
     return rval;
 }
 
-Data* visitTimesLoop(TimesLoop* self){
+Data* visitTimesLoop(TimesLoop* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("TimesLoop", indent);
+    }
+    indent++;
     Data* rval;
-    Data* goalExpr = visitExpr(self->goal);
+    Data* goalExpr = visitExpr(self->goal, indent);
 
     rval = tcTimesLoop(self, goalExpr);
     free(goalExpr);
@@ -359,9 +501,14 @@ Data* visitTimesLoop(TimesLoop* self){
     return rval;
 }
 
-Data* visitForLoop(ForLoop* self){
+Data* visitForLoop(ForLoop* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("ForLoop", indent);
+    }
+    indent++;
     Data* rval;
-    Data* id = visitId(&self->inputName);
+    Data* id = visitId(&self->inputName, indent);
 
     rval = tcForLoop(self, id);
     free(id);
@@ -369,9 +516,14 @@ Data* visitForLoop(ForLoop* self){
     return rval;
 }
 
-Data* visitWhileLoop(WhileLoop* self){
+Data* visitWhileLoop(WhileLoop* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("WhileLoop", indent);
+    }
+    indent++;
     Data* rval;
-    Data* expr = visitExpr(self->condition);
+    Data* expr = visitExpr(self->condition, indent);
 
     rval = tcWhileLoop(self, expr);
     free(expr);
@@ -379,15 +531,20 @@ Data* visitWhileLoop(WhileLoop* self){
     return rval;
 }
 
-Data* visitRepeatLoop(RepeatLoop* self){ // <--
+Data* visitRepeatLoop(RepeatLoop* self, int indent){ // <--
 
     return tcRepeatLoop(self);
 }
 
-Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for at checke hvilken der er gældne
+Data* visitTypeValue(TypeValue* self, int indent){ //<----- måske der skal laves switch for at checke hvilken der er gældne
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("TypeValue", indent);
+    }
+    indent++;
     Data* rval;
-    Data* basicType = visitBasicType(&self->type);
-    Data* typeDcl = visitTypeDCL(self->list);
+    Data* basicType = visitBasicType(&self->type, indent);
+    Data* typeDcl = visitTypeDCL(self->list, indent);
 
     rval = tcTypeValue(self, basicType, typeDcl);
     free(basicType);
@@ -399,30 +556,40 @@ Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for
 //--------------------------------------
 
 //mangler
-Data* visitId(Id* self){ //<---
+Data* visitId(Id* self, int indent){ //<---
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Id", indent);
+    }
+    indent++;
     return tcAccept();
 }
 
-Data* visitBasicType(BasicTypes* self){ //det er en enum <---
+Data* visitBasicType(BasicTypes* self, int indent){ //det er en enum <---
     switch (*self)
     {
     case number:
-        visitTypeDCL(self);
+        visitTypeDCL(self, indent);
         break;
     case text:
-        visitTypeDCL(self);
+        visitTypeDCL(self, indent);
         break;
     case logic:
-        visitTypeDCL(self);
+        visitTypeDCL(self, indent);
         break;
     default:
         break;
     }
 }
 
-Data* visitTypeDCL(Type* self){
+Data* visitTypeDCL(Type* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("TypeDCL", indent);
+    }
+    indent++;
     Data* rval;
-    Data* tval = visitTypeValue(self->typeval);
+    Data* tval = visitTypeValue(self->typeval, indent);
 
     rval = tcTypeDCL(self, tval);
     free(tval);
@@ -430,20 +597,30 @@ Data* visitTypeDCL(Type* self){
     return rval;
 }
 
-Data* visitEvent(Event* self){
+Data* visitEvent(Event* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Event", indent);
+    }
+    indent++;
     Data* rval;
 
-    Data* scope = visitScope(self->scope);
+    Data* scope = visitScope(self->scope, indent);
     rval = tcEvent(self, scope);
     free(scope);
 
     return rval;
 }
 
-Data* visitVariable(Variable* self){
+Data* visitVariable(Variable* self, int indent){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Variable", indent);
+    }
+    indent++;
     Data* rval;
-    Data* id = visitId(&self->name);
-    Data* type = visitType(self->type);
+    Data* id = visitId(&self->name, indent);
+    Data* type = visitType(self->type, indent);
 
     rval = tcVariable(self, type, id);
     free(id);
@@ -452,21 +629,21 @@ Data* visitVariable(Variable* self){
     return rval;
 }
 
-Data* visitPreambleBoard(PreambelBoard* self){
+Data* visitPreambleBoard(PreambelBoard* self, int indent){
     return tcAccept();
 }
 
-Data* visitPreambleTileItem(PreambleTileItem* self){
-    visitId(&self->name);
+Data* visitPreambleTileItem(PreambleTileItem* self, int indent){
+    visitId(&self->name, indent);
     return tcAccept();
 }
 
-Data* visitPreambleTile(PreambelTile* self){
+Data* visitPreambleTile(PreambelTile* self, int indent){
     yabl_list_foreach(*self->tile_items, visitId);
     return tcAccept();
 }
 
-Data* visitPreamblePlayer(PreamblePlayers* self){
+Data* visitPreamblePlayer(PreamblePlayers* self, int indent){
     yabl_list_foreach(*self->ids, visitId);
     return tcAccept();
 }
