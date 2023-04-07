@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "test.h"
 #include "./data-structures/list.h"
+#include "./data-structures/hashtable.h"
 
 int testFuncSuccess(){return 1;}
 int testFuncFail(){return 0;}
@@ -15,9 +16,10 @@ int YABL_TEST_SUCCESS  = 0;
 /////////////////////// TEST /////////////////////////
 void test(){
 	yablListTests();
+	yablHashTests();
 
 	testHeader("Test of Tests");
-	doTest("TEST MUST SUCCEDE", testFuncSuccess());
+	doTest("TEST MUST SUCCEED", testFuncSuccess());
 	doTest("TEST MUST FAIL", !testFuncFail());
 }
 /////////////////////////////////////////////////////

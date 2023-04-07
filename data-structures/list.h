@@ -23,6 +23,7 @@ int   yablListPop(YablList self, void(*deleteFunc)(void*));
 int   yablListInsert(YablList* self, int index, void* item);
 int   yablListInsertCpy(YablList* self, int index, void* item, int sizeOfItem);
 int	  yablListLen(YablList self);
+void* yablListFind(YablList self, int(*compare)(void*));
 
 void yablListTests();
 
