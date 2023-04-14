@@ -10,7 +10,7 @@ typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, if
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
 struct Typedcl;
-typedef union {
+typedef union { //måske der skal laves switch for at checke hvilken der er gældne
 	struct Typedcl* list;
 	BasicTypes type;
 } TypeValue;
@@ -147,7 +147,7 @@ typedef struct {
 typedef enum {lt_timesloop, lt_forloop, lt_whileloop, lt_repeatloop} LoopType;
 typedef struct {
 	Nonterminals nonterminal;
-	void * loopType; //change name??
+	void * loopType; //change name?? pointer til en af de nedenstående loop typer
 	Scope* scope;
 } Repeat;
 
@@ -219,7 +219,7 @@ typedef struct {
 
 typedef struct {
 	Nonterminals nonterminal;
-	struct {int x, y;} dimentions;
+	struct {int x, y;} dimensions;
 } PreambelBoard;
 
 typedef struct {
