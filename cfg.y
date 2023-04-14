@@ -6,6 +6,8 @@
 	#define YYERROR_VERBOSE 1
 	extern char* yytext;
 	extern int yylineno;
+
+	Repeatable* YABL_AST = NULL;
 %}
 
 %union
@@ -74,7 +76,7 @@
 
 %%
 Start : 
-	Funcs	
+	Funcs { YABL_AST = $1; }	
 ;
 
 Funcs :
@@ -121,7 +123,7 @@ Scope :
 ;
 
 Stmts :
-    Stmt endofstatement Stmts { $$ = stmtsAddStmt($3, $1); }
+    Stmt endofstatement Stmts { stmtsAddStmt($3, $1); $$ = $3; }
 |   %empty { $$ = createStmts(); }
 ;
 
