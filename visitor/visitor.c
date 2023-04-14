@@ -20,15 +20,16 @@ Data* visitor(){
 }
 
 //Visit function
-Data* visit(self){ //Start <----
+Repeatable* visit(Repeatable* self){ //Start <----
     int indent = 0;
     if(PPRINTFLAG == 1)
     {
         prettyPrint("start", indent);
     }
     indent++;
-    visitPreamble(self.preamble, indent);
-    visitRepeatable(self.func, indent);
+    // visitPreamble(self->preamble, indent);
+    visitRepeatable(self, indent);
+    return self;
 }
 
 //--------------------------------------
@@ -212,9 +213,9 @@ Data* visitStmt(Nonterminals* self, int indent){
     case expr:
         return visitExpr((Expr*)self, indent);
         break;
-    case returnstmt: //<-----
-        return visitReturnStmt(self, indent);
-        break;
+    // case returnstmt: //<-----
+    //     return visitReturnStmt(self, indent);
+    //     break;
     default:
         return createError(ECoutOfRange);
         break;
