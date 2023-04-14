@@ -1,3 +1,6 @@
+#ifndef TYPE_CHECKER_H
+
+
 #include "../data-structures/list.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,3 +78,6 @@ Data* tcPreambleBoard(PreambelBoard* self);
 Data* tcPreambleTileItem(PreambleTileItem* self);
 Data* tcPreambleTile(PreambelTile* self);
 Data* tcPreamblePlayer(PreamblePlayers* self);
+
+#endif // !TYPE_CHECKER_H
+

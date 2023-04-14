@@ -347,15 +347,15 @@ ForLoop* createForLoop(Id varName, IdMutation* inputName)
 {
 	ForLoop *p = malloc(sizeof(ForLoop));
 	p->loopType = lt_forloop;
-	p->variable_name = varName;
-	p->input_name = inputName;
+	p->variableName = varName;
+	p->inputName = inputName;
 
 	return p;
 }
 
 void destroyForLoop(ForLoop *p)
 {
-	destroyIdMutation(p->input_name);
+	destroyIdMutation(p->inputName);
 	free(p);
 }
 

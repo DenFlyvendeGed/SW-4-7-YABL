@@ -28,7 +28,7 @@ Data* tcExpr(Expr* self, Data* child)
         //Logic
         if(*(int*)self->child <= 1 && *(int*)self->child >= 0){
             //true
-            return createData((BasicTypes)logic);
+            return createData((BasicTypes)bt_logic);
         }
         else{
             return createError(ECtypeExeption);
@@ -38,7 +38,7 @@ Data* tcExpr(Expr* self, Data* child)
         //Number
         if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
             //true
-            return createData((BasicTypes)number);
+            return createData((BasicTypes)bt_number);
         }
         else{
             return createError(ECtypeExeption);
@@ -46,7 +46,7 @@ Data* tcExpr(Expr* self, Data* child)
         }
 
         //Text
-        return createData((BasicTypes)text);
+        return createData((BasicTypes)bt_text);
         //idk what to check <-----
 
     }
@@ -110,7 +110,7 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
     if(self->childExpr1 != NULL && self->childExpr2 != NULL)
     {
         //logic + logic
-        if(expr1->type == logic && expr2->type == logic){
+        if(expr1->type == bt_logic && expr2->type == bt_logic){
             switch (self->bo) {
                 //returns logic
                 case bo_not: //maybe not <----  
@@ -122,7 +122,7 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                 case bo_lteq:
                 case bo_and:
                 case bo_or:
-                    return createData(logic);
+                    return createData(bt_logic);
                     //return createData(logic, void *value);
                     break;
 
@@ -133,15 +133,15 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
             }
         }
         //number + number
-        if(expr1->type == number && expr2->type == number){
+        if(expr1->type == bt_number && expr2->type == bt_number){
             switch (self->bo) {
                 //returns number
                 case bo_plus:
                 case bo_minus:
-                case bo_divsion:
+                case bo_division:
                 case bo_mul:
                 case bo_modulus:
-                    return createData(number);
+                    return createData(bt_number);
                     break;
 
                 //returns logic
@@ -151,7 +151,7 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                 case bo_gteq:
                 case bo_lt:
                 case bo_lteq:
-                    return createData(logic);
+                    return createData(bt_logic);
                     break;
 
                 default:
@@ -161,17 +161,17 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
             }
         }
         //text + text
-        if(expr1->type == text && expr2->type == text){
+        if(expr1->type == bt_text && expr2->type == bt_text){
             switch (self->bo) {
                 //returns text
                 case bo_plus:
-                    return createData(text);
+                    return createData(bt_text);
                     break;
 
                 //returns logic
                 case bo_eq:
                 case bo_neq:
-                    return createData(logic);
+                    return createData(bt_logic);
                     break;
 
                 //returns logic based on length ? <-----
@@ -190,13 +190,8 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
     {
         return createError(ECargumentExeption);
     }
-    //1 expr <-----
-    // else if(self->childExpr1 != NULL)
-    // {
-    //     Data* child = visitExpr(self->childExpr1);
 
-        
-    // }
+	return tcAccept();
 }
 
 Data* tcAssign(Assign* self, Data* id, Data* expr){
@@ -207,7 +202,7 @@ Data* tcAssign(Assign* self, Data* id, Data* expr){
     if(expr->errorCode >=0)
         return expr;
     
-    //<--- need return data type that handles assign
+	return tcAccept();
 }
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(self == NULL)
@@ -219,10 +214,10 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(elseScope->errorCode >= 0)
         return createError(elseScope->errorCode);
 
-    if(condition->type != logic)
+    if(condition->type != bt_logic)
         return createError(ECtypeExeption);
 
-    //create a fitting return type <-----
+	return tcAccept();
 }   
 
 //Data* tcReturnStmt(self);
@@ -246,8 +241,9 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
     if(child != NULL && child->errorCode >= 0)
         return createError(child->errorCode);
 
-    switch (self->idMutation) {
+    switch (*((IdMutations*)(self->child))) {
         case im_none:
+		case im_value:
             break;
         case im_dot:
         case im_call:
@@ -315,7 +311,9 @@ Data* tcRepeatLoop(RepeatLoop* self){
     return tcAccept();
 }
 
-Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl); //<---- union, der kan kun være real data i en af dem
+Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl){
+	return tcAccept();
+}
 Data* tcId(Id* self); //<----
 Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval){
@@ -359,7 +357,7 @@ Data*  createData(BasicTypes dType)
 Data* createError(ErrorCode error){
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
-
+	return d;
 }
 
 Data* tcAccept()

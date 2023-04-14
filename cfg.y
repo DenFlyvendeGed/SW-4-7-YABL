@@ -52,6 +52,7 @@
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
+%token eof
 
 %type<exprs> Exprs List
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
@@ -76,7 +77,7 @@
 
 %%
 Start : 
-	Funcs { YABL_AST = $1; }	
+	Funcs{ YABL_AST = $1; }	
 ;
 
 Funcs :

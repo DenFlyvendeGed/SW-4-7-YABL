@@ -159,8 +159,8 @@ typedef struct {
 typedef struct {
 	LoopType loopType;	
 	// Might need some list constant
-	Id variable_name;
-	IdMutation* input_name;
+	Id variableName;
+	IdMutation* inputName;
 } ForLoop;
 
 typedef struct {

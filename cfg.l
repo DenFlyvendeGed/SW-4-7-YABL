@@ -11,6 +11,7 @@ int yywrap();
 %option yylineno
 
 %%
+eof {PRINT("EOF"); return YYEOF;}
 ! { PRINT("Set preamble"); return setpreamble; }
 board  { PRINT("board"); return board; }
 [0-9]+x[0-9] { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
@@ -60,6 +61,8 @@ false { PRINT("false"); yylval.number = 0; return logic; }
 
 \/\/.*\n     PRINT("end of line comment");
 \/\*.*\*\/   PRINT("multi line comment");
+
+<<EOF>> { PRINT("EOF"); return YYEOF; }
 
 .   ;
 %%

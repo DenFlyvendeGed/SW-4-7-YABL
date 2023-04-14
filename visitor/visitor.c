@@ -17,6 +17,7 @@ void prettyPrint(char string[], int indent){
 
 //Visitor function
 Data* visitor(){
+	return tcAccept();
 }
 
 //Visit function
@@ -67,16 +68,13 @@ Data* visitRepeatable(Repeatable* self, int indent){
     case funcs:
         return visitFuncs(self, indent);
         break;
-    case listConstants:
-        return visitListConstant(self, indent);
-        break; 
     case preambles:
         return visitPreambles(self, indent);
         break;
     default:
         break;
     }
-
+	return tcAccept();
 }
 
 Data* visitExprs(Exprs* self, int indent){
@@ -85,7 +83,7 @@ Data* visitExprs(Exprs* self, int indent){
         prettyPrint("Exprs", indent);
     }
     indent++;
-    yabl_list_foreach(*self->children, &visitExpr); //<---- fix these
+    yablListForeach(self->children, &visitExpr, 0); //<---- fix these
     return tcAccept(); //<----
 }
 
@@ -95,7 +93,7 @@ Data* visitStmts(Stmts* self, int indent){
         prettyPrint("Stmts", indent);
     }
     indent++;
-    yabl_list_foreach(*self->children,&visitStmt);
+    yablListForeach(self->children, &visitStmt, 0);
     return tcAccept(); //<----
 }
 
@@ -105,7 +103,7 @@ Data* visitScope(Scope* self, int indent){
         prettyPrint("Scope", indent);
     }
     indent++;
-    yabl_list_foreach(*self->children, &visitScope);
+    yablListForeach(self->children, &visitStmt, 0);
     return tcAccept(); //<----
 }
 
@@ -125,7 +123,7 @@ Data* visitFuncs(Funcs* self, int indent){
         prettyPrint("Funcs", indent);
     }
     indent++;
-    yabl_list_foreach(*self->children, &visitFunc);
+    yablListForeach(self->children, &visitFunc, 0);
     return tcAccept(); //<----
 }
 
@@ -197,22 +195,16 @@ Data* visitStmt(Nonterminals* self, int indent){
     {
     case assign:
         return visitAssign((Assign*)self, indent);
-        break;
     case ifstmt:
         return visitIfStmt((IfStmt*)self, indent);
-        break;
     case repeatstmt:
-        visitRepeat((Repeat*)self, indent);
-        break;
+        return visitRepeat((Repeat*)self, indent);
     case initialization:
         return visitInitialization((Initialization*)self, indent);
-        break;
     case scope:
         return visitScope((Scope*)self, indent);
-        break;
     case expr:
         return visitExpr((Expr*)self, indent);
-        break;
     // case returnstmt: //<-----
     //     return visitReturnStmt(self, indent);
     //     break;
@@ -220,7 +212,6 @@ Data* visitStmt(Nonterminals* self, int indent){
         return createError(ECoutOfRange);
         break;
     }
-
 }
 
 Data* visitFunc(Func* self, int indent){
@@ -230,25 +221,24 @@ Data* visitFunc(Func* self, int indent){
     }
     indent++;
     Data* rval;
-    switch (self->nonterminal)
-    {
-    case func:
-        Data* args = visitArgs(self->args, indent);
-        Data* returnType = visitType(self->returntype, indent);
-        Data* scope = visitScope(self->scope, indent);
-        Data* id = visitId(&self->name, indent);
-        rval = tcFunc(self, args, returnType, scope, id);
-        free(args);
-        free(returnType);
-        free(scope);
-        free(id);
-        break;
-    case event:
-        rval = visitEvent(self, indent);
-        break;
-    default:
-        return createError(ECoutOfRange);
-        break;
+    switch (self->nonterminal){
+		case func:;
+			Data* args = visitArgs(self->args, indent);
+			Data* returnType = visitType(self->returntype, indent);
+			Data* scope = visitScope(self->scope, indent);
+			Data* id = visitId(&self->name, indent);
+			rval = tcFunc(self, args, returnType, scope, id);
+			free(args);
+			free(returnType);
+			free(scope);
+			free(id);
+			break;
+		case event:
+			rval = visitEvent((Event*)self, indent);
+			break;
+		default:
+			return createError(ECoutOfRange);
+			break;
     }
     return rval;
 }
@@ -265,7 +255,7 @@ Data* visitIdMutation(IdMutation* self, int indent){
     Data* id = visitId(&self->name, indent);
     Data* child;
     Data* rval;
-    switch (self->idMutation)
+    switch (*(IdMutations*)(self->child))
     {
     case im_none:
         break;
@@ -326,7 +316,7 @@ Data* visitAssign(Assign* self, int indent){
     }
     indent++;
     Data* rval;
-    Data* id = visitId(&self->variable, indent);
+    Data* id = visitId(self->variable, indent);
     Data* expr = visitExpr(self->expression, indent);
 
     rval = tcAssign(self, id, expr);
@@ -343,7 +333,7 @@ Data* visitIfStmt(IfStmt* self, int indent){
     }
     indent++;
     Data* rval;
-    Data* expr = visitExprs(self->condition, indent);
+    Data* expr = visitExpr(self->condition, indent);
     Data* scope1 = visitScope(self->then, indent);
     Data* scope2 = visitScope(self->elsestmt, indent);
 
@@ -395,8 +385,7 @@ Data* visitRepeat(Repeat* self, int indent){
 }
 
 //Mangler <-----
-Data* visitReturnStmt(self, indent){
-
+Data* visitReturnStmt(ReturnStmt* self, int indent){
     return tcAccept();
 }
 
@@ -439,7 +428,7 @@ Data*  visitIdMutationDot(IdMutationDot* self, int indent){
     indent++;
     Data* rval;
     
-    Data* name = visitId(&self->name, indent);
+    Data* name = visitId(NULL, indent);
     Data* child = visitIdMutation(self->child, indent);
 
     rval = tcIdMutationDot(self, name, child);
@@ -508,7 +497,7 @@ Data* visitForLoop(ForLoop* self, int indent){
     }
     indent++;
     Data* rval;
-    Data* id = visitId(&self->inputName, indent);
+    Data* id = visitId(NULL, indent);
 
     rval = tcForLoop(self, id);
     free(id);
@@ -564,24 +553,23 @@ Data* visitId(Id* self, int indent){ //<---
     indent++;
     return tcAccept();
 }
-
 Data* visitBasicType(BasicTypes* self, int indent){ //det er en enum <---
+	return tcAccept();
     switch (*self)
     {
-    case number:
+    case bt_number:
         visitTypeDCL(self, indent);
         break;
-    case text:
+    case bt_text:
         visitTypeDCL(self, indent);
         break;
-    case logic:
+    case bt_logic:
         visitTypeDCL(self, indent);
         break;
     default:
         break;
     }
 }
-
 Data* visitTypeDCL(Type* self, int indent){
     if(PPRINTFLAG == 1)
     {
@@ -639,12 +627,12 @@ Data* visitPreambleTileItem(PreambleTileItem* self, int indent){
 }
 
 Data* visitPreambleTile(PreambelTile* self, int indent){
-    yabl_list_foreach(*self->tile_items, visitId);
+    yablListForeach(*self->tile_items, &visitId, 0);
     return tcAccept();
 }
 
 Data* visitPreamblePlayer(PreamblePlayers* self, int indent){
-    yabl_list_foreach(*self->ids, visitId);
+    yablListForeach(*self->ids, &visitId, 0);
     return tcAccept();
 }
 

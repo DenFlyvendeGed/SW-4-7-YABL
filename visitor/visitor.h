@@ -1,10 +1,10 @@
 
+#ifndef VISITOR_H
+#define VISITOR_H
+
 #include "typeChecker.h"
 
-
-
-
-
+Repeatable* visit(Repeatable* self);
 
 Data*visitPreamble(Preamble* self, int indent);
 Data*visitRepeatable(Repeatable* self, int indent);
@@ -44,3 +44,6 @@ Data*visitPreambleBoard(PreambelBoard* self, int indent);
 Data*visitPreambleTileItem(PreambleTileItem* self, int indent);
 Data*visitPreambleTile(PreambelTile* self, int indent);
 Data*visitPreamblePlayer(PreamblePlayers* self, int indent);
+
+#endif // !VISITOR_H
+
