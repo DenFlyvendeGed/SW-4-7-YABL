@@ -3,73 +3,69 @@
 #include "cfg.tab.h"
 #include <stdio.h>
 #include <string.h>
+#define YYERROR_VERBOSE 1
+#define PRINT(X) (printf("[%s] -- \"%s\"\n", X, yytext))
 int yywrap();
 %}
 
+%option yylineno
+
 %%
-\/\/.*\n   { /* Comment */ }
-\/\*.*\*\/ { /* Comment */ }
+! { PRINT("Set preamble"); return setpreamble; }
+board  { PRINT("board"); return board; }
+[0-9]+x[0-9] { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
+tile   { PRINT("tile"); return tile; }
+player { PRINT("player"); return player; }
+setup { PRINT("setup"); return setupevent; }
+turn { PRINT("turn"); return turnevent; }
+close { PRINT("close"); return closeevent; }
+list   { PRINT("list"); return listdcl; }
+text   { PRINT("textdcl"); return textdcl; }
+bool   { PRINT("booldcl"); return logicdcl; }
+point  PRINT("point");                  
+number { PRINT("numberdcl"); return numberdcl;   }
+function { PRINT("function"); return funckeyword; } 
+return { PRINT("return"); return returnkeyword; }
+returns { PRINT("returns"); return returnskeyword; }
+do { PRINT("do"); return scopebegin; }
+end { PRINT("end"); return scopeend; }
+[;] { PRINT("end of statement"); return endofstatement; }
+repeat { PRINT("repeat"); return repeat; }
+for { PRINT("for"); return forkeyword; }
+in { PRINT("in"); return in; }
+while { PRINT("while"); return whilekeyword; }
+times { PRINT("times"); return times;  }
+if { PRINT("if"); return ifkeyword; }
+else { PRINT("else"); return elsekeyword; }
+\+ { PRINT("plus"); return addition; }
+\- { PRINT("minus"); return subtraction; }
+\* { PRINT("times"); return multiplication; }
+\/ { PRINT("division"); return division; }
+remains { PRINT("remains"); return modulus; }
+not { PRINT("not"); return not; }
+!=  { PRINT("neq"); return neq; }
+==  { PRINT("eq"); return eq; }
+\> { PRINT("gt"); return gt; }
+\< { PRINT("lt"); return lt; }
+\>= { PRINT("gteq"); return gteq; }
+\<= { PRINT("lteq"); return lteq; }
+= { PRINT("assign"); return assignoperator; }
+and { PRINT("and"); return and; }
+or { PRINT("or"); return or; }
+true { PRINT("true"); yylval.number = 1; return logic; }
+false { PRINT("false"); yylval.number = 0; return logic; }
+\".*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
+[0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
+[a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
 
+\/\/.*\n     PRINT("end of line comment");
+\/\*.*\*\/   PRINT("multi line comment");
 
-"!" { return setpreamble; /*exclamation mark*/}
-
-
-"board"  {return board;/*board preamble*/}
-[0-9]+x[0-9] {yylval.text = copystringalloc(yytext); return boardsize;/*board declaration*/}
-"tile"   {return tile;/*tile preamble*/}
-"player" {return player;/*player preamble*/}
-
-"setup" {return setupevent;/*setup event*/}
-"turn" {return turnevent;/*turn event*/}
-"close" {return closeevent;/*close event*/}
-
-"list"   {return listdcl;/*list type*/}
-"text"   {return textdcl;/*text type*/}
-"bool"   {return logicdcl;/*bool type*/}
-"point"  {/*point type*/}
-"number" {return numberdcl; /*number type */ }
-
-"function" {return funckeyword; /* functionkeyword */} 
-"return" {return returnkeyword;/*return*/}
-"returns" {return returnskeyword;/*returns*/}
-
-"do" {return scopebegin;/* Scope begin */}
-"end" {return scopeend;/* Scope End*/}
-[\n;] {return endofstatement;/* End of statement*/}
-
-"repeat" {return repeat;/*repeat*/}
-"for" {return forkeyword;/*for*/}
-"in" {return in;/*in*/}
-"while" {return whilekeyword;/*while*/}
-"times" {return times; /*times*/}
-
-"if" {return ifkeyword;/*if*/}
-"else" {return elsekeyword;/*else*/}
-
-"+" {return addition;/*addition*/}
-"-" {return subtraction;/*subtraction*/}
-"*" {return multiplication;/*multiplication*/}
-"/" {return division;/*division*/}
-"remains" {return modulus;/*modulo*/}
-"not" {return not;/*not*/}
-"!="  {return neq;/*neq*/}
-"=="  {return eq;/*eq*/}
-">" {return gt;/*gt*/}
-"<" {return lt;/*lt*/}
-">=" {return gteq;/*gteq*/}
-"<=" {return lteq;/*lteq*/}
-"=" {return assignoperator;/*assign operator*/}
-"and" {return and;/*and*/}
-"or" {return or;/*or*/}
-
-"true" {yylval.number = 1; return logic;/*true bool*/}
-"false" {yylval.number = 0; return logic;/*false bool*/}
-\".*\" {yylval.text = copystringalloc(yytext);return text;/*text*/}
-[0-9]+ {yylval.text = copystringalloc(yytext); return number;/*number*/  }
-[a-zA-Z][0-9a-zA-Z]* {yylval.text = copystringalloc(yytext); return id; /* id */ }
-".*" {}
+.   ;
 %%
 
 int yywrap() {return 0;}
-void yyerror(char * msg){printf("error %s", msg);}
+void yyerror(char * msg){
+	fprintf(stderr, "[error line %d] %s\n", yylineno, msg);
+}
 

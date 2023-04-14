@@ -5,7 +5,7 @@
 
 char* copystringalloc(char*);
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant} Nonterminals;
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt} Nonterminals;
 
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
@@ -316,6 +316,7 @@ Scope* scopeAddStmt(Scope* self, Stmt* stmt);
 void destroyScope(Scope* p);
 
 Args* createArgs();
+Args* argsAddInitialization(Args* self, Initialization* initialization);
 void destroyArgs(Args* p);
 
 Funcs* createFuncs();
@@ -326,7 +327,7 @@ ListConstant* createListConstant(Exprs* exprs);
 void destroyListConstant(ListConstant* p);
 
 ReturnStmt* createReturnStmt(Expr* rtn);
-void destryReturnStmt(ReturnStmt* self);
+void destroyReturnStmt(ReturnStmt* self);
 
 Funcs createPreambles();
 void  destroyPreambles(Funcs* p);

@@ -8,7 +8,7 @@ OTEST := $(DESTINATION)/test.o
 OFILES := \
 	$(DESTINATION)/cfg.tab.o \
 	$(DESTINATION)/lex.yy.o \
-	$(DESTINATION)/cfg.o \
+	$(DESTINATION)/cfgfunctions.o \
 	$(DATA_STRUCTURES)/hashtable.o \
 	$(DATA_STRUCTURES)/list.o 
 
@@ -17,13 +17,14 @@ $(DESTINATION):
 	if [ ! -d $(DATA_STRUCTURES) ] ; then mkdir $(DATA_STRUCTURES) ; fi
 
 
+# Main	
+yabl : $(DESTINATION) $(OFILES) $(OMAIN) $(OTEST)
+	gcc -o $@ $(OFILES) $(OMAIN) $(OTEST) $(CFLAGS)
+
+
 # Cleanup of destination folder
 clean:
 	rm -rf $(DESTINATION)
-
-# Main	
-yabl : $(DESTINATION) $(OFILES) $(OMAIN)
-	gcc -o $@ $(OFILES) $(OMAIN) $(CFLAGS)
 
 #Test
 test : $(DESTINATION) $(OFILES) $(OTEST) 

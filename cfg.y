@@ -1,9 +1,11 @@
 %{
-    char yylex();
     void yyerror();
 
     #include <stdlib.h>
     #include "../cfg.h"
+	#define YYERROR_VERBOSE 1
+	extern char* yytext;
+	extern int yylineno;
 %}
 
 %union
@@ -68,14 +70,12 @@
 %type<type> Type ReturnsType
 %type<initialization> Initialization
 
-%destructor { free($$); } <text>
 
 
 %%
 Start : 
-    Funcs
+	Funcs	
 ;
-
 
 Funcs :
     Funcs Func { $$ = funcsAddFunc($1, $2); }
@@ -107,7 +107,7 @@ CloseEvent :
 
 
 Args :
-	 Initialization Args { $$ = argsAddInitalization($2, $1); }
+	 Initialization Args { $$ = argsAddInitialization($2, $1); }
 |    %empty { $$ = createArgs(); }
 ;
 

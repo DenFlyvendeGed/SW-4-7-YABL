@@ -3,13 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-void destroyList();
-
 char* copystringalloc(char* src){
 	char* cpy = malloc(strlen(src) + 1)	;
 	if( cpy == NULL ) return NULL;
 	strcpy(src, cpy);
 	return cpy;
+}
+
+Repeatable* repeatablePushChild(Repeatable* self, void* child){
+	yablListPush(self->children, child);
+	return self;
 }
 
 Repeatable* createRepeatable(Nonterminals nonterminal){
@@ -39,7 +42,6 @@ void universalDestroyFunction(void* nonterminal) {
 		case ifstmt: destroyIfStmt(nonterminal); break;
 		case assign: destroyAssign(nonterminal); break;
 					 
-
 		case repeatstmt: destroyRepeat(nonterminal)    ; break;
 		case idMutation: destroyIdMutation(nonterminal); break;
 		case variable  : destroyVariable(nonterminal)  ; break;
@@ -52,6 +54,7 @@ void universalDestroyFunction(void* nonterminal) {
 
 		case preamblePlayers: break;
 		case preambles: break;
+		case returnstmt: destroyReturnStmt(nonterminal); break;
 		default:;
 	}
 }
@@ -128,7 +131,7 @@ Type* createType(TypeValue* value)
 
 void destroyType(Type* p)
 {
-	destroyTypeVal((p->typeval));
+	destroyTypeValue((p->typeval));
 	free(p);
 }
 
@@ -249,7 +252,7 @@ IdMutationIndex* createIdMutationIndex(void* child, Expr* index)
 	return p;
 }
 
-void destroyIdMutatuinIndex(IdMutationIndex* p)
+void destroyIdMutationIndex(IdMutationIndex* p)
 {
 	destroyExpr((p->index));
 	free(p);
@@ -458,9 +461,13 @@ Exprs* createExprs()
 	return p;
 }
 
+Exprs* exprsAddExpr(Exprs* self, Expr* expr){
+	return repeatablePushChild(self, expr);
+}
+
 void  destroyExprs(Exprs* p)
 {
-	destroyList(p->children);
+	destroyRepeatable(p);
 }
 
 // typedef Repeatable Stmts;
@@ -469,6 +476,11 @@ Stmts* createStmts()
 	Stmts* p = createRepeatable(stmts);
 	return p;
 }
+
+Stmts* stmtsAddStmt(Stmts* self, Stmt* stmt){
+	return repeatablePushChild(self, stmt);
+}
+
 void destroyStmts(Stmts* p)
 {
 	destroyRepeatable(p);
@@ -479,6 +491,12 @@ Scope* createScope(Stmts* p)
 {
 	return (Scope*)p;
 }
+
+Scope* scopeAddStmt(Scope* self, Stmt* stmt){
+	return repeatablePushChild(self, stmt);
+}
+
+
 void destroyScope(Scope* p)
 {
 	destroyRepeatable(p);
@@ -490,6 +508,11 @@ Args* createArgs()
 	Args* p = createRepeatable(args);
 	return p;
 }
+
+Args* argsAddInitialization(Args* self, Initialization* initialization) {
+	return repeatablePushChild(self, initialization);
+}
+
 void destroyArgs(Args* p)
 {
 	destroyRepeatable(p);
@@ -501,6 +524,11 @@ Funcs* createFuncs()
 	Funcs* p = createRepeatable(funcs);
 	return p;
 }
+
+Funcs* funcsAddFunc(Funcs* self, Func* func){
+	return repeatablePushChild(self, func);
+}
+
 void  destroyFuncs(Funcs* p)
 {
 	destroyRepeatable(p);
@@ -520,6 +548,19 @@ void destroyListConstant(ListConstant* p)
 	destroyExprs(p->exprs);
 	free(p);
 }
+
+ReturnStmt* createReturnStmt(Expr* expr){
+	ReturnStmt* self = malloc(sizeof(ReturnStmt));
+	self->nonterminal = returnstmt;
+	self->expr = expr;
+	return self;
+}
+
+void destroyReturnStmt(ReturnStmt* self){
+	destroyExpr(self->expr);
+	free(self);
+}
+
 
 // typedef Repeatable Preambles;
 Funcs createPreambles()
