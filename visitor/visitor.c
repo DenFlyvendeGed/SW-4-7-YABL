@@ -1,8 +1,17 @@
 #include "visitor.h"
 #include "stdlib.h"
+#include "typeChecker.h"
 #include <stdio.h>
 
 #define PPRINTFLAG 1
+
+#define FOREACH(T, X, E){\
+	YablList l = X->children;\
+	if(l->item != NULL) for(; l != NULL; l = l->next){\
+		T foreach_value = l->item;\
+		E\
+	}\
+}
 
 int indent = 0;
 void pIndent(){
@@ -87,7 +96,11 @@ Data* visitExprs(Exprs* self){
         prettyPrint("Exprs");
     }
     indent++;
-    yablListForeach(self->children, &visitExpr, 0); //<---- fix these
+	FOREACH(Expr*, self, 
+		Data* value = visitExpr(foreach_value);
+		if(value->errorCode >= 0) return value;
+		return tcExpr(foreach_value, value);
+	)
     indent--;
     return tcAccept(); //<----
 }
@@ -98,7 +111,7 @@ Data* visitStmts(Stmts* self){
         prettyPrint("Stmts");
     }
     indent++;
-    yablListForeach(self->children, &visitStmt, 0);
+    yablListSimpleForeach(self->children, &visitStmt);
     indent--;
     return tcAccept(); //<----
 }
@@ -109,7 +122,9 @@ Data* visitScope(Scope* self){
         prettyPrint("Scope");
     }
     indent++;
-    yablListForeach(self->children, &visitStmt, 0);
+	YablList l = self->children;
+	for()
+    yablListSipleForeach(self->children, &visitStmt, 0);
     indent--;
     return tcAccept(); //<----
 }
@@ -131,7 +146,7 @@ Data* visitFuncs(Funcs* self){
         prettyPrint("Funcs");
     }
     indent++;
-    yablListForeach(self->children, &visitFunc, 0);
+    yablListSipleForeach(self->children, &visitFunc, 0);
     indent--;
     return tcAccept(); //<----
 }
@@ -663,12 +678,12 @@ Data* visitPreambleTileItem(PreambleTileItem* self){
 }
 
 Data* visitPreambleTile(PreambelTile* self){
-    yablListForeach(*self->tile_items, &visitId, 0);
+    yablListSimpleForeach(*self->tile_items, &visitId);
     return tcAccept();
 }
 
 Data* visitPreamblePlayer(PreamblePlayers* self){
-    yablListForeach(*self->ids, &visitId, 0);
+    yablListSimpleForeach(*self->ids, &visitId);
     return tcAccept();
 }
 
