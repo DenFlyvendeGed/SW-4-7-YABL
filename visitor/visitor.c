@@ -608,14 +608,15 @@ Data* visitTypeDCL(Type* self){
         prettyPrint("TypeDCL");
     }
     indent++;
-    Data* rval;
-    Data* tval = visitTypeValue(self->typeval);
+    // Data* rval;
+    // Data* tval = visitTypeValue(self->typeval);
 
-    rval = tcTypeDCL(self, tval);
-    free(tval);
+    // rval = tcTypeDCL(self, tval);
+    // free(tval);
 
     indent--;
-    return rval;
+    return tcAccept();
+    // return rval;
 }
 
 Data* visitEvent(Event* self){
