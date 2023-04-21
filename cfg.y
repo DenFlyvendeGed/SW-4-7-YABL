@@ -3,6 +3,7 @@
 
     #include <stdlib.h>
     #include "../cfg.h"
+	#include "lex.yy.h"
 	#define YYERROR_VERBOSE 1
 	extern char* yytext;
 	extern int yylineno;

@@ -3,6 +3,8 @@
 #include "test.h"
 #include "./data-structures/list.h"
 
+void cfgTest();
+
 int testFuncSuccess(){return 1;}
 int testFuncFail(){return 0;}
 
@@ -15,6 +17,7 @@ int YABL_TEST_SUCCESS  = 0;
 /////////////////////// TEST /////////////////////////
 void test(){
 	yablListTests();
+	cfgTest();
 
 	testHeader("Test of Tests");
 	doTest("TEST MUST SUCCEDE", testFuncSuccess());

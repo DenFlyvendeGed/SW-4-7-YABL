@@ -12,6 +12,8 @@ int main(int argv, char ** args){
 
 #else
 
+int runTests();
+
 int main(int argc, char *argv[]){
 	return runTests();
 }
