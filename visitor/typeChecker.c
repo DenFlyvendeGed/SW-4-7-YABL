@@ -80,8 +80,11 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
 }
 
 Data* tcEvent(Event* self, Data* scope){ //<---
-    if(self == NULL)
+    if(self == NULL){
+        free(scope);
         return createError(ECempty);
+    }
+        
     if(scope->errorCode)
         return scope;
     //<---- return eventType?
@@ -221,11 +224,13 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
 }   
 
 //Data* tcReturnStmt(self);
-Data* tcInitialization(Initialization* self, Data* type){ //might not be needed
+Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not be needed
     if(self == NULL)
         return createError(ECempty);
     if(type->errorCode >= 0)
         return createError(type->errorCode);
+    if(val->errorCode >= 0)
+        return val;
 
     return type;
 }
@@ -355,6 +360,7 @@ Data*  createData(BasicTypes dType)
 };
 
 Data* createError(ErrorCode error){
+    printf("error");
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
 	return d;

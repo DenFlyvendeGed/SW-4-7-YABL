@@ -1,14 +1,13 @@
 #include "visitor.h"
-#include "stdlib.h"
-#include "typeChecker.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 #define PPRINTFLAG 1
 
 #define FOREACH(T, X, E){\
-	YablList l = X->children;\
-	if(l->item != NULL) for(; l != NULL; l = l->next){\
-		T foreach_value = l->item;\
+	YablList _l = X->children;\
+	if(_l->item != NULL) for(; _l != NULL; _l = _l->next){\
+		T foreach_value = _l->item;\
 		E\
 	}\
 }
@@ -111,7 +110,12 @@ Data* visitStmts(Stmts* self){
         prettyPrint("Stmts");
     }
     indent++;
-    yablListSimpleForeach(self->children, &visitStmt);
+    // yablListSimpleForeach(self->children, &visitStmt);
+    FOREACH(Stmt*, self, 
+		Data* value = visitStmt(foreach_value);
+		if(value->errorCode >= 0) return value;
+		return tcStmt(foreach_value, value);
+	)
     indent--;
     return tcAccept(); //<----
 }
@@ -123,8 +127,14 @@ Data* visitScope(Scope* self){
     }
     indent++;
 	YablList l = self->children;
-	for()
-    yablListSipleForeach(self->children, &visitStmt, 0);
+	
+    // yablListSipleForeach(self->children, &visitStmt, 0);
+    FOREACH(Stmt*, self, 
+		Data* value = visitStmt(foreach_value);
+		if(value->errorCode >= 0) return value;
+		return tcAccept(); //<---
+	)
+
     indent--;
     return tcAccept(); //<----
 }
@@ -146,7 +156,12 @@ Data* visitFuncs(Funcs* self){
         prettyPrint("Funcs");
     }
     indent++;
-    yablListSipleForeach(self->children, &visitFunc, 0);
+    // yablListSipleForeach(self->children, &visitFunc, 0);
+    FOREACH(Func*, self, 
+		Data* value = visitFunc(foreach_value);
+		if(value->errorCode >= 0);
+        // tcAccept();//<---
+	)
     indent--;
     return tcAccept(); //<----
 }
@@ -183,11 +198,13 @@ Data*  visitExpr(Expr* self){
 
     Data* child;
     Data* rval;
+    if(self == NULL)
+        createError(ECempty);
     switch (self->exprType)
     {
     case et_constant:
         //need a way to check type
-         
+        child = createData(bt_number);
         break;
     case et_id_mutation:
         child = visitIdMutation(self->child);
@@ -222,14 +239,19 @@ Data* visitStmt(Nonterminals* self){
     {
     case assign:
         rtn =  visitAssign((Assign*)self);
+        break;
     case ifstmt:
         rtn =  visitIfStmt((IfStmt*)self);
+        break;
     case repeatstmt:
         rtn =  visitRepeat((Repeat*)self);
+        break;
     case initialization:
         rtn =  visitInitialization((Initialization*)self);
+        break;
     case scope:
         rtn =  visitScope((Scope*)self);
+        break;
     case expr:
         rtn =  visitExpr((Expr*)self);
     // case returnstmt: //<-----
@@ -431,11 +453,13 @@ Data* visitInitialization(Initialization* self){
     {
         prettyPrint("Initialization");
     }
+    
     indent++;
     Data* rval;
+    Data* val = visitExpr(self->initialValue);
     Data* type = visitType(self->type);
 
-    rval = tcInitialization(self, type);
+    rval = tcInitialization(self, type, val);
     free(type);
 
     indent--;
@@ -644,7 +668,7 @@ Data* visitEvent(Event* self){
 
     Data* scope = visitScope(self->scope);
     rval = tcEvent(self, scope);
-    free(scope);
+    // free(scope);
 
     indent--;
     return rval;
@@ -677,13 +701,14 @@ Data* visitPreambleTileItem(PreambleTileItem* self){
     return tcAccept();
 }
 
-Data* visitPreambleTile(PreambelTile* self){
-    yablListSimpleForeach(*self->tile_items, &visitId);
+Data* visitPreambleTile(PreambelTile* self){ //<----
+    // yablListSimpleForeach(*self->tile_items, &visitId);
+    
     return tcAccept();
 }
 
-Data* visitPreamblePlayer(PreamblePlayers* self){
-    yablListSimpleForeach(*self->ids, &visitId);
+Data* visitPreamblePlayer(PreamblePlayers* self){ //<--
+    // yablListSimpleForeach(*self->ids, &visitId);
     return tcAccept();
 }
 

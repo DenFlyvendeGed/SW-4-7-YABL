@@ -40,7 +40,7 @@ Data* tcPreambles(Preambles* self);
 
 
 Data* tcExpr(Expr* self, Data* child);
-//Data* tcStmt(Nonterminals* self); //return visit data
+Data* tcStmt(Stmt* self, Data* child); //return visit data
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id);
 Data* tcEvent(Event* self, Data* scope);
 
@@ -51,7 +51,7 @@ Data* tcAssign(Assign* self, Data* id, Data* expr);
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope);
 
 //Data* tcReturnStmt(self);
-Data* tcInitialization(Initialization* self, Data* type);
+Data* tcInitialization(Initialization* self, Data* type, Data* val);
 Data* tcType(Type* self, Data* typeVal);
 
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id);
