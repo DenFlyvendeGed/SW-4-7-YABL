@@ -3,19 +3,25 @@ CFLAGS := -g
 
 DESTINATION := ./.target
 DATA_STRUCTURES:= $(DESTINATION)/data-structures
+VISITOR:= $(DESTINATION)/visitor
+
 OMAIN := $(DESTINATION)/main.o 
 OTEST := $(DESTINATION)/test.o 
+
 OFILES := \
 	$(DESTINATION)/cfg.tab.parse.o \
 	$(DESTINATION)/lex.yy.parse.o \
 	$(DESTINATION)/cfgfunctions.o \
 	$(DESTINATION)/cfg.test.o \
 	$(DATA_STRUCTURES)/hashtable.o \
-	$(DATA_STRUCTURES)/list.o 
+	$(DATA_STRUCTURES)/list.o \
+	$(VISITOR)/typeChecker.o \
+	$(VISITOR)/visitor.o 
 
 $(DESTINATION):
 	if [ ! -d $(DESTINATION) ] ; then mkdir $(DESTINATION) ; fi;
 	if [ ! -d $(DATA_STRUCTURES) ] ; then mkdir $(DATA_STRUCTURES) ; fi
+	if [ ! -d $(VISITOR) ] ; then mkdir $(VISITOR) ; fi
 
 
 # Main	

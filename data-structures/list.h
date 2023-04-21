@@ -16,6 +16,7 @@ void  yablListPushCpy(YablList self, void* item, int sizeOfItem);
 void* yablListGet(YablList self, int index);
 void  yablListDelete(YablList self, void(*deleteItem)(void *));
 void  yablListForeach(YablList self, void(*foreach)(void *, va_list), int n_args, ...);
+void  yablListSimpleForeach(YablList self, void(*foreach)(void *));
 int   yablListRemove(YablList* self, int index, void(*deleteFunc)(void*));
 void* yablListRemoveRtn(YablList* self, int index);
 void* yablListPopRtn(YablList self);

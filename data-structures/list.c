@@ -144,6 +144,13 @@ void yablListForeach(YablList self, void(*foreach)(void *, va_list), int n_args,
 	va_end(ap);
 }
 
+void yablListSimpleForeach(YablList self, void(*foreach)(void*)){
+	if(self->item == NULL) return;
+	for(; self != NULL; self = self->next){
+		foreach(self->item);
+	}
+}
+
 /// Tests
 int yablListCreateTest(){
 	YablList list = yablListCreate();
