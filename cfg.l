@@ -71,7 +71,7 @@ false { PRINT("false"); yylval.number = 0; return logic; }
 <<EOF>> { PRINT("EOF"); return YYEOF; }
 
 \n  ;
-.   ;
+.   { PRINT("ERROR"); return '\0';}
 %%
 
 int yywrap() {return 1;}
