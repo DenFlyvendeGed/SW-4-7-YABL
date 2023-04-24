@@ -605,15 +605,16 @@ Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for
     }
     indent++;
     Data* rval;
-    Data* basicType = visitBasicType(&self->type);
-    Data* typeDcl = visitTypeDCL(self->list);
 
-    rval = tcTypeValue(self, basicType, typeDcl);
-    free(basicType);
-    free(typeDcl);
+    // Data* basicType = createData(self->type);//visitBasicType(&self->type); //gør ikke noget
+    // Data* typeDcl = visitTypeDCL(self->list); //gør ikke noget
+
+    // rval = tcTypeValue(self, basicType, typeDcl); //gør ikke noget
+    // free(basicType);
+    // free(typeDcl);
 
     indent--;
-    return rval;
+    return createData(self->type);//rval;
 }
 
 //--------------------------------------
@@ -628,7 +629,6 @@ Data* visitId(Id* self){ //<---
     return tcAccept();
 }
 Data* visitBasicType(BasicTypes* self){ //det er en enum <---
-	return tcAccept();
     switch (*self)
     {
     case bt_number:

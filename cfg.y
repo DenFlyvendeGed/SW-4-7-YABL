@@ -188,7 +188,7 @@ P0 :
 ;
 
 P1 :
-    P1 multiplication P0 { $$ = createExpr(et_unary_operator, createBinaryOperator(bo_mul, $1, $3)); }
+    P1 multiplication P0 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_mul, $1, $3)); }
 |   P1 division P0 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_division, $1, $3)); }
 |   P1 modulus P0 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_modulus, $1, $3)); }
 |   P0 { $$ = $1; }

@@ -50,26 +50,10 @@ Data* tcExpr(Expr* self, Data* child)
             default:
                 return createError(ECoutOfRange);
         }
-       
-        // else{
-        //     return createError(ECtypeExeption);
-        //     //false
-        // }
-
-        //Number
-        
-        // else{
-        //     return createError(ECtypeExeption);
-        //     //false
-        // }
-
-        //Text
-        return createData((BasicTypes)bt_text);
-        //idk what to check <-----
 
     }
     else {
-        return child;
+        return createData(child->type);
     }
 }
 
@@ -255,7 +239,7 @@ Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not
     else if(type->errorCode != ECnoError)
         return createError(type->errorCode);
     else if(val->errorCode != ECnoError)
-        return val;
+        return createError(type->errorCode);
 
     if(type->type != val->type)
         return createError(ECtypeExeption);
