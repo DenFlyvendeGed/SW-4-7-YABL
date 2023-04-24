@@ -75,11 +75,11 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     
     //check scope and args id's match? <--------
 
-    //check if returntype and scope return data match
-    if(returntype->type != scope->type)
-    {
-        return createError(ECtypeExeption);
-    }
+    //return type is checked in the scope
+    // if(returntype->type != scope->type)
+    // {
+    //     return createError(ECtypeExeption);
+    // }
 
     return scope;
 }
@@ -121,13 +121,12 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
         if(expr1->type == bt_logic && expr2->type == bt_logic){
             switch (self->bo) {
                 //returns logic
-                case bo_not: //maybe not <----  
                 case bo_eq:
                 case bo_neq:
-                case bo_gt:
-                case bo_gteq: 
-                case bo_lt:
-                case bo_lteq:
+                // case bo_gt:
+                // case bo_gteq: 
+                // case bo_lt:
+                // case bo_lteq:
                 case bo_and:
                 case bo_or:
                     return createData(bt_logic);

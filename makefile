@@ -39,7 +39,7 @@ test : $(DESTINATION) $(OFILES) $(OTEST)
 	gcc -o $@ $(OFILES) $(OMAIN) $(OTEST) $(CFLAGS)
 
 $(DESTINATION)/cfg.tab.c : cfg.y $(DESTINATION)/lex.yy.c
-	bison -d -Wcounterexamples $< -o $@
+	bison -d  $< -o $@
 
 $(DESTINATION)/lex.yy.c : cfg.l 
 	flex --header-file=./.target/lex.yy.h -o $@ $<

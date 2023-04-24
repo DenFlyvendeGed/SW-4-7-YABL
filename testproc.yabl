@@ -1,17 +1,44 @@
 setup
 do  
+     //logic + logic
+        //returns logic
+            logic test = true==true;        //case bo_eq:
+            logic test = true!=true;        //case bo_neq:
+            
+            logic test = true and false;    //case bo_and:
+            logic test = true or true;      //case bo_or:
 
-    number test = 1*1;
-    number test = 1/1;
-    number test = 1-1;
-    number test = 1+1;
-    number test = 5 remains 5;
+        //number + number
+            //returns number
+                number test = 4+4;          //case bo_plus:
+                number test = 5-2;          //case bo_minus:
+                number test = 6/3;          //case bo_division:
+                number test = 5*2;          //case bo_mul:
+                number test = 5 remains 2;  //case bo_modulus:
+
+            //returns logic
+                logic test = 4==2;          //case bo_eq:
+                logic test = 2!=4;          //case bo_neq:
+                logic test = 2>5;           //case bo_gt:
+                logic test = 5>=2;          //case bo_gteq:
+                logic test = 2<4;           //case bo_lt:
+                logic test = 5<=2;          //case bo_lteq:
+
+        //text + text
+                //returns text
+                text test = "test"+"world"; //case bo_plus:
+
+                //returns logic
+                //logic test = "te"=="tt";     //case bo_eq:
+                //logic test = "te"!="ff";     //case bo_neq:
 
 
 end
 close
 do
-   
+    logic test = true or 5;
+    number test = 5 + "string";
+    text test = 5 + 5;
 end
 
 eof

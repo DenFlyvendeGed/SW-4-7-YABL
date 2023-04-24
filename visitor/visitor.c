@@ -72,7 +72,7 @@ Data* visitRepeatable(Repeatable* self){
         rtn =  visitStmts(self);
         break;
     case scope:
-        rtn =  visitScope(self);
+        rtn =  visitScope(self, NULL);
         break;
     case args:
         rtn =  visitArgs(self);
@@ -122,7 +122,7 @@ Data* visitStmts(Stmts* self){
     return tcAccept(); //<----
 }
 
-Data* visitScope(Scope* self){
+Data* visitScope(Scope* self, Data* returnType){
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Scope");
@@ -133,7 +133,14 @@ Data* visitScope(Scope* self){
     // yablListSipleForeach(self->children, &visitStmt, 0);
     FOREACH(Stmt*, self, 
 		Data* value = visitStmt(foreach_value);
-		// if(value->errorCode != ECnoError) return value;
+		if(*(Nonterminals*)foreach_value == returnstmt){//check returnstmt against returnType
+            if(returnType != NULL ){
+                if(value->type != returnType->type){ //currently dosent work against id's
+                    printf("invalid return type: (scope)%i, (expected)%i", value->type, returnType->type);
+                    createError(ECtypeExeption);
+                }
+            }
+        }  
 		// return tcAccept(); //<---
 	)
 
@@ -252,13 +259,13 @@ Data* visitStmt(Nonterminals* self){
         rtn =  visitInitialization((Initialization*)self);
         break;
     case scope:
-        rtn =  visitScope((Scope*)self);
+        rtn =  visitScope((Scope*)self, NULL);
         break;
     case expr:
         rtn =  visitExpr((Expr*)self);
-    // case returnstmt: //<-----
-    //     return visitReturnStmt(self);
-    //     break;
+        break;
+     case returnstmt: //<-----
+        rtn = visitReturnStmt((ReturnStmt*)self);
         break;
     default:
         return createError(ECoutOfRange);
@@ -279,7 +286,7 @@ Data* visitFunc(Func* self){
 		case func:;
 			Data* args = visitArgs(self->args);
 			Data* returnType = visitType(self->returntype);
-			Data* scope = visitScope(self->scope);
+			Data* scope = visitScope(self->scope, returnType); //check returnstmt against returntype
 			Data* id = visitId(&self->name);
 			rval = tcFunc(self, args, returnType, scope, id);
 			free(args);
@@ -301,11 +308,15 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
+    if(self->child == NULL){ //<-- might need fixes
+        return tcAccept();
+    }
     if(PPRINTFLAG == 1)
     {
         prettyPrint("IdMutation");
     }
     indent++;
+    
 
     Data* id = visitId(&self->name);
     Data* child;
@@ -393,8 +404,8 @@ Data* visitIfStmt(IfStmt* self){
     indent++;
     Data* rval;
     Data* expr = visitExpr(self->condition);
-    Data* scope1 = visitScope(self->then);
-    Data* scope2 = visitScope(self->elsestmt);
+    Data* scope1 = visitScope(self->then, NULL);
+    Data* scope2 = visitScope(self->elsestmt, NULL);
 
 
     rval = tcIfStmt(self, expr, scope1, scope2);
@@ -435,7 +446,7 @@ Data* visitRepeat(Repeat* self){
         loopHeader = createError(ECoutOfRange);
         break;
     }
-    Data* scope = visitScope(self->scope);
+    Data* scope = visitScope(self->scope,NULL);
 
     rval = tcRepeat(self, loopHeader, scope);
     free(loopHeader);
@@ -447,7 +458,9 @@ Data* visitRepeat(Repeat* self){
 
 //Mangler <-----
 Data* visitReturnStmt(ReturnStmt* self){
-    return tcAccept();
+    printf("returnstmt \n");
+    Data* rtn = visitExpr(self->expr);
+    return rtn;
 }
 
 Data* visitInitialization(Initialization* self){
@@ -669,7 +682,7 @@ Data* visitEvent(Event* self){
     indent++;
     Data* rval;
 
-    Data* scope = visitScope(self->scope);
+    Data* scope = visitScope(self->scope, NULL);
     rval = tcEvent(self, scope);
     // free(scope);
 

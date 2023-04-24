@@ -1,0 +1,12 @@
+setup
+do
+    
+end
+function test() returns number 
+do
+    logic a = true;
+    return a;
+    return "";
+    return 4;
+    return true;
+end

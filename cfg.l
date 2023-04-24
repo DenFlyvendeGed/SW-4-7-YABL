@@ -71,6 +71,7 @@ false { PRINT("false"); yylval.text = copystringalloc(yytext); return logic; }
 <<EOF>> { PRINT("EOF"); return EOF; }
 
 \n  ;
+[ \t\r] ;
 .   { PRINT("ERROR"); return '\0';}
 %%
 
