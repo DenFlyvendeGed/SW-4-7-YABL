@@ -11,7 +11,7 @@ int yywrap();
 %option yylineno
 
 %%
-eof {PRINT("EOF"); return YYEOF;}
+eof {PRINT("EOF"); return EOF;}
 ! { PRINT("Set preamble"); return setpreamble; }
 board  { PRINT("board"); return board; }
 [0-9]+x[0-9] { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
@@ -53,8 +53,8 @@ not { PRINT("not"); return not; }
 = { PRINT("assign"); return assignoperator; }
 and { PRINT("and"); return and; }
 or { PRINT("or"); return or; }
-true { PRINT("true"); yylval.number = 1; return logic; }
-false { PRINT("false"); yylval.number = 0; return logic; }
+true { PRINT("true"); yylval.text = copystringalloc(yytext); return logic; }
+false { PRINT("false"); yylval.text = copystringalloc(yytext); return logic; }
 \".*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
 [a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
@@ -62,7 +62,7 @@ false { PRINT("false"); yylval.number = 0; return logic; }
 \/\/.*\n     PRINT("end of line comment");
 \/\*.*\*\/   PRINT("multi line comment");
 
-<<EOF>> { PRINT("EOF"); return YYEOF; }
+<<EOF>> { PRINT("EOF"); return EOF; }
 
 .   ;
 %%

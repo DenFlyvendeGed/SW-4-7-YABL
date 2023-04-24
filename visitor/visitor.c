@@ -39,6 +39,7 @@ Repeatable* visit(Repeatable* self){ //Start <----
     // visitPreamble(self->preamble);
     visitRepeatable(self);
     indent--;
+    printf("Error Count: %d\n", errorCount);
     return self;
 }
 
@@ -83,6 +84,7 @@ Data* visitRepeatable(Repeatable* self){
         rtn =  visitPreambles(self);
         break;
     default:
+        rtn = createError(ECoutOfRange);
         break;
     }
     indent--;
@@ -97,8 +99,8 @@ Data* visitExprs(Exprs* self){
     indent++;
 	FOREACH(Expr*, self, 
 		Data* value = visitExpr(foreach_value);
-		if(value->errorCode >= 0) return value;
-		return tcExpr(foreach_value, value);
+		if(value->errorCode != ECnoError) return value;
+		// return tcExpr(foreach_value, value);
 	)
     indent--;
     return tcAccept(); //<----
@@ -113,8 +115,8 @@ Data* visitStmts(Stmts* self){
     // yablListSimpleForeach(self->children, &visitStmt);
     FOREACH(Stmt*, self, 
 		Data* value = visitStmt(foreach_value);
-		if(value->errorCode >= 0) return value;
-		return tcStmt(foreach_value, value);
+		if(value->errorCode != ECnoError) return value;
+		// return tcStmt(foreach_value, value);
 	)
     indent--;
     return tcAccept(); //<----
@@ -131,8 +133,8 @@ Data* visitScope(Scope* self){
     // yablListSipleForeach(self->children, &visitStmt, 0);
     FOREACH(Stmt*, self, 
 		Data* value = visitStmt(foreach_value);
-		if(value->errorCode >= 0) return value;
-		return tcAccept(); //<---
+		// if(value->errorCode != ECnoError) return value;
+		// return tcAccept(); //<---
 	)
 
     indent--;
@@ -159,7 +161,7 @@ Data* visitFuncs(Funcs* self){
     // yablListSipleForeach(self->children, &visitFunc, 0);
     FOREACH(Func*, self, 
 		Data* value = visitFunc(foreach_value);
-		if(value->errorCode >= 0);
+		if(value->errorCode != ECnoError);
         // tcAccept();//<---
 	)
     indent--;
@@ -204,7 +206,7 @@ Data*  visitExpr(Expr* self){
     {
     case et_constant:
         //need a way to check type
-        child = createData(bt_number);
+        child = tcAccept();//createData(bt_number);
         break;
     case et_id_mutation:
         child = visitIdMutation(self->child);
@@ -456,8 +458,9 @@ Data* visitInitialization(Initialization* self){
     
     indent++;
     Data* rval;
-    Data* val = visitExpr(self->initialValue);
     Data* type = visitType(self->type);
+    Data* val = visitExpr(self->initialValue);
+    
 
     rval = tcInitialization(self, type, val);
     free(type);
@@ -475,8 +478,8 @@ Data* visitType(Type* self){
     Data* rval;
     Data* type = visitTypeValue(self->typeval);
 
-    rval = tcType(self, type);
-    free(type);
+    rval = tcType(self, type); //returns type
+    // free(type);
 
     indent--;
     return rval;

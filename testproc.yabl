@@ -1,0 +1,14 @@
+setup
+do  
+    number test = "1";
+    number test2 = 1;
+    text test5 = 2;
+    bool test6 = true;
+    number test3 = 3+"3";
+end
+close
+do
+   
+end
+
+eof

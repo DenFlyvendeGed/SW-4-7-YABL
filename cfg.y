@@ -45,9 +45,8 @@
 %token returnskeyword funckeyword 
 %token numberdcl logicdcl listdcl textdcl
 %token setupevent turnevent closeevent
-%token<text> text id
+%token<text> text id logic
 %token<number> number 
-%token<logic> logic
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword

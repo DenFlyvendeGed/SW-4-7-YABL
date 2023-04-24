@@ -25,25 +25,43 @@ Data* tcExpr(Expr* self, Data* child)
     } 
     if(self->exprType == et_constant)
     {
-        //Logic
-        if(*(int*)self->child <= 1 && *(int*)self->child >= 0){
-            //true
-            return createData((BasicTypes)bt_logic);
+        Constant* child = self->child;
+        switch (child->typeDcl) {
+            case td_logic:
+                 //Logic
+                if(*(int*)child->value <= 1 && *(int*)child->value >= 0){    
+                    return createData((BasicTypes)bt_logic);
+                }
+                else {
+                    return createError(ECtypeExeption);
+                }
+                break;
+            case td_number:
+                if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
+                    return createData((BasicTypes)bt_number);
+                }   
+                else {
+                    return createError(ECtypeExeption);
+                }
+                break;
+            case td_text:
+                return createData((BasicTypes)bt_text); //<--- check om det er en streng?
+                break;
+            default:
+                return createError(ECoutOfRange);
         }
-        else{
-            return createError(ECtypeExeption);
-            //false
-        }
+       
+        // else{
+        //     return createError(ECtypeExeption);
+        //     //false
+        // }
 
         //Number
-        if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
-            //true
-            return createData((BasicTypes)bt_number);
-        }
-        else{
-            return createError(ECtypeExeption);
-            //false
-        }
+        
+        // else{
+        //     return createError(ECtypeExeption);
+        //     //false
+        // }
 
         //Text
         return createData((BasicTypes)bt_text);
@@ -55,17 +73,20 @@ Data* tcExpr(Expr* self, Data* child)
     }
 }
 
-//Data* tcStmt(Nonterminals* self); //return visit data
+Data* tcStmt(Stmt* self, Data* child)
+{
+    return tcAccept();
+}
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     if(self == NULL)
         return createError(ECempty);
-    if(args->errorCode >= 0)
+    if(args->errorCode != ECnoError)
         return createError(args->errorCode);
-    if(returntype->errorCode >= 0)
+    if(returntype->errorCode != ECnoError)
         return createError(returntype->errorCode);
-    if(scope->errorCode >= 0)
+    if(scope->errorCode != ECnoError)
         return createError(scope->errorCode);
-    if(id->errorCode >= 0)
+    if(id->errorCode != ECnoError)
         return createError(id->errorCode);
     
     //check scope and args id's match? <--------
@@ -188,6 +209,9 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
                     break;
             }
         }
+        else {
+            return createError(ECtypeExeption);
+        }
     }
     else
     {
@@ -210,11 +234,11 @@ Data* tcAssign(Assign* self, Data* id, Data* expr){
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(self == NULL)
         return createError(ECempty);
-    if(condition->errorCode >= 0)
+    if(condition->errorCode != ECnoError)
         return createError(condition->errorCode);
-    if(thenScope->errorCode >= 0)
+    if(thenScope->errorCode != ECnoError)
         return createError(thenScope->errorCode);
-    if(elseScope->errorCode >= 0)
+    if(elseScope->errorCode != ECnoError)
         return createError(elseScope->errorCode);
 
     if(condition->type != bt_logic)
@@ -225,12 +249,16 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
 
 //Data* tcReturnStmt(self);
 Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not be needed
-    if(self == NULL)
+    if(self == NULL){
         return createError(ECempty);
-    if(type->errorCode >= 0)
+    }
+    else if(type->errorCode != ECnoError)
         return createError(type->errorCode);
-    if(val->errorCode >= 0)
+    else if(val->errorCode != ECnoError)
         return val;
+
+    if(type->type != val->type)
+        return createError(ECtypeExeption);
 
     return type;
 }
@@ -241,9 +269,9 @@ Data* tcType(Type* self, Data* typeVal){ //might not be needed
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
     if(self == NULL)
         return createError(ECempty);
-    if(id->errorCode >= 0)
+    if(id->errorCode != ECnoError)
         return createError(id->errorCode);
-    if(child != NULL && child->errorCode >= 0)
+    if(child != NULL && child->errorCode != ECnoError)
         return createError(child->errorCode);
 
     switch (*((IdMutations*)(self->child))) {
@@ -276,9 +304,9 @@ Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
 {
     if(self == NULL)
         return createError(ECempty);
-    if(loopHeader->errorCode >= 0)
+    if(loopHeader->errorCode != ECnoError)
         return createError(loopHeader->errorCode);
-    if(scope->errorCode >= 0)
+    if(scope->errorCode != ECnoError)
         return createError(scope->errorCode);
     
     return tcAccept();
@@ -287,7 +315,7 @@ Data* tcTimesLoop(TimesLoop* self, Data* goalExpr)
 {
     if(self == NULL)
         return createError(ECempty);
-    if(goalExpr->errorCode >= 0)
+    if(goalExpr->errorCode != ECnoError)
         return createError(goalExpr->errorCode);
     
     return tcAccept();
@@ -296,7 +324,7 @@ Data* tcForLoop(ForLoop* self, Data* inputName)
 {
     if(self == NULL)
         return createError(ECempty);
-    if(inputName->errorCode >= 0)
+    if(inputName->errorCode != ECnoError)
         return createError(inputName->errorCode);
     
     return tcAccept();
@@ -304,7 +332,7 @@ Data* tcForLoop(ForLoop* self, Data* inputName)
 Data* tcWhileLoop(WhileLoop* self, Data* cond){
     if(self == NULL)
         return createError(ECempty);
-    if(cond->errorCode >= 0)
+    if(cond->errorCode != ECnoError)
         return createError(cond->errorCode);
 
     return tcAccept();
@@ -324,7 +352,7 @@ Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval){
     if(self == NULL)
         return createError(ECempty);
-    if(typeval->errorCode >= 0)
+    if(typeval->errorCode != ECnoError)
         return createError(typeval->errorCode);
     
     return tcAccept();
@@ -334,9 +362,9 @@ Data* tcTypeDCL(Type* self, Data* typeval){
 Data* tcVariable(Variable* self, Data* type, Data* id){
     if(self == NULL)
         return createError(ECempty);
-    if(type->errorCode >= 0)
+    if(type->errorCode != ECnoError)
         return  createError(type->errorCode);
-    if(id->errorCode >= 0)
+    if(id->errorCode != ECnoError)
         return createError(id->errorCode);
 
     return tcAccept();
@@ -351,16 +379,18 @@ Data* tcPreamblePlayer(PreamblePlayers* self);
 
 Data*  createData(BasicTypes dType)
 {
+    printf("\n dataType: %d\n", dType);
     Data*  d = malloc(sizeof(Data));
     d->type = dType;
     // d->value = value;
-    d->errorCode = -1;
+    d->errorCode = ECnoError;
 
     return d;
 };
 
 Data* createError(ErrorCode error){
-    printf("error");
+    errorCount++;
+    printf("\nerror %i\n", error);
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
 	return d;
@@ -369,7 +399,7 @@ Data* createError(ErrorCode error){
 Data* tcAccept()
 {
     Data*  d = malloc(sizeof(Data));
-    d->errorCode = -1;
+    d->errorCode = ECnoError;
 
     return d;
 }

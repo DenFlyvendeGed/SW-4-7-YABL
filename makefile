@@ -44,7 +44,7 @@ $(DESTINATION)/%.o : $(DESTINATION)/%.c
 	gcc -c -o $@ $^ $(CFLAGS)
 
 $(DESTINATION)/cfg.tab.c : cfg.y
-	bison -d -Wcounterexamples $^ -o $@
+	bison -d  $^ -o $@
 
 $(DESTINATION)/lex.yy.c : cfg.l $(DESTINATION)/cfg.tab.c
 	flex -o $@ $<

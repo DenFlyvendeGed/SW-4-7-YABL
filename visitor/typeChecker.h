@@ -11,11 +11,13 @@
 #define NUMBERMAX 255
 #define NUMBERMIN -255
 
-typedef enum  {ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
+int errorCount;
+
+typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
 
 typedef struct {
-    BasicTypes type;
     Nonterminals nonterminal;
+    BasicTypes type;
     ErrorCode errorCode;
     void* value; 
 } Data;
