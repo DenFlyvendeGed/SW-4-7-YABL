@@ -78,15 +78,6 @@ void yablHashDelete(YablHash *self, void(*delete_var)(void*)) {
     self->map = NULL;
 }
 
-/// Loops through all components in the map
-void yablHashForeach(YablHash *self, void* key, void(*foreach)(void *, va_list), int n_args, ...){
-    for (int i = 0; i < self->sizeOfList; i++){
-        if(self->map[i] != NULL){
-            yablListForeach(self->map[i], *foreach, n_args);
-        }
-    }
-}
-
 /// Tests
 
 int testHashFunc(void* key){
