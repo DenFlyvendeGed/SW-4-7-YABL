@@ -12,9 +12,10 @@ YablList yablListCreate(){
 }
 
 void yablListDelete(YablList self, void(*delete_var)(void*)){
-	if(self->next == NULL) return;
+	if(self->next == NULL) goto end;
 	yablListDelete(self->next, delete_var);
 	if(self->item != NULL) delete_var(self->item);
+	end:
 	free(self);
 }
 

@@ -14,66 +14,83 @@ typedef struct Node {
 YablHash yablHashCreate(int sizeOfList, int(*hashFunc)(void *)) {
     YablHash rtn;
     rtn.sizeOfList = sizeOfList;
-    rtn.map = malloc(sizeof(void **)*(rtn.sizeOfList));
+    rtn.map = calloc(sizeof(void **),(rtn.sizeOfList));
     rtn.hashFunc = hashFunc;
     return rtn;
 }
 
 void* yablHashGet(YablHash* self, void* key, int(*compare)(void*, void*)){
-    void* ptr = NULL;
-	int hashIndex = self->hashFunc(key);
+    int hashIndex = self->hashFunc(key);
     YablList list = self->map[hashIndex];
-    for(int i = 0; i <= yablListLen(list); i++){
-        if(compare(list->item, key)){
+    int length = yablListLen(list);
+    for(int i = 0; i <= length; i++){
+        if(compare(((Node*)list->item)->key, key)){
             return list->item;
         }
         list->item = list->next;
     }
-    return ptr;
+    return NULL;
 }// returns item as a void pointer
 
 /// Puts the pointer in the hashmap
-void yablHashPush(YablHash* self, void* key, void* value){
+void yablHashPush(YablHash* self, void* key, void* value, int(*compare)(void*, void*)){
     Node* node = malloc(sizeof(Node));
     node->key = key;
     node->value = value;
-    if( !(self->map[self->hashFunc(node->key)]) ){ // if there is no pointer at index
-        self->map[self->hashFunc(node->key)] = yablListCreate();
-        yablListPush(self->map[self->hashFunc(key)], node);
+    int hashIndex = self->hashFunc(node->key);
+    if( (self->map[hashIndex]) == NULL ){ // if there is no pointer at index
+        self->map[hashIndex] = yablListCreate();
+        yablListPush(self->map[hashIndex], node);
     }else{
-        yablListPush(self->map[self->hashFunc(key)], node);
+        if (((Node*)yablHashGet(self, key, compare))->key != NULL) {
+            ((Node*)yablHashGet(self, key, compare))->value = node->value;
+        }else{
+        yablListPush(self->map[hashIndex], node);
+        }
     }
 }
 
 /// Creates a copy of value and puts it in the hashmap, mainly for if values go out of scope
-void yablHashPushCpy(YablHash* self, void* key, void* value, int size_of_value){
+void yablHashPushCpy(YablHash* self, void* key, void* value, int(*compare)(void*, void*), int size_of_value){
     char * cpy = malloc(size_of_value);
 	for(int i = 0; i < size_of_value; i++)
 		cpy[i] = ((char*)value)[i];
-	yablHashPush(self, key, cpy);
+	yablHashPush(self, key, cpy, compare);
 }
 
+void deleteHelpFunc(YablList self, void(*delete_var)(void*)){
+	if(self->next != NULL) deleteHelpFunc(self->next, delete_var);
+	if(self->item != NULL){
+        delete_var(((Node*)self->item)->value);
+        delete_var(self->item);
+    }
+	delete_var(self);
+}
 void yablHashDelete(YablHash *self, void(*delete_var)(void*)) {
+    YablList list;
     for (int i = 0; i < self->sizeOfList; i++) {
-        if(self->map[i]){
-            yablListDelete(self->map[i], delete_var);
+        list = self->map[i];
+        if(list != NULL){
+            deleteHelpFunc(self->map[i], delete_var);
         }
     }
-    free(self->map);
+    delete_var(self->map);
+    self->map = NULL;
 }
 
 /// Loops through all components in the map
 void yablHashForeach(YablHash *self, void* key, void(*foreach)(void *, va_list), int n_args, ...){
     for (int i = 0; i < self->sizeOfList; i++){
-        YablList list = **(YablList**)self->map[i];
-        yablListForeach(list, *foreach, n_args);
+        if(self->map[i] != NULL){
+            yablListForeach(self->map[i], *foreach, n_args);
+        }
     }
 }
 
 /// Tests
 
 int testHashFunc(void* key){
-    int index = *(int *)key % 20;
+    int index = *(int *)key % 10;
     return index;
 }
 
@@ -81,12 +98,12 @@ void foreachFunc(void* item, va_list ap){
     (*va_arg(ap, int*))++;
 }
 
-int compare(void* item_, void* key){
-    Node item = *(Node*)item_;
-    if(*(int*)item.key == *(int*)key)
+int compare(void* item_key, void* key){
+    if(*(int*)item_key == *(int*)key){
         return 1;
-    else
+    }else{
         return 0;
+    }
 } 
 
 int yablHashCreateTest(){
@@ -109,26 +126,40 @@ int yablHashCreateTest(){
     return result == 3;
 }
 
-int yablHashGetTest(){
-    int result; 
+ int yablHashGetTest(){
+    int result = 0; 
     int key_ = 7;
+    int key2_ = 11;
     int value_ = 69;
+    int value2_ = 79;
     YablHash hash_ = yablHashCreate(10, &testHashFunc);
 
     void* key = &key_;
-    void* value = &value_;
+    int* value = (int*)malloc(sizeof(int));
+    *value = value_;
+
+    void* key2 = &key2_;
+    int* value2 = (int*)malloc(sizeof(int));
+    *value2 = value2_;
+
     YablHash* hash = &hash_;
 
-    yablHashPush(hash, key, value);
-    void* hashValue = yablHashGet(hash, key, &compare);
-    if(*(int*)hashValue == value_){
-        yablHashDelete(hash, &free);
-        result = 1;
-        return result;
-    }else{
-        return 0;
+    yablHashPush(hash, key, value, &compare);
+    yablHashPush(hash, key, value2, &compare);
+    yablHashPush(hash, key2, value, &compare);
+    Node* hashItem = yablHashGet(hash, key, &compare);
+    int* hashValue1 = (int*)hashItem->value;
+    Node* hashItem2 = yablHashGet(hash, key2, &compare);
+    int* hashValue2 = (int*)hashItem2->value;
+    if(*(int*)hashValue1 == value2_){
+        result++;
     }
-}
+    if(*(int*)hashValue2 == value_){
+        result++;
+    }
+    yablHashDelete(hash, &free);
+    return result == 2;
+ }
 
 /*
 yablHashPushTest(){
@@ -137,24 +168,35 @@ yablHashPushTest(){
 */
 
 int yablHashPushCpyTest(){
-    int result; 
+    int result = 0; 
     int key_ = 7;
+    int key2_ = 11;
     int value_ = 69;
+    int value2_ = 79;
     YablHash hash_ = yablHashCreate(10, &testHashFunc);
 
     void* key = &key_;
     void* value = &value_;
+    void* key2 = &key2_;
+    void* value2 = &value2_;
     YablHash* hash = &hash_;
 
-    yablHashPushCpy(hash, key, value, sizeof(int));
-    void* hashValue = yablHashGet(hash, key, &compare);
-    if(*(int*)hashValue == value_){
-        yablHashDelete(hash, &free);
-        result = 1;
-        return result;
-    }else{
-        return 0;
+    yablHashPushCpy(hash, key, value, &compare, sizeof(int));
+    yablHashPushCpy(hash, key, value2, &compare, sizeof(int));
+    yablHashPushCpy(hash, key2, value, &compare, sizeof(int));
+
+    Node* hashItem = yablHashGet(hash, key, &compare);
+    int* hashValue1 = (int*)hashItem->value;
+    Node* hashItem2 = yablHashGet(hash, key2, &compare);
+    int* hashValue2 = (int*)hashItem2->value;
+    if(*(int*)hashValue1 == value2_){
+        result++;
     }
+    if(*(int*)hashValue2 == value_){
+        result++;
+    }
+    yablHashDelete(hash, &free);
+    return result == 2;
 }
 
 
@@ -166,37 +208,17 @@ int yablHashDeleteTest(){
     YablHash* hash = &hash_;
     yablHashDelete(hash, &free);
     if(hash->map == NULL){
-        result++;
+        result = 1;
         return result;
     }else{
         return 0;
     }
 }
 
-
-int yablHashForeachTest(){
-    int result = 3; 
-    int key_ = 7;
-    int value_ = 69;
-    YablHash hash_ = yablHashCreate(3, &testHashFunc);
-
-    void* key = &key_;
-    void* value = &value_;
-    YablHash* hash = &hash_;
-
-    yablHashPushCpy(hash, key, value, sizeof(int));
-    //yablHashPushCpy(hash, key, value, sizeof(int));
-    //yablHashPushCpy(hash, key, value, sizeof(int));
-    //yablHashForeach(hash, key, &foreachFunc, 1, &result);
-    yablHashDelete(hash, &free);
-    return result == 3;
-}
-
 void yablHashTests(){
-    testHeader("Hash Test");
+    testHeader("YablHash");
     doTest("Hash Create", yablHashCreateTest());
 	doTest("Hash Get and Push", yablHashGetTest());
 	doTest("Hash Push Copy", yablHashPushCpyTest());
     doTest("Hash Delete", yablHashDeleteTest());
-    doTest("Hash Foreach", yablHashForeachTest());
 }

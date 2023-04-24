@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "list.h"
 
 typedef struct YablHashNode {
     void* key;
@@ -19,16 +20,15 @@ YablHash yablHashCreate(int sizeOfList, int(*hashFunc)(void *));
 void* yablHashGet(YablHash* self, void* key, int(*compare)(void*, void*));
 
 /// Creates a copy of value and puts it in the hashmap
-void yablHashPushCpy(YablHash* self, void* key, void* value,  int size_of_value);
+void yablHashPushCpy(YablHash* self, void* key, void* value, int(*compare)(void*, void*), int size_of_value);
 
 /// Puts the pointer in the hashmap
-void yablHashPush(YablHash* self, void* key, void* value);
+void yablHashPush(YablHash* self, void* key, void* value, int(*compare)(void*, void*));
+
+void deleteHelpFunc(YablList self, void(*delete_var)(void*));
 
 /// Deallocates the hashmap
 void yablHashDelete(YablHash* self, void(*delete_var)(void*));
-
-/// Loops through all components in the map
-void yablHashForeach(YablHash* self, void* key, void(*foreach)(void *, va_list), int n_args, ...);
 
 void yablHashTests();
 
