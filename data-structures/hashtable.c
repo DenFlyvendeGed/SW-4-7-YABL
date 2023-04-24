@@ -94,10 +94,6 @@ int testHashFunc(void* key){
     return index;
 }
 
-void foreachFunc(void* item, va_list ap){
-    (*va_arg(ap, int*))++;
-}
-
 int compare(void* item_key, void* key){
     if(*(int*)item_key == *(int*)key){
         return 1;
