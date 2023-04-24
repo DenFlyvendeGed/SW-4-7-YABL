@@ -161,12 +161,6 @@ int yablHashCreateTest(){
     return result == 2;
  }
 
-/*
-yablHashPushTest(){
-    
-}
-*/
-
 int yablHashPushCpyTest(){
     int result = 0; 
     int key_ = 7;
