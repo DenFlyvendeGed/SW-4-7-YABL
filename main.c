@@ -19,7 +19,7 @@ int main(int argv, char ** args){
 int runTests();
 
 int main(int argc, char *argv[]){
-	return runTests();
+	return runTests(argc - 1);
 }
 
 
