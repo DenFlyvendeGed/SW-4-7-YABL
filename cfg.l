@@ -11,7 +11,6 @@ int yywrap();
 %option yylineno
 
 %%
-eof {PRINT("EOF"); return EOF;}
 ! { PRINT("Set preamble"); return setpreamble; }
 board  { PRINT("board"); return board; }
 [0-9]+x[0-9] { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
@@ -22,7 +21,7 @@ turn { PRINT("turn"); return turnevent; }
 close { PRINT("close"); return closeevent; }
 list   { PRINT("list"); return listdcl; }
 text   { PRINT("textdcl"); return textdcl; }
-bool   { PRINT("booldcl"); return logicdcl; }
+logic   { PRINT("logicdcl"); return logicdcl; }
 point  PRINT("point");                  
 number { PRINT("numberdcl"); return numberdcl;   }
 function { PRINT("function"); return funckeyword; } 
@@ -58,16 +57,24 @@ false { PRINT("false"); yylval.text = copystringalloc(yytext); return logic; }
 \".*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
 [a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
+\( {PRINT("L NORMAL Paren"); return lparen; }
+\) {PRINT("R NORMAL Paren"); return rparen; }
+\[ {PRINT("L SQUARE Paren"); return lsparen; }
+\] {PRINT("R SQUARE Paren"); return rsparen; }
+\{ {PRINT("L CURLY Paren"); return lcparen; }
+\} {PRINT("R CURLY Paren"); return rcparen; }
+\. {PRINT("dot"); return dot;}
 
 \/\/.*\n     PRINT("end of line comment");
 \/\*.*\*\/   PRINT("multi line comment");
 
 <<EOF>> { PRINT("EOF"); return EOF; }
 
+\n  ;
 .   ;
 %%
 
-int yywrap() {return 0;}
+int yywrap() {return 1;}
 void yyerror(char * msg){
 	fprintf(stderr, "[error line %d] %s\n", yylineno, msg);
 }

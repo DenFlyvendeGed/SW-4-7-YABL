@@ -9,9 +9,10 @@ OMAIN := $(DESTINATION)/main.o
 OTEST := $(DESTINATION)/test.o 
 
 OFILES := \
-	$(DESTINATION)/cfg.tab.o \
-	$(DESTINATION)/lex.yy.o \
+	$(DESTINATION)/cfg.tab.parse.o \
+	$(DESTINATION)/lex.yy.parse.o \
 	$(DESTINATION)/cfgfunctions.o \
+	$(DESTINATION)/cfg.test.o \
 	$(DATA_STRUCTURES)/hashtable.o \
 	$(DATA_STRUCTURES)/list.o \
 	$(VISITOR)/typeChecker.o \
@@ -34,19 +35,24 @@ clean:
 
 #Test
 test : $(DESTINATION) $(OFILES) $(OTEST) 
-	gcc -o $(DESTINATION)/main.o main.c -DTEST $(CFLAGS);\
-	gcc -o $@ $(OFILES) $(OTEST) $(CFLAGS)
+	gcc -c -o $(DESTINATION)/main.o main.c -DTEST $(CFLAGS);
+	gcc -o $@ $(OFILES) $(OMAIN) $(OTEST) $(CFLAGS)
 
-$(DESTINATION)/%.o : %.c 
+$(DESTINATION)/cfg.tab.c : cfg.y $(DESTINATION)/lex.yy.c
+	bison -d -Wcounterexamples $< -o $@
+
+$(DESTINATION)/lex.yy.c : cfg.l 
+	flex --header-file=./.target/lex.yy.h -o $@ $<
+
+$(DESTINATION)/cfg.tab.parse.o : $(DESTINATION)/cfg.tab.c 
 	gcc -c -o $@ $^ $(CFLAGS)
 
-$(DESTINATION)/%.o : $(DESTINATION)/%.c
+$(DESTINATION)/lex.yy.parse.o : $(DESTINATION)/lex.yy.c 
 	gcc -c -o $@ $^ $(CFLAGS)
 
-$(DESTINATION)/cfg.tab.c : cfg.y
-	bison -d  $^ -o $@
+	
+$(DESTINATION)/%.o : %.c $(DESTINATION)/cfg.tab.parse.o $(DESTINATION)/lex.yy.parse.o 
+	gcc -c -o $@ $< $(CFLAGS)
 
-$(DESTINATION)/lex.yy.c : cfg.l $(DESTINATION)/cfg.tab.c
-	flex -o $@ $<
 
 
