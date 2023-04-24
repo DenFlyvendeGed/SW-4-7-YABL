@@ -21,7 +21,7 @@ turn { PRINT("turn"); return turnevent; }
 close { PRINT("close"); return closeevent; }
 list   { PRINT("list"); return listdcl; }
 text   { PRINT("textdcl"); return textdcl; }
-bool   { PRINT("booldcl"); return logicdcl; }
+logic   { PRINT("logicdcl"); return logicdcl; }
 point  PRINT("point");                  
 number { PRINT("numberdcl"); return numberdcl;   }
 function { PRINT("function"); return funckeyword; } 
@@ -57,6 +57,13 @@ false { PRINT("false"); yylval.number = 0; return logic; }
 \".*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
 [a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
+\( {PRINT("L NORMAL Paren"); return lparen; }
+\) {PRINT("R NORMAL Paren"); return rparen; }
+\[ {PRINT("L SQUARE Paren"); return lsparen; }
+\] {PRINT("R SQUARE Paren"); return rsparen; }
+\{ {PRINT("L CURLY Paren"); return lcparen; }
+\} {PRINT("R CURLY Paren"); return rcparen; }
+\. {PRINT("dot"); return dot;}
 
 \/\/.*\n     PRINT("end of line comment");
 \/\*.*\*\/   PRINT("multi line comment");

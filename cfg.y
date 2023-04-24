@@ -53,9 +53,9 @@
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
-%token eof
+%token lparen rparen lsparen rsparen lcparen rcparen dot
 
-%type<exprs> Exprs List
+%type<exprs> Exprs List ExprsContinue
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
 %type<stmts> Stmts
 %type<stmt>  Stmt If
@@ -87,7 +87,7 @@ Funcs :
 ;
 
 Func :
-    funckeyword id "(" Args ")" ReturnsType Scope { $$ = createFunc($2, $4, $6, $7 ); }
+    funckeyword id lparen Args rparen ReturnsType Scope { $$ = createFunc($2, $4, $6, $7 ); }
 |   Event { $$ = (Func*)$1; }
 ;
 
@@ -166,16 +166,20 @@ Repeat :
 ;
 
 Exprs :
-    Exprs ',' Expr { $$ = exprsAddExpr($1, $3); }
+    Expr ExprsContinue { exprsAddExpr($2, $1); $$ = $2; }
 |   %empty { $$ = createExprs(); }
 ;
+
+ExprsContinue:
+	',' Exprs { $$ = $2; }
+|   %empty    { $$ = createExprs(); }
 
 Expr :
     P6 { $$ = $1; }
 ;
 
 Factor :
-    '('Expr')' { $$ = $2; }
+    lparen Expr rparen { $$ = $2; }
 |   negate Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
@@ -227,7 +231,7 @@ P6 :
 ;
 
 Assign :
-    IdMutation assignoperator Expr { $$ = createAssign($1, $3); }
+    Id assignoperator Expr { $$ = createAssign($1, $3); }
 ;
 
 Initialization :
@@ -244,15 +248,15 @@ Id :
 ;
 
 Dot :
-	'.' Id { $$ = createIdMutationDot($2); }
+	dot Id { $$ = createIdMutationDot($2); }
 ;
 
 Call :
-	'(' Exprs ')' IdMutation { $$ = createIdMutationCall($4, $2); }
+	lparen Exprs rparen IdMutation { $$ = createIdMutationCall($4, $2); }
 ;
 
 Index :
-	'[' Expr ']' IdMutation { $$ = createIdMutationIndex($4, $2); }
+	lsparen Expr rsparen IdMutation { $$ = createIdMutationIndex($4, $2); }
 ;
 
 IdMutation:
@@ -263,7 +267,7 @@ IdMutation:
 ;
 
 List :
-    '[' Exprs ']'  { $$ = createListConstant($2); }
+    lsparen Exprs rsparen  { $$ = createListConstant($2); }
 ;
 
 Type :
