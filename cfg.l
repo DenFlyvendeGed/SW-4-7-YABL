@@ -71,7 +71,7 @@ false { PRINT("false"); yylval.text = copystringalloc(yytext); return logic; }
 <<EOF>> { PRINT("EOF"); return EOF; }
 
 \n  ;
-.   ;
+.   { PRINT("ERROR"); return '\0';}
 %%
 
 int yywrap() {return 1;}

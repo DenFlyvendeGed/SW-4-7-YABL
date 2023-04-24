@@ -10,7 +10,7 @@ typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, if
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
 struct Typedcl;
-typedef union { //måske der skal laves switch for at checke hvilken der er gældne
+typedef struct { //måske der skal laves switch for at checke hvilken der er gældne
 	struct Typedcl* list;
 	BasicTypes type;
 } TypeValue;
