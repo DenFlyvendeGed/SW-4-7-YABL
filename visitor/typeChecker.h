@@ -1,5 +1,5 @@
 #ifndef TYPE_CHECKER_H
-
+#define TYPE_CHECKER_H
 
 #include "../data-structures/list.h"
 #include <stdio.h>
@@ -11,7 +11,8 @@
 #define NUMBERMAX 255
 #define NUMBERMIN -255
 
-int errorCount;
+extern int TYPE_CHECKER_ERROR_COUNT;
+
 
 typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
 

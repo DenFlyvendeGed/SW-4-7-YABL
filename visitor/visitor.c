@@ -39,7 +39,7 @@ Repeatable* visit(Repeatable* self){ //Start <----
     // visitPreamble(self->preamble);
     visitRepeatable(self);
     indent--;
-    printf("Error Count: %d\n", errorCount);
+    printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
     return self;
 }
 

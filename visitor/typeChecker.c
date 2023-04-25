@@ -1,3 +1,5 @@
+int TYPE_CHECKER_ERROR_COUNT;
+
 #include "typeChecker.h"
 
 Data* tcPreamble(Preamble* self);
@@ -372,7 +374,7 @@ Data*  createData(BasicTypes dType)
 };
 
 Data* createError(ErrorCode error){
-    errorCount++;
+    TYPE_CHECKER_ERROR_COUNT++;
     printf("\nerror %i\n", error);
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
