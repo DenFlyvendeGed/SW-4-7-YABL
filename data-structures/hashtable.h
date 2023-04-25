@@ -1,34 +1,38 @@
-#ifndef YABL_HASHTABLE
-#define YABL_HASHTABLE
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "list.h"
 
 typedef struct YablHashNode {
-	char* key;
-	void* item;
+    void* key;
+    void* item;
 } YablHashNode;
 
 typedef struct YablHash {
-	int size_of_items;
-	void** map;
-	int(*hashfunc)(char*);
-	YablHashNode * first;
+    int sizeOfList;
+    void** map; // idea is that this is the array itself
+    int(*hashFunc)(void*);
+    YablHashNode * first;
 } YablHash;
 
-YablHash yabl_hash_create(int size_of_items);
+YablHash yablHashCreate(int sizeOfList, int(*hashFunc)(void *));
 
-void* yabl_hash_get(YablHash* self, char* key);
+void* yablHashGet(YablHash* self, void* key, int(*compare)(void*, void*));
 
 /// Creates a copy of value and puts it in the hashmap
-void* yabl_hash_push_cpy(YablHash* self, char* key, void* value);
+void yablHashPushCpy(YablHash* self, void* key, void* value, int(*compare)(void*, void*), int size_of_value);
 
 /// Puts the pointer in the hashmap
-void* yabl_hash_push(YablHash* self, char* key, void* value);
+void yablHashPush(YablHash* self, void* key, void* value, int(*compare)(void*, void*));
+
+void deleteHelpFunc(YablList self, void(*delete_var)(void*));
 
 /// Deallocates the hashmap
-void yabl_hash_delete(YablHash* self);
+void yablHashDelete(YablHash* self, void(*delete_var)(void*));
 
-/// Loops through all components in the map
-void yabl_hash_foreach(char* key, void (*foreach)(void *));
+void yablHashTests();
 
-#endif // !YABL_HASHTABLE
+//#endif // !YABL_HASHTABLE
+
 
 

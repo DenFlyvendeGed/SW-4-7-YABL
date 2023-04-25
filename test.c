@@ -7,6 +7,7 @@
 #include <string.h>
 
 void cfgTest();
+#include "./data-structures/hashtable.h"
 
 int testFuncSuccess(){return 1;}
 int testFuncFail(){return 0;}
@@ -23,9 +24,10 @@ int OUT;
 void test(){
 	yablListTests();
 	cfgTest();
+	yablHashTests();
 
 	testHeader("Test of Tests");
-	doTest("TEST MUST SUCCEDE", testFuncSuccess());
+	doTest("TEST MUST SUCCEED", testFuncSuccess());
 	doTest("TEST MUST FAIL", !testFuncFail());
 }
 /////////////////////////////////////////////////////
