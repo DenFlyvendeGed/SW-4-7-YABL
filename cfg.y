@@ -14,8 +14,6 @@
 %union
 {
 	char* text;
-	int   number;
-	int   logic;
 
 	Type* type;
 
@@ -46,13 +44,13 @@
 %token returnskeyword funckeyword 
 %token numberdcl logicdcl listdcl textdcl
 %token setupevent turnevent closeevent
-%token<text> text id logic
-%token<number> number 
+%token<text> text id number logic
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot
+%token<stmt> breakkeyword
 
 %type<exprs> Exprs List ExprsContinue
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
@@ -77,8 +75,33 @@
 
 %%
 Start : 
-	Funcs{ YABL_AST = $1; }	
+	Preamble Funcs{ YABL_AST = $2; }	
 ;
+
+Preamble:
+	PreambleBoard  Preamble  {}
+|   PreamblePlayer Preamble  {}
+|   PreambleTile   Preamble  {}
+|   %empty           {}
+;
+
+PreambleBoard:
+	board boardsize
+;
+
+PreamblePlayer:
+	player PreamblePlayers
+;
+
+PreamblePlayers:
+	text PreamblePlayers
+|   %empty
+;
+
+PreambleTile:
+	tile Type
+;
+
 
 Funcs :
     Funcs Func { $$ = funcsAddFunc($1, $2); }
@@ -136,6 +159,7 @@ Stmt :
 |   Scope { $$ = (Stmt*)$1; }
 |   Expr  { $$ = (Stmt*)$1; }
 |   returnkeyword Expr { $$ = (Stmt*)createReturnStmt($2); }
+|   breakkeyword{ $$ = (Stmt*)createBreak(); }
 |   %empty { $$ = (Stmt*)NULL; }
 ;
 

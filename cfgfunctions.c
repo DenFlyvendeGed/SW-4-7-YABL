@@ -6,7 +6,7 @@
 char* copystringalloc(char* src){
 	char* cpy = malloc(strlen(src) + 1)	;
 	if( cpy == NULL ) return NULL;
-	strcpy(src, cpy);
+	strcpy(cpy, src);
 	return cpy;
 }
 
@@ -386,6 +386,16 @@ RepeatLoop* createRepeatLoop()
 void destroyRepeatLoop(RepeatLoop* p)
 {
 	free(p);
+}
+
+Break* createBreak(){
+	Break* self = malloc(sizeof(Break));
+	self->nonterminal = breakstmt;
+	return self;
+}
+
+void destroyBreak(Break* self){
+	free(self);
 }
 
 // struct Initialization *Initialization;

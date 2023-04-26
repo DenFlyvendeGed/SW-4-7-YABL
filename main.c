@@ -2,6 +2,7 @@
 #include "cfg.h"
 #include "test.h"
 #include "visitor/visitor.h"
+#include "string.h"
 
 void yyparse();
 

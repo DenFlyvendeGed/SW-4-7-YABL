@@ -5,8 +5,7 @@
 
 char* copystringalloc(char*);
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt} Nonterminals;
-
+typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
 struct Typedcl;
@@ -172,6 +171,11 @@ typedef struct {
 	LoopType loopType;	
 } RepeatLoop;
 
+/// break
+typedef struct {
+	Nonterminals nonterminal;
+} Break;
+
 
 /// assing
 typedef struct {
@@ -295,6 +299,9 @@ void destroyWhileloop(WhileLoop* p);
 
 RepeatLoop* createRepeatLoop();
 void destroyRepeatLoop(RepeatLoop* p);
+
+Break* createBreak();
+void destroyBreak(Break* self);
 
 Initialization* createInitialization(Id var, Type* varType, Expr* initialValue);
 void destroyInitialization(Initialization* p);
