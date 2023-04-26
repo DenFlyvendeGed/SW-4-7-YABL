@@ -11,11 +11,10 @@ int yywrap();
 %option yylineno
 
 %%
-! { PRINT("Set preamble"); return setpreamble; }
-board  { PRINT("board"); return board; }
-[0-9]+x[0-9] { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
-tile   { PRINT("tile"); return tile; }
-player { PRINT("player"); return player; }
+!board  { PRINT("board"); return board; }
+[1-9][0-9]*x[1-9][0-9]* { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
+!tile   { PRINT("tile"); return tile; }
+!player { PRINT("player"); return player; }
 setup { PRINT("setup"); return setupevent; }
 turn { PRINT("turn"); return turnevent; }
 close { PRINT("close"); return closeevent; }
@@ -29,6 +28,7 @@ return { PRINT("return"); return returnkeyword; }
 returns { PRINT("returns"); return returnskeyword; }
 do { PRINT("do"); return scopebegin; }
 end { PRINT("end"); return scopeend; }
+break { PRINT("break"); return breakkeyword; }
 [;] { PRINT("end of statement"); return endofstatement; }
 repeat { PRINT("repeat"); return repeat; }
 for { PRINT("for"); return forkeyword; }
@@ -52,9 +52,9 @@ not { PRINT("not"); return not; }
 = { PRINT("assign"); return assignoperator; }
 and { PRINT("and"); return and; }
 or { PRINT("or"); return or; }
-true { PRINT("true"); yylval.number = 1; return logic; }
-false { PRINT("false"); yylval.number = 0; return logic; }
-\".*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
+true { PRINT("true"); yylval.text= 1; return logic; }
+false { PRINT("false"); yylval.text= 0; return logic; }
+\"([^\"]|\\\")*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
 [a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
 \( {PRINT("L NORMAL Paren"); return lparen; }
@@ -70,6 +70,7 @@ false { PRINT("false"); yylval.number = 0; return logic; }
 
 <<EOF>> { PRINT("EOF"); return YYEOF; }
 
+[ \t\r] ;
 \n  ;
 .   { PRINT("ERROR"); return '\0';}
 %%
