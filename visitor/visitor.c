@@ -1,6 +1,7 @@
 #include "visitor.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define PPRINTFLAG 1
 
@@ -28,9 +29,20 @@ Data* visitor(){
 	return tcAccept();
 }
 
+int stringHash(char* string){
+    return strlen(string) % 5;
+}
+int stringcompare(char* s1, char* s2){
+    return strcmp(s1, s2) == 0;
+}
+
 //Visit function
 Repeatable* visit(Repeatable* self){ //Start <----
     
+    YablHash global = yablHashCreate(10, &stringHash);
+    yablHashGet(&global, "", &stringcompare);
+
+
     if(PPRINTFLAG == 1)
     {
         prettyPrint("start");

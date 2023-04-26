@@ -2,6 +2,7 @@
 #define TYPE_CHECKER_H
 
 #include "../data-structures/list.h"
+#include "../data-structures/hashtable.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
