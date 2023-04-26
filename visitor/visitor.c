@@ -14,6 +14,9 @@
 }
 
 int indent = 0;
+YablHash* symbolTable;
+
+
 void pIndent(){
     for(int i=1; i<=indent; i++){
         printf("    ");
@@ -29,23 +32,13 @@ Data* visitor(){
 	return tcAccept();
 }
 
-int stringHash(char* string){
-    return (int)(strlen(string) % 5);
-}
-int stringcompare(char* s1, char* s2){
-    return strcmp(s1, s2) == 0;
-}
 
 //Visit function
 Repeatable* visit(Repeatable* self){ //Start <----
     
-    // YablHash global = yablHashCreate(10, &stringHash);
-    // int* i = malloc(sizeof(int));
-    // *i = 10;
-    // yablHashPush(&global, "test", i, &stringcompare);
-    // int* res = ((YablHashNode*)yablHashGet(&global, "test", &stringcompare))->item;
-
-    // printf("res= %i\n", *res);
+    //innit outersymbolTable
+    YablHash* symbolTable = malloc(sizeof(YablHash));
+    *symbolTable = yablHashCreate(HASHLISTLENGTH, &stringHash);
 
     if(PPRINTFLAG == 1)
     {
@@ -108,6 +101,9 @@ Data* visitRepeatable(Repeatable* self){
 }
 
 Data* visitExprs(Exprs* self){
+    if(self == NULL){
+        return tcAccept();
+    }
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Exprs");
@@ -224,7 +220,8 @@ Data*  visitExpr(Expr* self){
     Data* child;
     Data* rval;
     if(self == NULL)
-        createError(ECempty);
+        //createError(ECempty);
+        return NULL;
     switch (self->exprType)
     {
     case et_constant:
@@ -324,7 +321,7 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
-    if(self->child == NULL){ //<-- might need fixes
+    if(self == NULL || self->child == NULL){ //<-- might need fixes
         return tcAccept();
     }
     if(PPRINTFLAG == 1)
@@ -334,7 +331,7 @@ Data* visitIdMutation(IdMutation* self){
     indent++;
     
 
-    Data* id = visitId(&self->name);
+    Data* id = visitId(self->name);
     Data* child;
     Data* rval;
     switch (*(IdMutations*)(self->child))
@@ -545,7 +542,7 @@ Data*  visitIdMutationCall(IdMutationCall* self){
 
     Data* rval;
  
-    Data* child = visitIdMutation(self->child);
+    Data* child = visitExprs(self->child);
     Data*  argData = visitArgs(self->args);
 
     rval = tcIdMutationCall(self, child, argData);

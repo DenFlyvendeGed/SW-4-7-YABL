@@ -1,0 +1,70 @@
+!board 3x3
+!player "X" "O"
+
+setup do
+    //print("Welcome to Tic Tac Toe, YABL edition!");
+end
+
+turn do
+
+    number inputX;
+    number inputY;
+    logic currentTurn = true;
+    
+    //print("It is player %d turn!", currentPlayer);
+    repeat while currentTurn do
+
+        //print("Chose x cordinat");
+        inputX = scanf();
+
+        //print("Chose y cordinat");
+        inputY = scanf();
+
+        list number punkt = [inputX, inputY];
+
+        if validMove(punkt) do
+            makeMove(punkt);
+            currentTurn = false;
+        end else do 
+            //print("Invalid move, try again");
+        end;
+    end;
+    checkWin();
+end
+
+
+function validMove(list number punkt) returns logic do
+
+    if(board[punkt[0]][punkt[1]]) == "" do
+        return true;
+    end;
+
+    return false;
+end
+
+
+function makeMove(list number punkt) do
+    board[punkt[0][punkt[1]]] == currentPlayer;
+end
+
+
+function checkWin() do
+    //Horizontal
+        if(board[0][0] == board[1][0] and board[1][0] == board[2][0]) do showWin(); end; 
+        if(board[0][1] == board[1][1] and board[1][1] == board[2][1]) do showWin(); end; 
+        if(board[0][2] == board[1][2] and board[1][2] == board[2][2]) do showWin(); end; 
+    //Vertical
+        if(board[0][0] == board[0][1] and board[0][1] == board[0][2]) do showWin(); end; 
+        if(board[1][0] == board[1][1] and board[1][1] == board[1][2]) do showWin(); end; 
+        if(board[2][0] == board[2][1] and board[2][1] == board[2][2]) do showWin(); end; 
+    //Diagonal
+        if(board[0][0] == board[1][1] and board[1][1] == board[2][2]) do showWin(); end; 
+        if(board[0][2] == board[1][1] and board[1][1] == board[2][0]) do showWin(); end; 
+
+end
+
+
+function showWin() do
+    //print("%d Won!", currentPlayer);
+    quit();
+end

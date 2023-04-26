@@ -11,8 +11,10 @@
 //Jeg kan ikke huske borders :)
 #define NUMBERMAX 255
 #define NUMBERMIN -255
+#define HASHLISTLENGTH 10
 
 extern int TYPE_CHECKER_ERROR_COUNT;
+extern YablHash* symbolTable;
 
 
 typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
@@ -23,6 +25,34 @@ typedef struct {
     ErrorCode errorCode;
     void* value; 
 } Data;
+
+//Symbol table setup
+
+int stringHash(char* string);
+
+int stringcompare(char* s1, char* s2);
+
+void symbolTablePush( char* key, void* value);
+
+void* symbolTableGet( char* key);
+
+void createSymbolTable();
+
+void deleteSymbolTable();
+
+
+
+
+
+// YablHash global = yablHashCreate(10, &stringHash);
+// int* i = malloc(sizeof(int));
+// *i = 10;
+// yablHashPush(&global, "test", i, &stringcompare);
+// int* res = ((YablHashNode*)yablHashGet(&global, "test", &stringcompare))->item;
+
+// printf("res= %i\n", *res);
+
+
 
 //Data constructers
 Data* createData(BasicTypes dType);

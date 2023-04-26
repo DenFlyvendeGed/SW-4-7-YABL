@@ -49,7 +49,7 @@
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
-%token lparen rparen lsparen rsparen lcparen rcparen dot
+%token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
 
 %type<exprs> Exprs List ExprsContinue
@@ -194,7 +194,7 @@ Exprs :
 ;
 
 ExprsContinue:
-	',' Exprs { $$ = $2; }
+	comma Exprs { $$ = $2; }
 |   %empty    { $$ = createExprs(); }
 
 Expr :

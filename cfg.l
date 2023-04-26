@@ -64,7 +64,7 @@ false { PRINT("false"); yylval.text= 0; return logic; }
 \{ {PRINT("L CURLY Paren"); return lcparen; }
 \} {PRINT("R CURLY Paren"); return rcparen; }
 \. {PRINT("dot"); return dot;}
-
+, {PRINT("comma"); return comma;}
 \/\/.*\n     PRINT("end of line comment");
 \/\*.*\*\/   PRINT("multi line comment");
 

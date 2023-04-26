@@ -236,15 +236,21 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
 Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not be needed
     if(self == NULL){
         return createError(ECempty);
+        
     }
     else if(type->errorCode != ECnoError)
         return createError(type->errorCode);
-    else if(val->errorCode != ECnoError)
-        return createError(type->errorCode);
 
-    if(type->type != val->type)
-        return createError(ECtypeExeption);
+    if(val != NULL){
+        if(val->errorCode != ECnoError)
+            return createError(type->errorCode);
 
+        if(type->type != val->type)
+            return createError(ECtypeExeption);
+
+    }
+    
+    
     return type;
 }
 Data* tcType(Type* self, Data* typeVal){ //might not be needed
@@ -258,7 +264,7 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         return createError(id->errorCode);
     if(child != NULL && child->errorCode != ECnoError)
         return createError(child->errorCode);
-
+    
     switch (*((IdMutations*)(self->child))) {
         case im_none:
 		case im_value:
@@ -391,4 +397,51 @@ Data* tcAccept()
     d->errorCode = ECnoError;
 
     return d;
+}
+
+
+//Symbol table setup
+
+int stringHash(char* string){
+    return (int)(strlen(string) % 5);
+}
+int stringcompare(char* s1, char* s2){
+    return strcmp(s1, s2) == 0;
+}
+
+void symbolTablePush( char* key, void* value){
+     yablHashPush(symbolTable, key, value, &stringcompare);
+}
+
+void* symbolTableGet( char* key){//<-- needs to hceck parent
+    void* value = ((YablHashNode*)yablHashGet(symbolTable, key, &stringcompare))->item;
+    YablHash* table;
+    while(value == NULL){
+        table = yablHashGet(symbolTable, "PARENT", &stringcompare);
+        if(table == NULL)
+            return NULL;
+        value = ((YablHashNode*)yablHashGet(table, key, &stringcompare))->item;
+
+    }
+    return value;
+}
+
+void createSymbolTable(){ //creates symboltable and sets parent table to PARENT, and sets global pointer to new table.
+
+    YablHash* st = malloc(sizeof(YablHash));
+    *st  = yablHashCreate(HASHLISTLENGTH, &stringHash);
+    symbolTablePush("PARENT", st);
+    symbolTable = st;//update table pointer
+}
+
+void deleteSymbolTable(){
+    YablHash* parent = symbolTableGet("PARENT");
+    if(parent== NULL){
+        printf("No parent symboltable found\n");
+        createError(ECoutOfRange);
+        return;
+    }
+    free(symbolTable); //release symboltable for scope
+    symbolTable = parent; //point to parent scope table
+    
 }
