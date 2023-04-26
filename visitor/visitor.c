@@ -30,7 +30,7 @@ Data* visitor(){
 }
 
 int stringHash(char* string){
-    return strlen(string) % 5;
+    return (int)(strlen(string) % 5);
 }
 int stringcompare(char* s1, char* s2){
     return strcmp(s1, s2) == 0;
@@ -39,9 +39,13 @@ int stringcompare(char* s1, char* s2){
 //Visit function
 Repeatable* visit(Repeatable* self){ //Start <----
     
-    YablHash global = yablHashCreate(10, &stringHash);
-    yablHashGet(&global, "", &stringcompare);
+    // YablHash global = yablHashCreate(10, &stringHash);
+    // int* i = malloc(sizeof(int));
+    // *i = 10;
+    // yablHashPush(&global, "test", i, &stringcompare);
+    // int* res = ((YablHashNode*)yablHashGet(&global, "test", &stringcompare))->item;
 
+    // printf("res= %i\n", *res);
 
     if(PPRINTFLAG == 1)
     {
@@ -483,6 +487,7 @@ Data* visitInitialization(Initialization* self){
     
     indent++;
     Data* rval;
+    Data* id = visitId(self->variable);
     Data* type = visitType(self->type);
     Data* val = visitExpr(self->initialValue);
     
@@ -645,13 +650,13 @@ Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for
 //--------------------------------------
 
 //mangler
-Data* visitId(Id* self){ //<---
+Data* visitId(Id self){ //<---
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Id");
     }
     
-    return tcAccept();
+    return tcId(self);
 }
 Data* visitBasicType(BasicTypes* self){ //det er en enum <---
     switch (*self)

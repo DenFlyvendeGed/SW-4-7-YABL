@@ -70,7 +70,7 @@ Data* tcWhileLoop(WhileLoop* self, Data* cond);
 Data* tcRepeatLoop(RepeatLoop* self);
 
 Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl); //<---- union, der kan kun være real data i en af dem
-Data* tcId(Id* self);
+Data* tcId(Id self);
 Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval);
 

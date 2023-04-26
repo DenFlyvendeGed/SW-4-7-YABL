@@ -40,5 +40,3 @@ do
     number test = 5 + "string";
     text test = 5 + 5;
 end
-
-eof

@@ -332,7 +332,11 @@ Data* tcRepeatLoop(RepeatLoop* self){
 Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl){
 	return tcAccept();
 }
-Data* tcId(Id* self); //<----
+Data* tcId(Id self){
+    printf("test: %s\n", self);
+
+    return tcAccept();
+}; //<----
 Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval){
     if(self == NULL)

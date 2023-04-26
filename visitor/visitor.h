@@ -35,7 +35,7 @@ Data*visitForLoop(ForLoop* self);
 Data*visitWhileLoop(WhileLoop* self);
 Data*visitRepeatLoop(RepeatLoop* self);
 Data*visitTypeValue(TypeValue* self);
-Data*visitId(Id* self);
+Data*visitId(Id self);
 Data*visitBasicType(BasicTypes* self);
 Data*visitTypeDCL(Type* self);
 Data*visitEvent(Event* self);
