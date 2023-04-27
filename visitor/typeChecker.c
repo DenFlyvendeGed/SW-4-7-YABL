@@ -31,7 +31,7 @@ Data* tcExpr(Expr* self, Data* child)
         switch (child->typeDcl) {
             case td_logic:
                  //Logic
-                if(*(int*)child->value <= 1 && *(int*)child->value >= 0){    
+                if(child->value != NULL){    
                     return createData((BasicTypes)bt_logic);
                 }
                 else {
@@ -39,7 +39,7 @@ Data* tcExpr(Expr* self, Data* child)
                 }
                 break;
             case td_number:
-                if(*(int*)self->child <= NUMBERMAX && *(int*)self->child >= NUMBERMIN){
+                if(child->value != NULL){
                     return createData((BasicTypes)bt_number);
                 }   
                 else {
@@ -47,7 +47,13 @@ Data* tcExpr(Expr* self, Data* child)
                 }
                 break;
             case td_text:
-                return createData((BasicTypes)bt_text); //<--- check om det er en streng?
+                if(child->value != NULL){
+                    return createData((BasicTypes)bt_text); //<--- check om det er en streng?
+                }   
+                else {
+                    return createError(ECtypeExeption);
+                }
+                
                 break;
             default:
                 return createError(ECoutOfRange);
@@ -254,6 +260,8 @@ Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not
     return type;
 }
 Data* tcType(Type* self, Data* typeVal){ //might not be needed
+    if(typeVal== NULL)
+        return createData(bt_NULL);
     return typeVal;
 }
 

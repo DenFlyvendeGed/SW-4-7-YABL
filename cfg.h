@@ -7,7 +7,7 @@ char* copystringalloc(char*);
 
 typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
-typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
+typedef enum {bt_number, bt_text, bt_logic, bt_list, bt_NULL} BasicTypes;
 struct Typedcl;
 typedef struct { //måske der skal laves switch for at checke hvilken der er gældne
 	struct Typedcl* list;

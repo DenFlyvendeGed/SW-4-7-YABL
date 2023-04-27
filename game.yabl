@@ -26,7 +26,7 @@ turn do
             makeMove(punkt);
             currentTurn = false;
         end else do 
-            //print("Invalid move, try again");
+            print("Invalid move, try again");
         end;
     end;
     checkWin();

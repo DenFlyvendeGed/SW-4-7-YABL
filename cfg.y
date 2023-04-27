@@ -62,7 +62,7 @@
 %type<stmts> Stmts
 %type<stmt>  Stmt If
 %type<scope> Scope AfterIf AfterElse
-%type<args>  Args
+%type<args>  Args ArgsContinue
 %type<funcs> Funcs
 %type<func>  Func
 %type<event> Event TurnEvent CloseEvent SetupEvent
@@ -149,9 +149,14 @@ CloseEvent :
 ;
 
 Args :
-	 Initialization comma Args { $$ = argsAddInitialization($3, $1); }
+	 Initialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
 |    %empty { $$ = createArgs(); }
 ;
+
+ArgsContinue:
+	comma Args { $$ = $2; }
+|   %empty    { $$ = createArgs(); }
+
 
 ReturnsType : 
     returnskeyword Type { $$ = $2; }
@@ -184,7 +189,7 @@ If :
 ;
 
 AfterIf :
-	elsekeyword AfterElse 
+	elsekeyword AfterElse {$$ = $2;}
 |   %empty { $$ = createScope(createStmts()); }
 ;
 

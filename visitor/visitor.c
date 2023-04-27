@@ -422,7 +422,7 @@ Data* visitAssign(Assign* self){
     }
     indent++;
     Data* rval;
-    Data* id = visitId(self->variable);
+    Data* id = visitIdMutation(self->variable);
     Data* expr = visitExpr(self->expression);
 
     rval = tcAssign(self, id, expr);
@@ -495,7 +495,10 @@ Data* visitRepeat(Repeat* self){
 
 //Mangler <-----
 Data* visitReturnStmt(ReturnStmt* self){
-    printf("returnstmt \n");
+    if(PPRINTFLAG == 1)
+    {
+    prettyPrint("returnstmt");
+    }
     Data* rtn = visitExpr(self->expr);
     return rtn;
 }
@@ -527,7 +530,11 @@ Data* visitType(Type* self){
     }
     indent++;
     Data* rval;
+    Data* type;
+    if(self != NULL){
+
     Data* type = visitTypeValue(self->typeval);
+    }
 
     rval = tcType(self, type); //returns type
     // free(type);
