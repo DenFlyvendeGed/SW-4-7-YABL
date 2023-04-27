@@ -54,7 +54,7 @@
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
-%token lparen rparen lsparen rsparen lcparen rcparen dot
+%token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
 
 %type<exprs> Exprs List ExprsContinue
@@ -148,7 +148,7 @@ CloseEvent :
 ;
 
 Args :
-	 Initialization Args { $$ = argsAddInitialization($2, $1); }
+	 Initialization comma Args { $$ = argsAddInitialization($3, $1); }
 |    %empty { $$ = createArgs(); }
 ;
 
@@ -162,20 +162,20 @@ Scope :
 ;
 
 Stmts :
-    Stmt endofstatement Stmts { stmtsAddStmt($3, $1); $$ = $3; }
+    Stmt Stmts { if( $1 != NULL) stmtsAddStmt($2, $1); $$ = $2; }
 |   %empty { $$ = createStmts(); }
 ;
 
 Stmt :
-    Assign { $$ = (Stmt*)$1; }
+    Assign endofstatement { $$ = (Stmt*)$1; }
 |   If { $$ = (Stmt*)$1; }
 |   repeat Repeat { $$ = (Stmt*)$2; }
-|   Initialization { $$ = (Stmt*)$1; }
+|   Initialization endofstatement { $$ = (Stmt*)$1; }
 |   Scope { $$ = (Stmt*)$1; }
-|   Expr  { $$ = (Stmt*)$1; }
-|   returnkeyword Expr { $$ = (Stmt*)createReturnStmt($2); }
-|   breakkeyword{ $$ = (Stmt*)createBreak(); }
-|   %empty { $$ = (Stmt*)NULL; }
+|   Expr endofstatement { $$ = (Stmt*)$1; }
+|   returnkeyword Expr endofstatement { $$ = (Stmt*)createReturnStmt($2); }
+|   breakkeyword endofstatement { $$ = (Stmt*)createBreak(); }
+|   endofstatement { $$ = (Stmt*)NULL; }
 ;
 
 If :
@@ -204,12 +204,12 @@ Repeat :
 ;
 
 Exprs :
-    Expr ExprsContinue { exprsAddExpr($2, $1); $$ = $2; }
+    Expr ExprsContinue { if($1 != NULL) exprsAddExpr($2, $1); $$ = $2; }
 |   %empty { $$ = createExprs(); }
 ;
 
 ExprsContinue:
-	',' Exprs { $$ = $2; }
+	comma Exprs { $$ = $2; }
 |   %empty    { $$ = createExprs(); }
 
 Expr :
