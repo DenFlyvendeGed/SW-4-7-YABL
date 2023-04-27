@@ -101,12 +101,13 @@ Data* visitRepeatable(Repeatable* self){
 }
 
 Data* visitExprs(Exprs* self){
-    if(self == NULL){
-        return tcAccept();
-    }
+    
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Exprs");
+    }
+    if(self == NULL){
+        return tcAccept();
     }
     indent++;
 	FOREACH(Expr*, self, 
@@ -321,7 +322,7 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
-    if(self == NULL || self->child == NULL){ //<-- might need fixes
+    if(self == NULL){ //<-- might need fixes
         return tcAccept();
     }
     if(PPRINTFLAG == 1)
@@ -332,9 +333,10 @@ Data* visitIdMutation(IdMutation* self){
     
 
     Data* id = visitId(self->name);
-    Data* child;
+    Data* child = tcAccept();
     Data* rval;
-    switch (*(IdMutations*)(self->child))
+    if(self->child!= NULL){
+        switch (*(IdMutations*)(self->child))
     {
     case im_none:
         break;
@@ -350,6 +352,8 @@ Data* visitIdMutation(IdMutation* self){
     default:
         break;
     }
+    }
+    
     rval = tcIdMutation(self, child, id);
     free(child);
     free(id);
@@ -522,11 +526,11 @@ Data*  visitIdMutationDot(IdMutationDot* self){
     indent++;
     Data* rval;
     
-    Data* name = visitId(NULL);
+    //Data* name = visitId(NULL);
     Data* child = visitIdMutation(self->child);
 
-    rval = tcIdMutationDot(self, name, child);
-    free(name);
+    rval = tcIdMutationDot(self, child);
+    //free(name);
     free(child);
 
     indent--;

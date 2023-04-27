@@ -70,7 +70,6 @@ false { PRINT("false"); yylval.text= 0; return logic; }
 
 <<EOF>> { PRINT("EOF"); return EOF; }
 
-[ \t\r] ;
 \n  ;
 [ \t\r] ;
 .   { PRINT("ERROR"); return '\0';}

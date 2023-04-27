@@ -89,7 +89,7 @@ Data* tcInitialization(Initialization* self, Data* type, Data* val);
 Data* tcType(Type* self, Data* typeVal);
 
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id);
-Data* tcIdMutationDot(IdMutationDot* self, Data* name, Data* idMutation);
+Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation);
 Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args);
 Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation);
 

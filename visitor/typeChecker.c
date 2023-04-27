@@ -262,33 +262,66 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         return createError(ECempty);
     if(id->errorCode != ECnoError)
         return createError(id->errorCode);
-    if(child != NULL && child->errorCode != ECnoError)
+    if(child != NULL && child->errorCode != ECnoError){
+        switch (*((IdMutations*)self->child)) {
+            case im_none:
+            case im_value:
+                break;
+            case im_dot:
+            case im_call:
+            case im_index:
+                if(child == NULL)
+                    return createError(ECmissingChild);
+                break;
+        }
         return createError(child->errorCode);
-    
-    switch (*((IdMutations*)(self->child))) {
-        case im_none:
-		case im_value:
-            break;
-        case im_dot:
-        case im_call:
-        case im_index:
-            if(child == NULL)
-                return createError(ECmissingChild);
-            break;
     }
-    return tcAccept();
+    
+    
+    return tcAccept(); 
 }
-Data* tcIdMutationDot(IdMutationDot* self, Data* name, Data* idMutation) //<----
+Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
 {
-    return tcIdMutation((IdMutation*)self, idMutation , name);
+    if(self == NULL)
+        tcAccept();
+    if(idMutation == NULL){
+        printf("IdMutationDot: ");
+        createError(ECempty);
+    }
+    if(idMutation->errorCode != ECnoError){
+        return createError(idMutation->errorCode);
+    }
+
+    return tcAccept();
 }
 Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
 {
-    return tcIdMutation((IdMutation*)self, idMutation , args); //args only used to pass error code
+     if(self == NULL)
+        tcAccept();
+
+    if(idMutation->errorCode != ECnoError){
+        printf("IdMutationCall: ");
+        return createError(idMutation->errorCode);
+    }
+    if(args->errorCode != ECnoError)
+        return createError(args->errorCode);
+
+    return tcAccept();
 }
 Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
 {
-    return tcIdMutation((IdMutation*)self, idMutation , expr); //expr should be able to return  datatype if needed
+    if(self == NULL)
+        tcAccept();
+
+    if(idMutation->errorCode){
+        printf("IdMutationCall: ");
+        return createError(idMutation->errorCode);
+    }
+    if(expr->errorCode != ECnoError)
+        return createError(expr->errorCode);
+
+
+    return tcAccept(); //expr should be able to return  datatype if needed
 }
 
 Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
