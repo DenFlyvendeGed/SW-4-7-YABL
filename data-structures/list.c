@@ -88,6 +88,12 @@ int yablListRemove(YablList* self, int index, void(*deleteFunc)(void*)){
 }
 
 int yablListInsert(YablList* self, int index, void* item){
+	YablList s = *self;
+	if(s->item == NULL && s->next == NULL){
+		if( index > 0 ) return 0;
+		s->item = item;
+		return 1;
+	}
 	YablList new = yablListCreate();
 	new->item = item;
 	if(index == 0){
