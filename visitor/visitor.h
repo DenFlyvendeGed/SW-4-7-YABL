@@ -6,7 +6,7 @@
 
 Repeatable* visit(Repeatable* self);
 
-Data*visitPreamble(Preamble* self);
+Data*visitPreamble(Preambles* self);
 Data*visitRepeatable(Repeatable* self);
 Data*visitExprs(Exprs* self);
 Data*visitStmts(Stmts* self);
@@ -40,9 +40,9 @@ Data*visitBasicType(BasicTypes* self);
 Data*visitTypeDCL(Type* self);
 Data*visitEvent(Event* self);
 Data*visitVariable(Variable* self);
-Data*visitPreambleBoard(PreambelBoard* self);
-Data*visitPreambleTileItem(PreambleTileItem* self);
-Data*visitPreambleTile(PreambelTile* self);
+Data*visitPreambleBoard(PreambleBoard* self);
+Data*visitPreambleTileItem(Type* self);
+Data*visitPreambleTile(PreambleTile* self);
 Data*visitPreamblePlayer(PreamblePlayers* self);
 
 #endif // !VISITOR_H

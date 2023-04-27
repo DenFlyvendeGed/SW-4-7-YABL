@@ -26,7 +26,7 @@ Data* createError(ErrorCode error);
 Data* tcAccept();
 
 
-Data* tcPreamble(Preamble* self);
+Data* tcPreamble(Preambles* self);
 
 //List
 Data* tcRepeatable(Repeatable* self);
@@ -74,9 +74,9 @@ Data* tcTypeDCL(Type* self, Data* typeval);
 Data* tcVariable(Variable* self, Data* type, Data* id);
 
 //work in progress
-Data* tcPreambleBoard(PreambelBoard* self);
-Data* tcPreambleTileItem(PreambleTileItem* self);
-Data* tcPreambleTile(PreambelTile* self);
+Data* tcPreambleBoard(PreambleBoard* self);
+Data* tcPreambleTileItem(Type* self);
+Data* tcPreambleTile(PreambleTile* self);
 Data* tcPreamblePlayer(PreamblePlayers* self);
 
 #endif // !TYPE_CHECKER_H

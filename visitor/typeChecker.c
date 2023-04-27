@@ -1,6 +1,6 @@
 #include "typeChecker.h"
 
-Data* tcPreamble(Preamble* self);
+Data* tcPreamble(Preambles* self);
 
 //List
 // Data* tcRepeatable(Repeatable* self)  //return child
@@ -343,9 +343,9 @@ Data* tcVariable(Variable* self, Data* type, Data* id){
 }
 
 //work in progress
-Data* tcPreambleBoard(PreambelBoard* self);
-Data* tcPreambleTileItem(PreambleTileItem* self);
-Data* tcPreambleTile(PreambelTile* self);
+Data* tcPreambleBoard(PreambleBoard* self);
+Data* tcPreambleTileItem(Type* self);
+Data* tcPreambleTile(PreambleTile* self);
 Data* tcPreamblePlayer(PreamblePlayers* self);
 
 

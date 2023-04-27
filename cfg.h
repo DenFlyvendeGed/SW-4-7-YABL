@@ -5,7 +5,7 @@
 
 char* copystringalloc(char*);
 
-typedef enum {exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preamblePlayers, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
+typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
 struct Typedcl;
@@ -56,6 +56,10 @@ typedef Repeatable Args;
 typedef Repeatable Funcs;
 
 typedef Repeatable Preambles;
+
+typedef Repeatable PreambleTile;
+
+typedef Repeatable PreamblePlayers;
 
 typedef char* Id;
 
@@ -217,30 +221,11 @@ typedef struct {
 // Preamble
 typedef struct {
 	Nonterminals nonterminal;
-	Id name;
-	YablList* ids;
-} Preamble;
+	int width, height;
+} PreambleBoard;
 
-typedef struct {
-	Nonterminals nonterminal;
-	struct {int x, y;} dimensions;
-} PreambelBoard;
-
-typedef struct {
-	Id name;
-	int is_list;
-	int is_array;
-} PreambleTileItem;
-
-typedef struct {
-	Nonterminals nonterminal;
-	YablList* tile_items;
-} PreambelTile;
-
-typedef struct {
-	Nonterminals nonterminal;
-	YablList* ids;
-} PreamblePlayers;
+Repeatable* createRepeatable(Nonterminals nonterminal);
+Repeatable* repeatablePushChild(Repeatable* self, void* child);
 
 Exprs* createExprs();
 void destroyExprs(Exprs* exprs);
@@ -317,6 +302,7 @@ void destroyVariable(Variable* p);
 
 Stmts* createStmts();
 void destroyStmts(Stmts* p);
+Stmts* stmtsAddStmt(Stmts* self, Stmt* stmt);
 
 Scope* createScope(Stmts* stmts);
 Scope* scopeAddStmt(Scope* self, Stmt* stmt);
@@ -336,7 +322,18 @@ void destroyListConstant(ListConstant* p);
 ReturnStmt* createReturnStmt(Expr* rtn);
 void destroyReturnStmt(ReturnStmt* self);
 
-Funcs createPreambles();
-void  destroyPreambles(Funcs* p);
+Preambles* createPreambles();
+Preambles* preamblesPushPreamble(Preambles* self, void* child);
+void  destroyPreambles(Preambles* self);
 
+PreambleTile* createPreambleTile();
+PreambleTile* preambleTileAddInitialiation(PreambleTile* self, Initialization* variable);
+void destroyPreambleTile(PreambleTile* self);
+
+PreamblePlayers* createPreamblePlayers();
+PreamblePlayers* preamblePlayersAddPlayer(PreamblePlayers* self, char* player);
+void destroyPreamblePlayers(PreamblePlayers* self);
+
+PreambleBoard* createPreambleBoard(char* size);
+void destroyPreambleBoard(PreambleBoard* self);
 #endif // !YABL_CFG_H

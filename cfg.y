@@ -8,7 +8,7 @@
 	extern char* yytext;
 	extern int yylineno;
 
-	Repeatable* YABL_AST = NULL;
+	Repeatable* YABL_AST;
 %}
 
 %union
@@ -39,12 +39,17 @@
 	Initialization*  initialization;
 	Assign*          assign;
 	Variable*        variable;
+
+	Preambles*       preambles;
+	PreambleTile*    preambleTile;
+	PreambleBoard*   preambleBoard;
+	PreamblePlayers* preamblePlayers;
 }
 
 %token returnskeyword funckeyword 
 %token numberdcl logicdcl listdcl textdcl
 %token setupevent turnevent closeevent
-%token<text> text id number logic
+%token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
@@ -71,40 +76,51 @@
 %type<type> Type ReturnsType
 %type<initialization> Initialization
 
-
+%type<preambles> Preambles
+%type<preambleTile> PreambleTile PreambleTileTypes
+%type<preambleBoard> PreambleBoard
+%type<preamblePlayers> PreamblePlayers PreamblePlayer
 
 %%
 Start : 
-	Preamble Funcs{ YABL_AST = $2; }	
+	Preambles Funcs{
+		YABL_AST = createRepeatable(start);
+		repeatablePushChild(YABL_AST, $1);
+		repeatablePushChild(YABL_AST, $2);
+	}
 ;
 
-Preamble:
-	PreambleBoard  Preamble  {}
-|   PreamblePlayer Preamble  {}
-|   PreambleTile   Preamble  {}
-|   %empty           {}
+Preambles:
+	PreambleBoard  Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreamblePlayer Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleTile   Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   %empty					  { $$ = createPreambles(); }
 ;
 
 PreambleBoard:
-	board boardsize
+	board boardsize { $$ = createPreambleBoard($2); free($2); }
 ;
 
 PreamblePlayer:
-	player PreamblePlayers
+	player PreamblePlayers { $$ = $2; }
 ;
 
 PreamblePlayers:
-	text PreamblePlayers
-|   %empty
+	text PreamblePlayers { $$ = preamblePlayersAddPlayer($2, $1); }
+|   %empty { $$ = createPreamblePlayers(); }
 ;
 
 PreambleTile:
-	tile Type
+	tile PreambleTileTypes
 ;
 
+PreambleTileTypes:
+	Initialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); }
+|   %empty { $$ = createPreambleTile(); }
+;
 
 Funcs :
-    Funcs Func { $$ = funcsAddFunc($1, $2); }
+    Func Funcs { $$ = funcsAddFunc($2, $1); }
 |   %empty     { $$ = createFuncs(); }
 ;
 
@@ -116,7 +132,7 @@ Func :
 Event :
 	CloseEvent { $$ = $1; }
 |   SetupEvent { $$ = $1; }
-|   TurnEvent { $$ = $1; }
+|   TurnEvent  { $$ = $1; }
 ;
 
 SetupEvent : 
@@ -130,7 +146,6 @@ TurnEvent :
 CloseEvent :
 	closeevent Scope { $$ = createEvent($2, event_close); }
 ;
-
 
 Args :
 	 Initialization Args { $$ = argsAddInitialization($2, $1); }

@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #define YYERROR_VERBOSE 1
-#define PRINT(X) (printf("[%s] -- \"%s\"\n", X, yytext))
+#define PRINT(X) (printf("[%s] -- \"%s\"\n", X, yytext), YABL_TOKEN = yytext)
+char* YABL_TOKEN;
 int yywrap();
 %}
 
@@ -77,6 +78,6 @@ false { PRINT("false"); yylval.text= 0; return logic; }
 
 int yywrap() {return 1;}
 void yyerror(char * msg){
-	fprintf(stderr, "[error line %d] %s\n", yylineno, msg);
+	fprintf(stderr, "[error line %d, unexpected token \"%s\"] %s\n", yylineno, YABL_TOKEN,  msg);
 }
 
