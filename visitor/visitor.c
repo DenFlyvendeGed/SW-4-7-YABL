@@ -55,7 +55,7 @@ Repeatable* visit(Repeatable* self){ //Start <----
 //--------------------------------------
 
 //Mangler
-Data* visitPreamble(Preamble* self){
+Data* visitPreamble(Preambles* self){
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Preamble");
@@ -726,18 +726,16 @@ Data* visitVariable(Variable* self){
     return rval;
 }
 
-Data* visitPreambleBoard(PreambelBoard* self){
+Data* visitPreambleBoard(PreambleBoard* self){
     return tcAccept();
 }
 
-Data* visitPreambleTileItem(PreambleTileItem* self){
-    visitId(&self->name);
+Data* visitPreambleTileItem(Type* self){
     return tcAccept();
 }
 
-Data* visitPreambleTile(PreambelTile* self){ //<----
-    // yablListSimpleForeach(*self->tile_items, &visitId);
-    
+Data* visitPreambleTile(PreambleTile* self){ //<----
+	FOREACH(Type*, self, visitType(foreach_value);)
     return tcAccept();
 }
 

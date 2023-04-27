@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #define YYERROR_VERBOSE 1
-#define PRINT(X) (printf("[%s] -- \"%s\"\n", X, yytext))
+#define PRINT(X) (printf("[%s] -- \"%s\"\n", X, yytext), YABL_TOKEN = yytext)
+char* YABL_TOKEN;
 int yywrap();
 %}
 
@@ -52,8 +53,8 @@ not { PRINT("not"); return not; }
 = { PRINT("assign"); return assignoperator; }
 and { PRINT("and"); return and; }
 or { PRINT("or"); return or; }
-true { PRINT("true"); yylval.text= 1; return logic; }
-false { PRINT("false"); yylval.text= 0; return logic; }
+true { PRINT("true"); yylval.text= copystringalloc(yytext)1; return logic; }
+false { PRINT("false"); yylval.text= copystringalloc(yytext); return logic; }
 \"([^\"]|\\\")*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
 [a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
@@ -77,6 +78,6 @@ false { PRINT("false"); yylval.text= 0; return logic; }
 
 int yywrap() {return 1;}
 void yyerror(char * msg){
-	fprintf(stderr, "[error line %d] %s\n", yylineno, msg);
+	fprintf(stderr, "[error line %d, unexpected token \"%s\"] %s\n", yylineno, YABL_TOKEN,  msg);
 }
 

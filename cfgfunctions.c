@@ -11,7 +11,7 @@ char* copystringalloc(char* src){
 }
 
 Repeatable* repeatablePushChild(Repeatable* self, void* child){
-	yablListPush(self->children, child);
+	yablListInsert(&self->children, 0, child);
 	return self;
 }
 
@@ -52,10 +52,12 @@ void universalDestroyFunction(void* nonterminal) {
 		case listConstant  : destroyListConstant(nonterminal)  ; break;
 		case listConstants : break;
 
-		case preamblePlayers: break;
-		case preambles: break;
+		case preamblePlayers: destroyPreamblePlayers(nonterminal); break;
+		case preambles		: destroyPreambles(nonterminal)      ; break;
+		case preambleBoard  : destroyPreambleBoard(nonterminal)  ; break;
+		case preambleTile   : destroyPreambleTile(nonterminal)   ; break;
 		case returnstmt: destroyReturnStmt(nonterminal); break;
-		default:;
+		default: ;
 	}
 }
 
@@ -573,15 +575,50 @@ void destroyReturnStmt(ReturnStmt* self){
 
 
 // typedef Repeatable Preambles;
-Funcs createPreambles()
-{
-	Funcs *p = malloc(sizeof(Funcs));
-	p->nonterminal = preambles;
-
-	return *p;
+Preambles* createPreambles(){
+	return createRepeatable(preambles);
 }
 
-void  destroyPreambles(Funcs* p)
-{
+Preambles* preamblesPushPreamble(Preambles* self, void* child){
+	return repeatablePushChild(self, child);
 }
 
+void  destroyPreambles(Preambles* self){
+	destroyRepeatable(self);
+}
+
+PreambleTile* createPreambleTile(){
+	return createRepeatable(preambleTile);
+}
+
+PreambleTile* preambleTileAddInitialiation(PreambleTile* self, Initialization* variable){
+	return repeatablePushChild(self, variable);
+}
+
+void destroyPreambleTile(PreambleTile* self){
+	destroyRepeatable(self);
+}
+
+PreamblePlayers* createPreamblePlayers(){
+	return createRepeatable(preambleTile);
+}
+
+PreamblePlayers* preamblePlayersAddPlayer(PreamblePlayers* self, char* player){
+	return repeatablePushChild(self, player);
+}
+
+void destroyPreamblePlayers(PreamblePlayers* self){
+	yablListDelete(self->children, &free);
+	free(self);
+}
+
+PreambleBoard* createPreambleBoard(char* size){
+	PreambleBoard* self = malloc(sizeof(PreambleBoard));
+	self->width = atoi(strtok(size, "x"));
+	self->height= atoi(strtok(NULL, "\0"));
+	return self;
+}
+
+void destroyPreambleBoard(PreambleBoard* self){
+	free(self);
+}
