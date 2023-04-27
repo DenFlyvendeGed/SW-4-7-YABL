@@ -51,7 +51,7 @@
 %token setupevent turnevent closeevent
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
-%token setpreamble board boardsize player tile
+%token setpreamble board player tile
 %token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
@@ -85,8 +85,9 @@
 Start : 
 	Preambles Funcs{
 		YABL_AST = createRepeatable(start);
-		repeatablePushChild(YABL_AST, $1);
 		repeatablePushChild(YABL_AST, $2);
+		repeatablePushChild(YABL_AST, $1);
+		
 	}
 ;
 
@@ -162,7 +163,7 @@ Scope :
 ;
 
 Stmts :
-    Stmt Stmts { if( $1 != NULL) stmtsAddStmt($2, $1); $$ = $2; }
+    Stmt Stmts { if( $1 != NULL) { stmtsAddStmt($2, $1); } $$ = $2; }
 |   %empty { $$ = createStmts(); }
 ;
 

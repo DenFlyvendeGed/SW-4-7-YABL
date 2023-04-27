@@ -40,15 +40,32 @@ Repeatable* visit(Repeatable* self){ //Start <----
     YablHash* symbolTable = malloc(sizeof(YablHash));
     *symbolTable = yablHashCreate(HASHLISTLENGTH, &stringHash);
 
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("start");
-    }
+    // if(PPRINTFLAG == 1)
+    // {
+    //     prettyPrint("start");
+    // }
     indent++;
     // visitPreamble(self->preamble);
     visitRepeatable(self);
     indent--;
     printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
+    return self;
+}
+
+Data* visitStart(Repeatable* self){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("start");
+    }
+    indent++;
+
+    FOREACH(Repeatable*, self, 
+		Data* value = visitRepeatable(foreach_value);
+		// if(value->errorCode != ECnoError) return value;
+	)
+    //visitRepeatable(self->children);
+    indent--;
+    //printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
     return self;
 }
 
@@ -91,6 +108,9 @@ Data* visitRepeatable(Repeatable* self){
         break;
     case preambles:
         rtn =  visitPreambles(self);
+        break;
+    case start:
+        rtn = visitStart(self);
         break;
     default:
         rtn = createError(ECoutOfRange);

@@ -53,7 +53,7 @@ not { PRINT("not"); return not; }
 = { PRINT("assign"); return assignoperator; }
 and { PRINT("and"); return and; }
 or { PRINT("or"); return or; }
-true { PRINT("true"); yylval.text= copystringalloc(yytext)1; return logic; }
+true { PRINT("true"); yylval.text= copystringalloc(yytext); return logic; }
 false { PRINT("false"); yylval.text= copystringalloc(yytext); return logic; }
 \"([^\"]|\\\")*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
