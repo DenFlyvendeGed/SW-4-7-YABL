@@ -52,7 +52,7 @@
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
-%token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
+%token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
@@ -179,17 +179,13 @@ Stmt :
 ;
 
 If :
-	ifkeyword Condition Scope AfterIf { $$ = (Stmt*)createIfStmt($2, $3, $4); }
+	ifkeyword Condition scopebegin Stmts AfterIf { $$ = (Stmt*)createIfStmt($2, createScope($4), $5); }
 ;
 
 AfterIf :
-	elsekeyword AfterElse 
-|   %empty { $$ = createScope(createStmts()); }
-;
-
-AfterElse :
-	If    { $$ = (Scope*)createStmts(); scopeAddStmt($$, (Stmt*)$1); }
-|   Scope { $$ = $1; }
+	elifkeyword Condition scopebegin Stmts AfterIf { $$ = createScope(createStmts()); scopeAddStmt($$, createIfStmt($2, createScope($4), $5)); } 
+|   elsekeyword Stmts scopeend { $$ = createScope($2); }
+|   scopeend { $$ = createScope(createStmts()); }
 ;
 
 Condition : 
