@@ -52,7 +52,7 @@
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
 %token setpreamble board boardsize player tile
-%token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then
+%token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
 %token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
@@ -62,7 +62,7 @@
 %type<stmts> Stmts
 %type<stmt>  Stmt If
 %type<scope> Scope AfterIf AfterElse
-%type<args>  Args
+%type<args>  Args ArgsContinue
 %type<funcs> Funcs
 %type<func>  Func
 %type<event> Event TurnEvent CloseEvent SetupEvent
@@ -148,9 +148,14 @@ CloseEvent :
 ;
 
 Args :
-	 Initialization comma Args { $$ = argsAddInitialization($3, $1); }
+	 Initialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
 |    %empty { $$ = createArgs(); }
 ;
+
+ArgsContinue:
+	comma Args { $$ = $2; }
+|   %empty    { $$ = createArgs(); }
+
 
 ReturnsType : 
     returnskeyword Type { $$ = $2; }
@@ -220,6 +225,7 @@ Factor :
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
 |   List { $$ = createExpr(et_constant, $1); }
 |   Id { $$ = createExpr(et_id_mutation, $1); } 
+|   Factor as Type { $$ = $1;}
 ;
 
 P0 :

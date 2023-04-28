@@ -5,7 +5,7 @@
 
 char* copystringalloc(char*);
 
-typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
+typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
 typedef enum {bt_number, bt_text, bt_logic, bt_list} BasicTypes;
 struct Typedcl;
@@ -80,7 +80,7 @@ typedef struct {
 
 // Expr
 
-typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expression} ExprType;
+typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expression, et_typecast} ExprType;
 typedef struct Expr{
 	Nonterminals nonterminal;
 	ExprType exprType;
@@ -109,6 +109,12 @@ typedef struct {
 	UnaryOperators uo;
 	Expr* childExpr;
 } UnaryOperator;
+
+typedef struct {
+	Nonterminals nonterminal;
+	Expr* cast;
+	Type* type;
+} TypeCast;
 
 // Id Mutation
 typedef enum {im_none, im_value, im_dot, im_call, im_index} IdMutations;
@@ -254,6 +260,9 @@ void destroyBinaryOperator(BinaryOperator* p);
 
 UnaryOperator* createUnaryOperator(UnaryOperators uOp, Expr* childExpr);
 void destroyUnaryOperator(UnaryOperator* p);
+
+TypeCast* createTypeCast(Type* type, Expr* cast);
+void destroyTypeCast(TypeCast* self);
 
 IdMutationDot* createIdMutationDot(IdMutation* child);
 void destroyIdMutationDot(IdMutationDot* p);

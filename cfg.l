@@ -38,13 +38,14 @@ while { PRINT("while"); return whilekeyword; }
 times { PRINT("times"); return times;  }
 if { PRINT("if"); return ifkeyword; }
 else { PRINT("else"); return elsekeyword; }
-else[ \n\t\r]*if { PRINT("else if"); return elifkeyword; }
+else[ \n\t\r]+if[ \n\t\r] { PRINT("else if"); return elifkeyword; }
 \+ { PRINT("plus"); return addition; }
 \- { PRINT("minus"); return subtraction; }
 \* { PRINT("times"); return multiplication; }
 \/ { PRINT("division"); return division; }
 remains { PRINT("remains"); return modulus; }
 not { PRINT("not"); return not; }
+as  { PRINT("as");  return as; }
 !=  { PRINT("neq"); return neq; }
 ==  { PRINT("eq"); return eq; }
 \> { PRINT("gt"); return gt; }
