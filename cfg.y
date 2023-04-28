@@ -51,9 +51,9 @@
 %token setupevent turnevent closeevent
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
-%token setpreamble board boardsize player tile
+%token setpreamble board player tile
 %token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
-%token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
+%token addition minus multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
 
@@ -219,7 +219,7 @@ Expr :
 
 Factor :
     lparen Expr rparen { $$ = $2; }
-|   negate Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
+|   minus Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
@@ -242,7 +242,7 @@ P1 :
 
 P2 :
     P2 addition P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_plus, $1, $3)); }
-|   P2 subtraction P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_minus, $1, $3)); }
+|   P2 minus P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_minus, $1, $3)); }
 |   P1 { $$ = $1; }
 ;
 
