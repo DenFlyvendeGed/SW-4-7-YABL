@@ -61,7 +61,7 @@
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
 %type<stmts> Stmts
 %type<stmt>  Stmt If
-%type<scope> Scope AfterIf AfterElse
+%type<scope> Scope AfterIf 
 %type<args>  Args ArgsContinue
 %type<funcs> Funcs
 %type<func>  Func
@@ -74,7 +74,7 @@
 %type<idMutationIndex> Index 
 %type<idMutationCall> Call 
 %type<type> Type ReturnsType
-%type<initialization> Initialization
+%type<initialization> Initialization DeclarationInitialization
 
 %type<preambles> Preambles
 %type<preambleTile> PreambleTile PreambleTileTypes
@@ -111,11 +111,11 @@ PreamblePlayers:
 ;
 
 PreambleTile:
-	tile PreambleTileTypes
+	tile PreambleTileTypes { $$ = $2; }
 ;
 
 PreambleTileTypes:
-	Initialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); }
+	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); }
 |   %empty { $$ = createPreambleTile(); }
 ;
 
@@ -148,7 +148,7 @@ CloseEvent :
 ;
 
 Args :
-	 Initialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
+	 DeclarationInitialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
 |    %empty { $$ = createArgs(); }
 ;
 
@@ -188,7 +188,10 @@ If :
 ;
 
 AfterIf :
-	elifkeyword Condition scopebegin Stmts AfterIf { $$ = createScope(createStmts()); scopeAddStmt($$, createIfStmt($2, createScope($4), $5)); } 
+	elifkeyword Condition scopebegin Stmts AfterIf {
+		$$ = createScope(createStmts()); 
+		scopeAddStmt($$, (Stmt*)createIfStmt($2, createScope($4), $5));
+	} 
 |   elsekeyword Stmts scopeend { $$ = createScope($2); }
 |   scopeend { $$ = createScope(createStmts()); }
 ;
@@ -219,17 +222,17 @@ Expr :
 
 Factor :
     lparen Expr rparen { $$ = $2; }
-|   minus Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
+|   Factor as Type { $$ = $1;}
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
 |   List { $$ = createExpr(et_constant, $1); }
 |   Id { $$ = createExpr(et_id_mutation, $1); } 
-|   Factor as Type { $$ = $1;}
 ;
 
 P0 :
     not Factor { $$ = createExpr(et_unary_operator, createUnaryOperator(uo_not, $2)); }
+|   minus Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
 |   Factor { $$ = $1; }
 ;
 
@@ -275,7 +278,11 @@ Assign :
 ;
 
 Initialization :
-	Type id AssignInitialization { $$ = (Stmt*)createInitialization($2, $1, $3); }
+	DeclarationInitialization AssignInitialization { $$ = $1; $$->initialValue = $2; }
+;
+
+DeclarationInitialization :
+	Type id { $$ = createInitialization($2, $1, NULL); }
 ;
 
 AssignInitialization :
