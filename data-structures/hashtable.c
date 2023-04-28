@@ -22,12 +22,12 @@ YablHash yablHashCreate(int sizeOfList, int(*hashFunc)(void *)) {
 void* yablHashGet(YablHash* self, void* key, int(*compare)(void*, void*)){
     int hashIndex = self->hashFunc(key);
     YablList list = self->map[hashIndex];
-    int length = yablListLen(list);
-    for(int i = 0; i <= length; i++){
+    int length = 0;
+    for(int i = 0; i < length; i++){
         if(compare(((Node*)list->item)->key, key)){
             return list->item;
         }
-        list->item = list->next;
+        list = list->next;
     }
     return NULL;
 }// returns item as a void pointer
@@ -42,10 +42,10 @@ void yablHashPush(YablHash* self, void* key, void* value, int(*compare)(void*, v
         self->map[hashIndex] = yablListCreate();
         yablListPush(self->map[hashIndex], node);
     }else{
-        if (((Node*)yablHashGet(self, key, compare))->key != NULL) {
+        if (((Node*)yablHashGet(self, key, compare)) != NULL) {
             ((Node*)yablHashGet(self, key, compare))->value = node->value;
         }else{
-        yablListPush(self->map[hashIndex], node);
+            yablListPush(self->map[hashIndex], node);
         }
     }
 }

@@ -14,12 +14,12 @@
 }
 
 int indent = 0;
-YablHash* symbolTable;
+YablHash* SYMBOL_TABLE ;
 
 
 void pIndent(){
     for(int i=1; i<=indent; i++){
-        printf("    ");
+        printf("|   ");
     }
 }
 void prettyPrint(char string[]){
@@ -32,14 +32,18 @@ Data* visitor(){
 	return tcAccept();
 }
 
+void symbolTableAddKeywords(){
+    symbolTablePush("input", createData(bt_text));
+    symbolTablePush("print", createData(bt_NULL));
+}
 
 //Visit function
 Repeatable* visit(Repeatable* self){ //Start <----
     
     //innit outersymbolTable
-    YablHash* symbolTable = malloc(sizeof(YablHash));
-    *symbolTable = yablHashCreate(HASHLISTLENGTH, &stringHash);
-
+    SYMBOL_TABLE = malloc(sizeof(YablHash));
+    *SYMBOL_TABLE = yablHashCreate(HASHLISTLENGTH, &stringHash);
+    symbolTableAddKeywords();
     // if(PPRINTFLAG == 1)
     // {
     //     prettyPrint("start");
@@ -82,11 +86,11 @@ Data* visitPreamble(Preambles* self){
 }
 
 Data* visitRepeatable(Repeatable* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Repeatable");
-    }
-    indent++;
+    // if(PPRINTFLAG == 1)
+    // {
+    //     prettyPrint("Repeatable");
+    // }
+    // indent++;
     Data* rtn;
     switch (self->nonterminal)
     {
@@ -116,7 +120,7 @@ Data* visitRepeatable(Repeatable* self){
         rtn = createError(ECoutOfRange);
         break;
     }
-    indent--;
+    // indent--;
 	return rtn;
 }
 
@@ -324,7 +328,7 @@ Data* visitFunc(Func* self){
 			Data* id = visitId(&self->name);
 			rval = tcFunc(self, args, returnType, scope, id);
 			free(args);
-			free(returnType);
+			//free(returnType);
 			free(scope);
 			free(id);
 			break;
@@ -356,22 +360,25 @@ Data* visitIdMutation(IdMutation* self){
     Data* child = tcAccept();
     Data* rval;
     if(self->child!= NULL){
+        free(child);
         switch (*(IdMutations*)(self->child))
-    {
-    case im_none:
-        break;
-    case im_dot:
-        child = visitIdMutationDot(self->child);
-        break;
-    case im_call:
-        child = visitIdMutationCall(self->child);
-        break;
-    case im_index:
-        child = visitIdMutationIndex(self->child);
-        break;
-    default:
-        break;
-    }
+        {
+        case im_none:
+            break;
+        case im_dot:
+            child = visitIdMutationDot(self->child);
+            break;
+        case im_call:
+            child = visitIdMutationCall(self->child);
+            break;
+        case im_index:
+            child = visitIdMutationIndex(self->child);
+            break;
+        default:
+            createError(ECoutOfRange);
+            break;
+
+        }
     }
     
     rval = tcIdMutation(self, child, id);
@@ -516,7 +523,7 @@ Data* visitInitialization(Initialization* self){
     Data* val = visitExpr(self->initialValue);
     
 
-    rval = tcInitialization(self, type, val);
+    rval = tcInitialization(self,id, type, val);
     free(type);
 
     indent--;
@@ -532,8 +539,7 @@ Data* visitType(Type* self){
     Data* rval;
     Data* type;
     if(self != NULL){
-
-    Data* type = visitTypeValue(self->typeval);
+        type = visitTypeValue(self->typeval);
     }
 
     rval = tcType(self, type); //returns type

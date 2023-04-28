@@ -14,10 +14,14 @@
 #define HASHLISTLENGTH 10
 
 extern int TYPE_CHECKER_ERROR_COUNT;
-extern YablHash* symbolTable;
+extern YablHash* SYMBOL_TABLE;
+extern int indent;
+extern void pIndent();
+extern void prettyPrint(char string[]);
 
 
-typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange} ErrorCode;
+
+typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace} ErrorCode;
 
 typedef struct {
     Nonterminals nonterminal;
@@ -34,7 +38,7 @@ int stringcompare(char* s1, char* s2);
 
 void symbolTablePush( char* key, void* value);
 
-void* symbolTableGet( char* key);
+Data* symbolTableGet(char* key);
 
 void createSymbolTable();
 
@@ -58,6 +62,7 @@ void deleteSymbolTable();
 Data* createData(BasicTypes dType);
 Data* createError(ErrorCode error);
 Data* tcAccept();
+Data* tcValue(void* val);
 
 
 Data* tcPreamble(Preambles* self);
@@ -85,7 +90,7 @@ Data* tcAssign(Assign* self, Data* id, Data* expr);
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope);
 
 //Data* tcReturnStmt(self);
-Data* tcInitialization(Initialization* self, Data* type, Data* val);
+Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val);
 Data* tcType(Type* self, Data* typeVal);
 
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id);

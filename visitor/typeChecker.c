@@ -9,6 +9,10 @@ Data* tcPreamble(Preambles* self);
 // {
 
 // }
+
+
+
+
 Data* tcExprs(Exprs* self);
 Data* tcStmts(Stmts* self);
 Data* tcScope(Scope* self);
@@ -89,7 +93,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     //     return createError(ECtypeExeption);
     // }
 
-    return scope;
+    return returntype;
 }
 
 Data* tcEvent(Event* self, Data* scope){ //<---
@@ -239,7 +243,7 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
 }   
 
 //Data* tcReturnStmt(self);
-Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not be needed
+Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ //might not be needed
     if(self == NULL){
         return createError(ECempty);
         
@@ -253,9 +257,12 @@ Data* tcInitialization(Initialization* self, Data* type, Data* val){ //might not
 
         if(type->type != val->type)
             return createError(ECtypeExeption);
+        symbolTablePush(id->value, val);
 
     }
-    
+    else {
+        symbolTablePush(id->value, type);
+    }
     
     return type;
 }
@@ -284,7 +291,7 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         }
         return createError(child->errorCode);
     }
-    
+    symbolTableGet(id->value);
     
     return tcAccept(); 
 }
@@ -293,7 +300,7 @@ Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
     if(self == NULL)
         tcAccept();
     if(idMutation == NULL){
-        printf("IdMutationDot: ");
+        prettyPrint("IdMutationDot: ");
         createError(ECempty);
     }
     if(idMutation->errorCode != ECnoError){
@@ -308,7 +315,7 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
         tcAccept();
 
     if(idMutation->errorCode != ECnoError){
-        printf("IdMutationCall: ");
+        prettyPrint("IdMutationCall: ");
         return createError(idMutation->errorCode);
     }
     if(args->errorCode != ECnoError)
@@ -322,7 +329,7 @@ Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
         tcAccept();
 
     if(idMutation->errorCode){
-        printf("IdMutationCall: ");
+        prettyPrint("IdMutationCall: ");
         return createError(idMutation->errorCode);
     }
     if(expr->errorCode != ECnoError)
@@ -380,9 +387,12 @@ Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl){
 	return tcAccept();
 }
 Data* tcId(Id self){
-    printf("test: %s\n", self);
+    pIndent();
+    printf("\033[0;32m");
+    printf("Id: %s\n", self);
+    printf("\033[0m");
 
-    return tcAccept();
+    return tcValue(self);
 }; //<----
 Data* tcBasicType(BasicTypes* self); //<----- enum
 Data* tcTypeDCL(Type* self, Data* typeval){
@@ -415,7 +425,32 @@ Data* tcPreamblePlayer(PreamblePlayers* self);
 
 Data*  createData(BasicTypes dType)
 {
-    printf("\n dataType: %d\n", dType);
+    char* type;
+    switch(dType){
+        case bt_logic:
+            type = "logic";
+            break;
+        case bt_number:
+            type = "number";
+            break;
+        case bt_text:
+            type = "text";
+            break;
+        case bt_NULL:
+            type = "NULL";
+            break;
+        case bt_list:
+            type = "List";
+            break;
+        default:
+            createError(ECtypeExeption);
+    };
+    char msg[20] = "data type: ";
+    printf("\033[0;36m");
+    strcat(msg ,type);
+    prettyPrint(msg);
+    printf("\n");
+    printf("\033[0m");
     Data*  d = malloc(sizeof(Data));
     d->type = dType;
     // d->value = value;
@@ -426,7 +461,36 @@ Data*  createData(BasicTypes dType)
 
 Data* createError(ErrorCode error){
     TYPE_CHECKER_ERROR_COUNT++;
-    printf("\nerror %i\n", error);
+    char* val;
+    switch(error){
+    case ECnoError:
+        val = "no error";
+        break;
+    case ECempty:
+        val = "empty";
+        break;
+    case ECargumentExeption:
+        val = "argument exception";
+        break;
+    case ECtypeExeption:
+        val = "type exception";
+        break;
+    case ECmissingChild:
+        val = "missing child";
+        break;
+    case ECoutOfRange:
+        val = "out of range";
+        break;
+    default:
+        val = "Your an idiot";
+    }
+    char msg[30] = "error: ";
+
+    strcat(msg, val);
+    printf("\033[0;31m");
+    prettyPrint(msg);
+    printf("\033[0m");
+    printf("\n");
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
 	return d;
@@ -440,6 +504,12 @@ Data* tcAccept()
     return d;
 }
 
+Data* tcValue(void* val){
+    Data*  d = malloc(sizeof(Data));
+    d->errorCode = ECnoError;
+    d->value = val;
+    return d;
+}
 
 //Symbol table setup
 
@@ -451,14 +521,17 @@ int stringcompare(char* s1, char* s2){
 }
 
 void symbolTablePush( char* key, void* value){
-     yablHashPush(symbolTable, key, value, &stringcompare);
+     yablHashPush(SYMBOL_TABLE, key, value, &stringcompare);
 }
 
-void* symbolTableGet( char* key){//<-- needs to hceck parent
-    void* value = ((YablHashNode*)yablHashGet(symbolTable, key, &stringcompare))->item;
+Data* symbolTableGet(char* key){//<-- needs to hceck parent
+    void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
+    if(value == NULL)
+        return createError(ECoutOfNamespace);
+    value = ((YablHashNode*)value)->item;
     YablHash* table;
     while(value == NULL){
-        table = yablHashGet(symbolTable, "PARENT", &stringcompare);
+        table = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
         if(table == NULL)
             return NULL;
         value = ((YablHashNode*)yablHashGet(table, key, &stringcompare))->item;
@@ -467,22 +540,22 @@ void* symbolTableGet( char* key){//<-- needs to hceck parent
     return value;
 }
 
-void createSymbolTable(){ //creates symboltable and sets parent table to PARENT, and sets global pointer to new table.
+void createSymbolTable(){ //creates SYMBOL_TABLE and sets parent table to PARENT, and sets global pointer to new table.
 
     YablHash* st = malloc(sizeof(YablHash));
     *st  = yablHashCreate(HASHLISTLENGTH, &stringHash);
     symbolTablePush("PARENT", st);
-    symbolTable = st;//update table pointer
+    SYMBOL_TABLE = st;//update table pointer
 }
 
 void deleteSymbolTable(){
     YablHash* parent = symbolTableGet("PARENT");
     if(parent== NULL){
-        printf("No parent symboltable found\n");
+        prettyPrint("No parent SYMBOL_TABLE found\n");
         createError(ECoutOfRange);
         return;
     }
-    free(symbolTable); //release symboltable for scope
-    symbolTable = parent; //point to parent scope table
+    free(SYMBOL_TABLE); //release SYMBOL_TABLE for scope
+    SYMBOL_TABLE = parent; //point to parent scope table
     
 }

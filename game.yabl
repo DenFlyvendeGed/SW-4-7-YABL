@@ -15,10 +15,10 @@ turn do
     repeat while currentTurn do
 
         //print("Chose x cordinat");
-        inputX = scanf();
+        inputX = input();
 
         //print("Chose y cordinat");
-        inputY = scanf();
+        inputY = input();
 
         list number punkt = [inputX, inputY];
 
@@ -44,7 +44,7 @@ end
 
 
 function makeMove(list number punkt) do
-    board[punkt[0][punkt[1]]] == currentPlayer;
+    board[punkt[0]][punkt[1]] == currentPlayer;
 end
 
 
