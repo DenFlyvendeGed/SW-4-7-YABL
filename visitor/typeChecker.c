@@ -386,6 +386,8 @@ Data* tcRepeatLoop(RepeatLoop* self){
 Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl){
 	return tcAccept();
 }
+
+
 Data* tcId(Id self){
     pIndent();
     printf("\033[0;32m");
