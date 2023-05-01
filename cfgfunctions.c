@@ -211,6 +211,19 @@ void destroyUnaryOperator(UnaryOperator* p)
 	free(p);
 }
 
+TypeCast* createTypeCast(Type* type, Expr* cast){
+	TypeCast* self = malloc(sizeof(TypeCast));
+	self->type = type;
+	self->cast = cast;
+	return self;
+}
+
+void destroyTypeCast(TypeCast* self){
+	destroyType(self->type);
+	destroyExpr(self->cast);
+	free(self);
+}
+
 // struct IdMutationDot *IdMutationDot;
 IdMutationDot* createIdMutationDot(IdMutation* child)
 {
