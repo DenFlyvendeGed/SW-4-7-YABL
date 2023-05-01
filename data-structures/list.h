@@ -10,6 +10,15 @@ typedef struct YablListNode{
 
 typedef YablListNode* YablList;
 
+#define YABL_LIST_FOREACH(TYPE, LIST, CODE){\
+	YablList _l = LIST;\
+	if(_l->item != NULL) for(; _l != NULL; _l = _l->next){\
+		TYPE foreach_value = _l->item;\
+		CODE\
+	}\
+}
+
+
 YablList yablListCreate();
 void  yablListPush(YablList self, void* item);
 void  yablListPushCpy(YablList self, void* item, int sizeOfItem);

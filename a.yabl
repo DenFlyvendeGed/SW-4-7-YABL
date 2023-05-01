@@ -1,9 +1,5 @@
 setup
 do
-    
+    a(5);
 end
-function test() returns number 
-do
-    logic a = true;
-    number b = 5;
-end
+

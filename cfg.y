@@ -223,7 +223,7 @@ Expr :
 
 Factor :
     lparen Expr rparen { $$ = $2; }
-|   Factor as Type { $$ = $1;}
+|   Factor as Type { $$ = createExpr(et_typecast, createTypeCast($3, $1));}
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
