@@ -6,9 +6,9 @@
 
 
 void cgScope(Scope* self, FILE* writer){
-    fprintf(writer, "{\n");
+    fprintf(writer, "\n{\n");
     YABL_LIST_FOREACH(Nonterminals*, self->children, cgStmt(foreach_value, writer););
-    fprintf(writer, "}\n");
+    fprintf(writer, "\n}\n");
 }
 
 
@@ -28,16 +28,23 @@ void cgStmt(Stmt* self, FILE* writer){
     case initialization:
         cgInitialization(self, writer);
         break;
+    case scope:
+        cgScope(self, writer);
+        break;
     case returnstmt:
         cgReturnStmt(self, writer);
         break;
     case breakstmt:
         cgBreakStmt(self, writer);
         break;
+    case expr:
+        cgExpr(self, writer);
+        fprintf(writer, ";");
+        break;
     default:
         break;
     }
-
+    
 }
 
 void cgBreakStmt(Break* self, FILE* writer){
@@ -144,8 +151,6 @@ void cgIfStmt(IfStmt* self, FILE* writer){
 }
 
 
-
-
 void cgAssign(Assign* self, FILE* writer){
     cgIdMutation(self->variable, writer);
     fprintf(writer, "=");
@@ -155,7 +160,11 @@ void cgAssign(Assign* self, FILE* writer){
 
 void cgIdMutation(IdMutation* self, FILE* writer){
     fprintf(writer, "%s", self->name);
-    switch (*(IdMutations*)self->child)
+    cgIdMutationChild(self->child, writer);
+}
+
+void cgIdMutationChild(IdMutations* self, FILE* writer){
+    switch (*self)
     {
     case im_none:
         /* code */
@@ -167,7 +176,7 @@ void cgIdMutation(IdMutation* self, FILE* writer){
         /* code */
         break;
     case im_call:
-        cgCall(self->child, writer);
+        cgCall(self, writer);
         break;
     case im_index:
         /* code */
@@ -181,7 +190,10 @@ void cgIdMutation(IdMutation* self, FILE* writer){
 void cgCall(IdMutationCall* self, FILE* writer){
     fprintf(writer, "(");
     cgExprs(self->args, writer);
-    cgIdMutation(self->child, writer);
+    if(self->child != NULL){
+        cgIdMutationChild(self->child, writer);
+    }
+    fprintf(writer, ")");
 }
 
 void cgExprs(Exprs* self, FILE* writer){

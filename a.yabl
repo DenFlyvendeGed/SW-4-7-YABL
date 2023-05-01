@@ -1,5 +1,8 @@
 setup
 do
     a(5);
+
+    do end
+
 end
 
