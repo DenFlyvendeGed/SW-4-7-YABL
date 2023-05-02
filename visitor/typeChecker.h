@@ -27,6 +27,7 @@ typedef struct {
     // Nonterminals nonterminal;
     BasicTypes type;
     ErrorCode errorCode;
+    void* list; //Data*
     void* value; 
 } Data;
 
@@ -60,8 +61,10 @@ void deleteSymbolTable();
 
 //Data constructers
 Data* createData(BasicTypes dType);
+Data* createList(Data* child);
 Data* createError(ErrorCode error);
 Data* tcAccept();
+Data* tcCopy(Data*in);
 Data* tcValue(void* val);
 
 

@@ -4,6 +4,10 @@ do
 end
 function test() returns number 
 do
-    logic a = true;
-    number b = 5;
+    text inputX;
+    text inputY;
+    logic currentTurn = true;
+    inputX = input();
+    inputY = input();
+    
 end

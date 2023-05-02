@@ -29,34 +29,24 @@ Data* tcExpr(Expr* self, Data* child)
     if(child->errorCode == ECempty) {
         return createError(ECmissingChild); 
     } 
+    // if(self->nonterminal == listConstant){ //Exprs seem to return bt_number
+
+    // }
     if(self->exprType == et_constant)
     {
         Constant* child = self->child;
+        if(child->value == NULL)   
+            return createError(ECtypeExeption);
+            
         switch (child->typeDcl) {
-            case td_logic:
-                 //Logic
-                if(child->value != NULL){    
+            case td_logic:            
                     return createData((BasicTypes)bt_logic);
-                }
-                else {
-                    return createError(ECtypeExeption);
-                }
                 break;
             case td_number:
-                if(child->value != NULL){
                     return createData((BasicTypes)bt_number);
-                }   
-                else {
-                    return createError(ECtypeExeption);
-                }
                 break;
             case td_text:
-                if(child->value != NULL){
                     return createData((BasicTypes)bt_text); //<--- check om det er en streng?
-                }   
-                else {
-                    return createError(ECtypeExeption);
-                }
                 
                 break;
             default:
@@ -219,12 +209,16 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
 Data* tcAssign(Assign* self, Data* id, Data* expr){
     if(self == NULL)
         return createError(ECempty);
-    if(id->errorCode >=0)
-        return id;
-    if(expr->errorCode >=0)
-        return expr;
-    
-	return tcAccept();
+    if(id->errorCode !=ECnoError)
+        return createError(id->errorCode);
+    if(expr->errorCode !=ECnoError)
+        return createError(expr->errorCode);
+    if(id->type != expr->type){
+        prettyPrint("Attempting to assign new type to variable");
+        return createError(ECtypeExeption);
+    }
+    Data* rval = createData(id->type);
+	return rval; //tcAccept();
 }
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(self == NULL)
@@ -236,8 +230,10 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(elseScope->errorCode != ECnoError)
         return createError(elseScope->errorCode);
 
-    if(condition->type != bt_logic)
+    if(condition->type != bt_logic){
+        prettyPrint("If condition must return logic");
         return createError(ECtypeExeption);
+    }
 
 	return tcAccept();
 }   
@@ -257,11 +253,11 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
 
         if(type->type != val->type)
             return createError(ECtypeExeption);
-        symbolTablePush(id->value, val);
+        symbolTablePush(id->value, tcCopy(val));
 
     }
     else {
-        symbolTablePush(id->value, type);
+        symbolTablePush(id->value, tcCopy(type));
     }
     
     return type;
@@ -291,7 +287,7 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         }
         return createError(child->errorCode);
     }
-    Data* rval = symbolTableGet(id->value);
+    Data* rval = symbolTableGet((id->value)); //<----
     
     return rval; 
 }
@@ -443,6 +439,9 @@ Data*  createData(BasicTypes dType)
         case bt_list:
             type = "List";
             break;
+        case bt_unset:
+            type = "Unset";
+            break;
         default:
             type = "Invalid type";
             createError(ECtypeExeption);
@@ -455,11 +454,28 @@ Data*  createData(BasicTypes dType)
     printf("\033[0m");
     Data*  d = malloc(sizeof(Data));
     d->type = dType;
-    // d->value = value;
+    d->value = NULL;
     d->errorCode = ECnoError;
 
     return d;
 };
+
+Data* createList(Data* child){
+    char* type = "List";
+    char msg[20] = "data type: ";
+    printf("\033[0;36m");
+    strcat(msg ,type);
+    prettyPrint(msg);
+    printf("\n");
+    printf("\033[0m");
+    Data*  d = malloc(sizeof(Data));
+    d->type = bt_list;
+    d->list = child;
+    // d->value = value;
+    d->errorCode = ECnoError;
+
+    return d;
+}
 
 Data* createError(ErrorCode error){
     TYPE_CHECKER_ERROR_COUNT++;
@@ -495,6 +511,7 @@ Data* createError(ErrorCode error){
     printf("\n");
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
+    d->list = NULL;
     d->type = bt_unset;
 	return d;
 }
@@ -503,7 +520,8 @@ Data* tcAccept()
 {
     Data*  d = malloc(sizeof(Data));
     d->errorCode = ECnoError;
-
+    d->type = bt_unset;
+    d->list = NULL;
     return d;
 }
 
@@ -513,6 +531,7 @@ Data* tcCopy(Data*in){
     // d->nonterminal = in->nonterminal;
     d->type = in->type;
     d->value = in->value;
+    d->list = in->list;
     return d;
 }
 
@@ -520,6 +539,8 @@ Data* tcValue(void* val){
     Data*  d = malloc(sizeof(Data));
     d->errorCode = ECnoError;
     d->value = val;
+    d->list = NULL;
+    d->type = bt_unset;
     return d;
 }
 
@@ -545,10 +566,11 @@ Data* symbolTableGet(char* key){//<--
     while(value == NULL){
         table = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
         if(table == NULL)
-            return NULL;
+            return createError(ECoutOfNamespace);
         value = ((YablHashNode*)yablHashGet(table, key, &stringcompare))->item;
 
     }
+    //printf("%s is type %i\n", key, ((Data*)value)->type);
     return tcCopy(value);
 }
 

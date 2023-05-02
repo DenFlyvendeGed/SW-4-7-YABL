@@ -36,8 +36,10 @@ void symbolTableAddKeywords(){
     prettyPrint("stdlip keywords: -----------------\n");
     symbolTablePush("input", createData(bt_text));
     symbolTablePush("print", createData(bt_NULL));
+    symbolTablePush("quit", createData(bt_NULL));
 
-    symbolTablePush("board", createData(bt_NULL));
+    symbolTablePush("board", createData(bt_text));//<--- list list text
+    symbolTablePush("currentPlayer", createData(bt_text));
 
     prettyPrint("------------------------------------\n");
 }
@@ -243,12 +245,24 @@ Data* visitFuncs(Funcs* self){
 Data* visitListConstant(ListConstant* self){
     if(PPRINTFLAG == 1)
     {
-        prettyPrint("Constants");
+        prettyPrint("List");
     }
     indent++;
-    visitExprs(self);
+    Data* type = createData(bt_unset);
+    // visitExprs(self);
+    FOREACH(Expr*, self->exprs, 
+		Data* value = visitExpr(foreach_value);
+        if(value->errorCode != ECnoError) return createError(value->errorCode);
+		if(value->type == type->type){
+        }
+        else if(type->type == bt_unset)
+        {
+            type->type = value->type;
+        }
+	)
+
     indent--;
-    return tcAccept(); //<----
+    return createList(type);
 }
 
 //Mangler
@@ -280,7 +294,10 @@ Data*  visitExpr(Expr* self){
     {
     case et_constant:
         //need a way to check type
-        child = tcAccept();//createData(bt_number);
+        child = tcAccept();
+        // if((Nonterminals*)self->child == listConstant)
+        //     child = visitExprs(self->child);
+        
         break;
     case et_id_mutation:
         child = visitIdMutation(self->child);
@@ -293,6 +310,9 @@ Data*  visitExpr(Expr* self){
         break;
     case et_expression:
         child = visitExpr(self->child);
+        break;
+    case et_list:
+        child = visitListConstant((ListConstant*)self->child);
         break;
     default:
         createError(ECoutOfRange);
@@ -350,7 +370,7 @@ Data* visitFunc(Func* self){
     indent++;
     Data* rval;
     switch (self->nonterminal){
-		case func:
+		case func:;
             Data* id = visitId(self->name);
 			Data* args = visitArgs(self->args);
 			Data* returnType = visitType(self->returntype);
@@ -463,6 +483,7 @@ Data* visitAssign(Assign* self){
     Data* expr = visitExpr(self->expression);
 
     rval = tcAssign(self, id, expr);
+
     free(id);
     free(expr);
 
@@ -555,7 +576,7 @@ Data* visitInitialization(Initialization* self){
 
     rval = tcInitialization(self,id, type, val);
     free(type);
-
+    free(val);
     indent--;
     return rval;
 }
@@ -718,7 +739,7 @@ Data* visitRepeatLoop(RepeatLoop* self){ // <--
     return tcRepeatLoop(self);
 }
 
-Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for at checke hvilken der er gældne
+Data* visitTypeValue(TypeValue* self){
     if(PPRINTFLAG == 1)
     {
         prettyPrint("TypeValue");
@@ -726,21 +747,31 @@ Data* visitTypeValue(TypeValue* self){ //<----- måske der skal laves switch for
     indent++;
     Data* rval;
 
-    // Data* basicType = createData(self->type);//visitBasicType(&self->type); //gør ikke noget
-    // Data* typeDcl = visitTypeDCL(self->list); //gør ikke noget
+    switch (self->type) {
 
-    // rval = tcTypeValue(self, basicType, typeDcl); //gør ikke noget
-    // free(basicType);
-    // free(typeDcl);
+    case bt_NULL:
+    case bt_number:
+    case bt_text:
+    case bt_logic:  
+    case bt_unset:
+        rval = createData(self->type);
+        break;
+    case bt_list:
+        rval = createList(visitType(self->list));
+        break;
+    default:
+        createError(ECoutOfRange);
+    }
+
 
     indent--;
-    return createData(self->type);//rval;
+    return rval;
 }
 
 //--------------------------------------
 
 //mangler
-Data* visitId(Id self){ //<---
+Data* visitId(Id self){ //<--- check imod reserved
     if(PPRINTFLAG == 1)
     {
         prettyPrint("Id");
@@ -764,7 +795,7 @@ Data* visitBasicType(BasicTypes* self){ //det er en enum <---
         break;
     }
 }
-Data* visitTypeDCL(Type* self){
+Data* visitTypeDCL(Type* self){ //<-does nothing
     if(PPRINTFLAG == 1)
     {
         prettyPrint("TypeDCL");

@@ -7,7 +7,7 @@ char* copystringalloc(char*);
 
 typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
-typedef enum {bt_number, bt_text, bt_logic, bt_list, bt_NULL, bt_unset} BasicTypes;
+typedef enum {bt_NULL, bt_number, bt_text, bt_logic, bt_list, bt_unset} BasicTypes;
 struct Typedcl;
 typedef struct { //måske der skal laves switch for at checke hvilken der er gældne
 	struct Typedcl* list;
@@ -80,7 +80,7 @@ typedef struct {
 
 // Expr
 
-typedef enum {et_constant, et_id_mutation, et_unary_operator, et_binary_operator, et_expression} ExprType;
+typedef enum {et_constant, et_list, et_id_mutation, et_unary_operator, et_binary_operator, et_expression} ExprType;
 typedef struct Expr{
 	Nonterminals nonterminal;
 	ExprType exprType;

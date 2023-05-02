@@ -1,0 +1,13 @@
+Typecheck IdMutationCall
+
+symbolTable
+    symbolTableDelete free'er ikke elementer.
+
+    test flere lag af tables
+
+if stmts
+    check expr er logisk
+
+functions
+    check value type af args givet vs stored
+    
