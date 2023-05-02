@@ -291,9 +291,9 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         }
         return createError(child->errorCode);
     }
-    symbolTableGet(id->value);
+    Data* rval = symbolTableGet(id->value);
     
-    return tcAccept(); 
+    return rval; 
 }
 Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
 {
@@ -323,14 +323,13 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
 
     return tcAccept();
 }
-Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 {
     if(self == NULL)
         tcAccept();
 
-    if(idMutation->errorCode){
-        prettyPrint("IdMutationCall: ");
-        return createError(idMutation->errorCode);
+    if(child->errorCode){
+        return createError(child->errorCode);
     }
     if(expr->errorCode != ECnoError)
         return createError(expr->errorCode);
@@ -445,6 +444,7 @@ Data*  createData(BasicTypes dType)
             type = "List";
             break;
         default:
+            type = "Invalid type";
             createError(ECtypeExeption);
     };
     char msg[20] = "data type: ";
@@ -495,6 +495,7 @@ Data* createError(ErrorCode error){
     printf("\n");
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
+    d->type = bt_unset;
 	return d;
 }
 
@@ -503,6 +504,15 @@ Data* tcAccept()
     Data*  d = malloc(sizeof(Data));
     d->errorCode = ECnoError;
 
+    return d;
+}
+
+Data* tcCopy(Data*in){
+    Data* d = malloc(sizeof(Data));
+    d->errorCode = in->errorCode;
+    // d->nonterminal = in->nonterminal;
+    d->type = in->type;
+    d->value = in->value;
     return d;
 }
 
@@ -526,7 +536,7 @@ void symbolTablePush( char* key, void* value){
      yablHashPush(SYMBOL_TABLE, key, value, &stringcompare);
 }
 
-Data* symbolTableGet(char* key){//<-- needs to hceck parent
+Data* symbolTableGet(char* key){//<-- 
     void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
     if(value == NULL)
         return createError(ECoutOfNamespace);
@@ -539,7 +549,7 @@ Data* symbolTableGet(char* key){//<-- needs to hceck parent
         value = ((YablHashNode*)yablHashGet(table, key, &stringcompare))->item;
 
     }
-    return value;
+    return tcCopy(value);
 }
 
 void createSymbolTable(){ //creates SYMBOL_TABLE and sets parent table to PARENT, and sets global pointer to new table.
@@ -551,7 +561,7 @@ void createSymbolTable(){ //creates SYMBOL_TABLE and sets parent table to PARENT
 }
 
 void deleteSymbolTable(){
-    YablHash* parent = symbolTableGet("PARENT");
+    YablHash* parent = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
     if(parent== NULL){
         prettyPrint("No parent SYMBOL_TABLE found\n");
         createError(ECoutOfRange);

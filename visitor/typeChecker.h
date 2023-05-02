@@ -24,7 +24,7 @@ extern void prettyPrint(char string[]);
 typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace} ErrorCode;
 
 typedef struct {
-    Nonterminals nonterminal;
+    // Nonterminals nonterminal;
     BasicTypes type;
     ErrorCode errorCode;
     void* value; 

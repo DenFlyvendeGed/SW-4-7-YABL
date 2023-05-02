@@ -33,25 +33,53 @@ Data* visitor(){
 }
 
 void symbolTableAddKeywords(){
+    prettyPrint("stdlip keywords: -----------------\n");
     symbolTablePush("input", createData(bt_text));
     symbolTablePush("print", createData(bt_NULL));
+
+    symbolTablePush("board", createData(bt_NULL));
+
+    prettyPrint("------------------------------------\n");
+}
+
+void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
+    
+    prettyPrint("Prototypes: -------------------\n");
+    FOREACH(Repeatable*, self, 
+        if(foreach_value->nonterminal == funcs){
+            FOREACH(Func*, foreach_value,
+                if(foreach_value->nonterminal==func){
+                    char* key = visitId(foreach_value->name)->value;
+                    Data* type = visitType(foreach_value->returntype);
+                    
+                    symbolTablePush(key, type);
+                }
+            )
+        }
+    )
+    prettyPrint("--------------------------------\n");
 }
 
 //Visit function
 Repeatable* visit(Repeatable* self){ //Start <----
-    
+    if(self == NULL){
+
+        printf("No AST\n");
+        return NULL;
+    }
     //innit outersymbolTable
     SYMBOL_TABLE = malloc(sizeof(YablHash));
     *SYMBOL_TABLE = yablHashCreate(HASHLISTLENGTH, &stringHash);
     symbolTableAddKeywords();
+    symbolTablePrototypes(self);
     // if(PPRINTFLAG == 1)
     // {
     //     prettyPrint("start");
     // }
-    indent++;
+    // indent++;
     // visitPreamble(self->preamble);
     visitRepeatable(self);
-    indent--;
+    // indent--;
     printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
     return self;
 }
@@ -244,9 +272,10 @@ Data*  visitExpr(Expr* self){
 
     Data* child;
     Data* rval;
-    if(self == NULL)
-        //createError(ECempty);
+    if(self == NULL){
+        indent--;
         return NULL;
+    }
     switch (self->exprType)
     {
     case et_constant:
@@ -266,7 +295,7 @@ Data*  visitExpr(Expr* self){
         child = visitExpr(self->child);
         break;
     default:
-        printf("Expr type error"); //<-------------- error
+        createError(ECoutOfRange);
         break;
     }
     rval = tcExpr(self, child);
@@ -321,11 +350,12 @@ Data* visitFunc(Func* self){
     indent++;
     Data* rval;
     switch (self->nonterminal){
-		case func:;
+		case func:
+            Data* id = visitId(self->name);
 			Data* args = visitArgs(self->args);
 			Data* returnType = visitType(self->returntype);
 			Data* scope = visitScope(self->scope, returnType); //check returnstmt against returntype
-			Data* id = visitId(&self->name);
+			
 			rval = tcFunc(self, args, returnType, scope, id);
 			free(args);
 			//free(returnType);
@@ -537,7 +567,7 @@ Data* visitType(Type* self){
     }
     indent++;
     Data* rval;
-    Data* type;
+    Data* type = NULL;
     if(self != NULL){
         type = visitTypeValue(self->typeval);
     }
@@ -579,12 +609,12 @@ Data*  visitIdMutationCall(IdMutationCall* self){
 
     Data* rval;
  
-    Data* child = visitExprs(self->child);
-    Data*  argData = visitArgs(self->args);
+    Data* child = visitIdMutationChild(self->child); //suptype
+    Data*  exprs = visitExprs(self->args);
 
-    rval = tcIdMutationCall(self, child, argData);
+    rval = tcIdMutationCall(self, child, exprs);
     free(child);
-    free(argData);
+    free(exprs);
     
     indent--;
     return rval;
@@ -599,13 +629,39 @@ Data* visitIdMutationIndex(IdMutationIndex* self){
     Data* rval;
 
     Data* expr = visitExpr(self->index);
-    Data* child = visitIdMutation(self->child);
+    Data* child = visitIdMutationChild(self->child); // suptype
 
     rval = tcIdMutationIndex(self, expr, child);
     free(expr);
     free(child);
 
     indent--;
+    return rval;
+}
+
+Data* visitIdMutationChild(IdMutations* self){
+    if(self == NULL)    return tcAccept();
+    Data* rval;
+    switch (*self) {
+
+    
+    case im_dot:
+        rval = visitIdMutationDot((IdMutationDot*)self);
+        break;
+    case im_call:
+        rval = visitIdMutationCall((IdMutationCall*)self);
+        break;
+    case im_index:
+        rval = visitIdMutationIndex((IdMutationIndex*)self);
+        break;
+    case im_none:
+    case im_value:
+        rval = tcAccept();
+        break;
+    default:
+        rval = createError(ECoutOfRange);
+    }
+
     return rval;
 }
 
