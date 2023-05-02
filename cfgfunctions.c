@@ -514,6 +514,7 @@ void destroyStmts(Stmts* p)
 // typedef Repeatable Scope;
 Scope* createScope(Stmts* p)
 {
+	p->nonterminal = scope;
 	return (Scope*)p;
 }
 

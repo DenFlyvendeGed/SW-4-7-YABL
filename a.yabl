@@ -1,8 +1,23 @@
+
+!board 5x5
+
 setup
 do
-    a(5);
 
-    do end
+    list number a = [1,2,3,4,5]
+
+    //Index
+    a[3] -> 4
+
+    //Dot
+    a.length() -> 5
+    board[1][2].beboere()
+
 
 end
+
+
+
+
+
 

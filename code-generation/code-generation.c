@@ -27,6 +27,7 @@ void cgStmt(Stmt* self, FILE* writer){
         break;
     case initialization:
         cgInitialization(self, writer);
+        fprintf(writer, ";\n");
         break;
     case scope:
         cgScope(self, writer);
@@ -39,7 +40,7 @@ void cgStmt(Stmt* self, FILE* writer){
         break;
     case expr:
         cgExpr(self, writer);
-        fprintf(writer, ";");
+        fprintf(writer, ";\n");
         break;
     default:
         break;
@@ -48,13 +49,13 @@ void cgStmt(Stmt* self, FILE* writer){
 }
 
 void cgBreakStmt(Break* self, FILE* writer){
-    fprintf(writer, "break;");
+    fprintf(writer, "break;\n");
 }
 
 void cgReturnStmt(ReturnStmt* self, FILE* writer){
     fprintf(writer, "return");
     cgExpr(self->expr, writer);
-    fprintf(writer, ";");
+    fprintf(writer, ";\n");
 }
 
 void cgInitialization(Initialization* self, FILE* writer){
@@ -64,7 +65,7 @@ void cgInitialization(Initialization* self, FILE* writer){
          fprintf(writer, " = ");
         cgExpr(self->initialValue, writer);
     }
-    fprintf(writer, ";");
+    
 }
 
 void cgId(Id* self, FILE* writer){
@@ -98,16 +99,16 @@ void cgRepeatStmt(Repeat* self, FILE* writer){
     switch (*(LoopType*)self->loopType)
     {
     case lt_timesloop:
-        cgTimesLoop(self, writer);
+        cgTimesLoop(self->loopType, writer);
         break;
     case lt_forloop:
-        cgForLoop(self, writer);
+        cgForLoop(self->loopType, writer);
         break;
     case lt_whileloop:
-        cgWhileLoop(self, writer);
+        cgWhileLoop(self->loopType, writer);
         break;
     case lt_repeatloop:
-        cgRepeatLoop(self, writer);
+        cgRepeatLoop(self->loopType, writer);
         break;
     default:
         break;
@@ -155,22 +156,24 @@ void cgAssign(Assign* self, FILE* writer){
     cgIdMutation(self->variable, writer);
     fprintf(writer, "=");
     cgExpr(self->expression, writer);
-    fprintf(writer, ";");
+    fprintf(writer, ";\n");
 }
 
 void cgIdMutation(IdMutation* self, FILE* writer){
     fprintf(writer, "%s", self->name);
-    cgIdMutationChild(self->child, writer);
+    if(self->child != NULL){
+        cgIdMutationChild(self->child, writer);
+    }
 }
 
 void cgIdMutationChild(IdMutations* self, FILE* writer){
     switch (*self)
     {
     case im_none:
-        /* code */
+        /* code - Not implemented */
         break;
     case im_value:
-        /* code */
+        /* code - Not implemented */
         break;
     case im_dot:
         /* code */
@@ -234,6 +237,7 @@ void cgConstant(Constant* self, FILE* writer){
     fprintf(writer, "%s", self->value);
 }
 
+//Skal snakke med Simon
 void cgTypeCast(TypeCast* self, FILE* writer){
     fprintf(writer, "(");
     cgType(self->type, writer);
@@ -338,13 +342,49 @@ void cgFuncs(Funcs* self, FILE* writer){
             cgEvent(foreach_value, writer);
             break;
         case func:
-
+            cgFunc(foreach_value, writer);
+            break;
         default:
             break;
         } 
     );
 } 
 
+void cgFunc(Func* self, FILE* writer){
+    if(self->returntype != NULL){
+        cgType(self->returntype, writer);
+    }else{
+        fprintf(writer, "void ");
+    }
+    fprintf(writer, "%s (", self->name);
+    if(self->args->children->item != NULL){
+        cgInitialization(self->args->children->item, writer);
+        if(self->args->children->next != NULL){
+            YABL_LIST_FOREACH(Initialization*, self->args->children->next, 
+                fprintf(writer, ",");
+                cgInitialization(foreach_value, writer);
+            );
+        }
+    }
+    fprintf(writer, ")");
+    cgScope(self->scope, writer);
+}
+
 void cgEvent(Event* self, FILE* writer){
+    fprintf(writer, "void ");
+    switch (self->eventType)
+    {
+    case event_setup:
+        fprintf(writer, "setup()");
+        break;
+    case event_turn:
+        fprintf(writer, "turn()");
+        break;
+    case event_close:
+        fprintf(writer, "close()");
+        break;
+    default:
+        break;
+    }
     cgScope(self->scope, writer);
 }

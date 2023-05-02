@@ -29,5 +29,6 @@ void cgTypeCast(TypeCast* self, FILE* writer);
 void cgCall(IdMutationCall* self, FILE* writer);
 void cgExprs(Exprs* self, FILE* writer);
 void cgIdMutationChild(IdMutations* self, FILE* writer);
+void cgFunc(Func* self, FILE* writer);
 
 #endif
