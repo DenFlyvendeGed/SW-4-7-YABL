@@ -195,7 +195,7 @@ Data* visitScope(Scope* self, Data* returnType){
         prettyPrint("Scope");
     }
     indent++;
-    createSymbolTable();
+    
 	// YablList l = self->children;
 	
     // yablListSipleForeach(self->children, &visitStmt, 0);
@@ -211,7 +211,7 @@ Data* visitScope(Scope* self, Data* returnType){
         }  
 		// return tcAccept(); //<---
 	)
-    deleteSymbolTable();
+    
     indent--;
     return tcAccept(); //<----
 }
@@ -222,7 +222,13 @@ Data* visitArgs(Args* self){
         prettyPrint("Args");
     }
     indent++;
-    visitExprs(self);
+    FOREACH(Initialization*, self, 
+		Data* value = visitInitialization(foreach_value);
+		// if(value->errorCode != ECnoError) return value;
+        //symbolTablePush(value->value, void *value)
+		// return tcExpr(foreach_value, value);
+	)
+    //visitExprs(self);
     indent--;
     return tcAccept(); //<----
 }
@@ -368,7 +374,7 @@ Data* visitFunc(Func* self){
     {
         prettyPrint("Func");
     }
-    
+    createSymbolTable();
     indent++;
     Data* rval;
     switch (self->nonterminal){
@@ -392,6 +398,7 @@ Data* visitFunc(Func* self){
 			break;
     }
     indent--;
+    deleteSymbolTable();
     return rval;
 }
 

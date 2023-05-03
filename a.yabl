@@ -14,7 +14,7 @@ do
 end
 
 
-function test()
+function test(number a, number b, number c)
 do
     number a = 10;
 
