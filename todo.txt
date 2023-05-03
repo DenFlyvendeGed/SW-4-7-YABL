@@ -1,13 +1,26 @@
-Typecheck IdMutationCall
+er setup event globals?
 
-symbolTable
-    symbolTableDelete free'er ikke elementer.
+Typecheck IdMutationCall ??
 
-    test flere lag af tables
+symbolTable-- done
+    symbolTableDelete free'er ikke elementer. ---
 
-if stmts
-    check expr er logisk
+    test flere lag af tables --
+
+if stmts -- done
+    check expr er logisk --
 
 functions
     check value type af args givet vs stored
     
+
+mutation im_index
+    expr skal være number //måske brude checke dybden af listen i forhold til lister i lister
+
+loops
+
+IdMutationDot
+    check table i forhold til dot mutation.
+
+Initialization
+    check om id er deffined --- done
