@@ -135,9 +135,9 @@ void cgForLoop(ForLoop* self, FILE* writer){
 
 
 void cgTimesLoop(TimesLoop* self, FILE* writer){
-    fprintf(writer, "for(int i = 0; i < ");
+    fprintf(writer, "for(int YABL_TIMESLOOP_I = 0; YABL_TIMESLOOP_I < ");
     cgExpr(self->goal, writer);
-    fprintf(writer, "; i++)");
+    fprintf(writer, "; YABL_TIMESLOOP_I++)");
 }
 
 
@@ -323,16 +323,75 @@ void cgStart(Repeatable* tree, FILE* writer){
             cgFuncs(foreach_value, writer);
             break;
         case preambles:
-
+            cgPreambles(foreach_value, writer);
+            break;
         default:
             break;
         } 
     );
 
     fprintf(writer, "\n");
-
-
 }
+
+void cgPreambles(Preambles* self, FILE* writer){
+    PreamblePlayers* players = NULL;
+    PreambleBoard* board = NULL;
+    PreambleTile* tile = NULL;
+
+    YABL_LIST_FOREACH(Nonterminals*, self->children, 
+        switch (*foreach_value)
+        {
+        case preambleTile:
+            tile = foreach_value;
+            break;
+        case preambleBoard:
+            board = foreach_value;
+            break;
+        case preamblePlayers:
+            players = foreach_value;
+            break;
+        default:
+            break;
+        };
+    );
+    cgPreambleTile(tile, writer);
+    cgPreambleBoard(board, writer);
+    cgPreamblePlayers(players, writer);
+}
+
+void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
+    fprintf(writer, "char* PLAYERS[] = {");
+    if(self->children->item != NULL){
+        fprintf(writer, "%s", (char*)self->children->item);
+        if(self->children->next != NULL){
+            YABL_LIST_FOREACH(char*, self->children->next, 
+                fprintf(writer, ",%s", foreach_value);
+            );
+        }
+    }
+    fprintf(writer, "};\n");
+}
+
+
+void cgPreambleBoard(PreambleBoard* self, FILE* writer){
+    fprintf(writer, "struct Tile BOARD[%d][%d];\n",self->width, self->height);
+}
+
+void cgPreambleTile(PreambleTile* self, FILE* writer){
+    fprintf(writer, "struct Tile {");
+    if(self->children->item != NULL){
+        cgInitialization(self->children->item, writer);
+        if(self->children->next != NULL){
+            YABL_LIST_FOREACH(Initialization*, self->children->next, 
+                fprintf(writer, ";");
+                cgInitialization(foreach_value, writer);
+            );
+        }
+    }
+    fprintf(writer, "};\n");
+}
+
+
 
 void cgFuncs(Funcs* self, FILE* writer){
     YABL_LIST_FOREACH(Nonterminals*, self->children, 

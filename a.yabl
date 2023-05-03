@@ -1,20 +1,7 @@
 
 !board 5x5
+!player "p1" "p2"
 
-setup
-do
-
-    list number a = [1,2,3,4,5]
-
-    //Index
-    a[3] -> 4
-
-    //Dot
-    a.length() -> 5
-    board[1][2].beboere()
-
-
-end
 
 
 
