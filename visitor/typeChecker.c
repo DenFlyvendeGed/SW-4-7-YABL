@@ -590,9 +590,9 @@ Data* symbolTableGet(char* key){//<--
     // if(value == NULL)
     //     return createError(ECoutOfNamespace);
     
-    YablHash* table;
+    YablHash* table = SYMBOL_TABLE;
     while(value == NULL){
-        table = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
+        table = yablHashGet(table, "PARENT", &stringcompare);
         if(table == NULL)
             return createError(ECoutOfNamespace);
         table = ((YablHashNode*)table)->item;
@@ -603,6 +603,8 @@ Data* symbolTableGet(char* key){//<--
 
     return tcCopy(value);
 }
+
+// Data* symbolTableCheckParent(YablHash table, )
 
 Data* symbolTableGetLocal(char* key){//check for prexisting keys
     void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
