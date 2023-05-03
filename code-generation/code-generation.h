@@ -35,6 +35,8 @@ void cgPreambles(Preambles* self, FILE* writer);
 void cgPreambleTile(PreambleTile* self, FILE* writer);
 void cgPreambleBoard(PreambleBoard* self, FILE* writer);
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer);
+void cgFuncProtoType(Func* self, FILE* writer);
+
 
 
 #endif

@@ -315,7 +315,17 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
 
 
 void cgStart(Repeatable* tree, FILE* writer){
+    Preambles* preamblesNode = tree->children->item;
+    Funcs* funcsNode = tree->children->next->item;
+    cgPreambles(preamblesNode, writer);
+    YABL_LIST_FOREACH(Nonterminals*, funcsNode->children,
+        if(*foreach_value == func){
+            cgFuncProtoType((Func*)foreach_value, writer);
+        }
+    );
+    cgFuncs(funcsNode, writer);
 
+    /*
     YABL_LIST_FOREACH(Nonterminals*, tree->children, 
         switch (*foreach_value)
         {
@@ -329,6 +339,7 @@ void cgStart(Repeatable* tree, FILE* writer){
             break;
         } 
     );
+    */
 
     fprintf(writer, "\n");
 }
@@ -379,15 +390,12 @@ void cgPreambleBoard(PreambleBoard* self, FILE* writer){
 
 void cgPreambleTile(PreambleTile* self, FILE* writer){
     fprintf(writer, "struct Tile {");
-    if(self->children->item != NULL){
-        cgInitialization(self->children->item, writer);
-        if(self->children->next != NULL){
-            YABL_LIST_FOREACH(Initialization*, self->children->next, 
-                fprintf(writer, ";");
-                cgInitialization(foreach_value, writer);
-            );
-        }
-    }
+   
+    YABL_LIST_FOREACH(Initialization*, self->children, 
+        cgInitialization(foreach_value, writer);
+        fprintf(writer, ";");
+    );
+
     fprintf(writer, "};\n");
 }
 
@@ -427,6 +435,25 @@ void cgFunc(Func* self, FILE* writer){
     }
     fprintf(writer, ")");
     cgScope(self->scope, writer);
+}
+
+void cgFuncProtoType(Func* self, FILE* writer){
+    if(self->returntype != NULL){
+        cgType(self->returntype, writer);
+    }else{
+        fprintf(writer, "void ");
+    }
+    fprintf(writer, "%s (", self->name);
+    if(self->args->children->item != NULL){
+        cgInitialization(self->args->children->item, writer);
+        if(self->args->children->next != NULL){
+            YABL_LIST_FOREACH(Initialization*, self->args->children->next, 
+                fprintf(writer, ",");
+                cgInitialization(foreach_value, writer);
+            );
+        }
+    }
+    fprintf(writer, ");\n");
 }
 
 void cgEvent(Event* self, FILE* writer){
