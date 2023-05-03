@@ -1,6 +1,7 @@
+
 setup
 do
-    
+    number a = 5;
 end
 function test() returns number 
 do
@@ -10,4 +11,12 @@ do
     inputX = input();
     inputY = input();
     
+end
+
+
+function test()
+do
+    number a = 10;
+
+
 end

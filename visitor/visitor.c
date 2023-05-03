@@ -54,7 +54,7 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                     char* key = visitId(foreach_value->name)->value;
                     Data* type = visitType(foreach_value->returntype);
                     
-                    symbolTablePush(key, type);
+                    symbolTablePush(key, type); //might need to push args + return type
                 }
             )
         }
@@ -195,7 +195,8 @@ Data* visitScope(Scope* self, Data* returnType){
         prettyPrint("Scope");
     }
     indent++;
-	YablList l = self->children;
+    createSymbolTable();
+	// YablList l = self->children;
 	
     // yablListSipleForeach(self->children, &visitStmt, 0);
     FOREACH(Stmt*, self, 
@@ -210,7 +211,7 @@ Data* visitScope(Scope* self, Data* returnType){
         }  
 		// return tcAccept(); //<---
 	)
-
+    deleteSymbolTable();
     indent--;
     return tcAccept(); //<----
 }
@@ -367,6 +368,7 @@ Data* visitFunc(Func* self){
     {
         prettyPrint("Func");
     }
+    
     indent++;
     Data* rval;
     switch (self->nonterminal){
@@ -407,10 +409,9 @@ Data* visitIdMutation(IdMutation* self){
     
 
     Data* id = visitId(self->name);
-    Data* child = tcAccept();
+    Data* child;
     Data* rval;
     if(self->child!= NULL){
-        free(child);
         switch (*(IdMutations*)(self->child))
         {
         case im_none:
@@ -429,6 +430,9 @@ Data* visitIdMutation(IdMutation* self){
             break;
 
         }
+    }
+    else{
+        child = tcAccept();
     }
     
     rval = tcIdMutation(self, child, id);

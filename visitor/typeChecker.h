@@ -21,7 +21,7 @@ extern void prettyPrint(char string[]);
 
 
 
-typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace} ErrorCode;
+typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace, ECnameSpaceClash} ErrorCode;
 
 typedef struct {
     // Nonterminals nonterminal;
@@ -40,13 +40,15 @@ int stringcompare(char* s1, char* s2);
 void symbolTablePush( char* key, void* value);
 
 Data* symbolTableGet(char* key);
+Data* symbolTableGetLocal(char* key);
 
 void createSymbolTable();
 
 void deleteSymbolTable();
+void symbolFreeFunc(void* item);
 
 
-
+Data* tcListTypeCheck(Data* list);
 
 
 // YablHash global = yablHashCreate(10, &stringHash);
