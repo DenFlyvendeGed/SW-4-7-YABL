@@ -614,7 +614,7 @@ void destroyPreambleTile(PreambleTile* self){
 }
 
 PreamblePlayers* createPreamblePlayers(){
-	return createRepeatable(preambleTile);
+	return createRepeatable(preamblePlayers);
 }
 
 PreamblePlayers* preamblePlayersAddPlayer(PreamblePlayers* self, char* player){
@@ -628,6 +628,7 @@ void destroyPreamblePlayers(PreamblePlayers* self){
 
 PreambleBoard* createPreambleBoard(char* size){
 	PreambleBoard* self = malloc(sizeof(PreambleBoard));
+	self->nonterminal = preambleBoard;
 	self->width = atoi(strtok(size, "x"));
 	self->height= atoi(strtok(NULL, "\0"));
 	return self;

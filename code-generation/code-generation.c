@@ -342,13 +342,13 @@ void cgPreambles(Preambles* self, FILE* writer){
         switch (*foreach_value)
         {
         case preambleTile:
-            tile = foreach_value;
+            tile = (PreambleTile*)foreach_value;
             break;
         case preambleBoard:
-            board = foreach_value;
+            board = (PreambleBoard*)foreach_value;
             break;
         case preamblePlayers:
-            players = foreach_value;
+            players = (PreamblePlayers*)foreach_value;
             break;
         default:
             break;

@@ -1,4 +1,7 @@
-
+!tile
+	text a
+	number b
+	logic c
 !board 5x5
 !player "p1" "p2"
 

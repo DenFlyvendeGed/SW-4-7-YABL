@@ -2,6 +2,7 @@
 #define YABL_CODE_GENERATION
 #include <stdlib.h>
 #include <stdio.h>
+#include "../cfg.h"
 
 void cgScope(Scope* self, FILE* writer);
 void cgStmt(Stmt* self, FILE* writer);

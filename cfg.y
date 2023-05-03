@@ -116,7 +116,7 @@ PreambleTile:
 ;
 
 PreambleTileTypes:
-	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); }
+	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); $$ = $2; }
 |   %empty { $$ = createPreambleTile(); }
 ;
 
