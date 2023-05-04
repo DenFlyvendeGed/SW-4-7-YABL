@@ -1,5 +1,7 @@
 .target/
+*.yabl
 yabl
 test
-*.yabl
-.txt
+code
+*.txt
+
