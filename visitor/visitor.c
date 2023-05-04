@@ -53,8 +53,13 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                 if(foreach_value->nonterminal==func){
                     char* key = visitId(foreach_value->name)->value;
                     Data* type = visitType(foreach_value->returntype);
-                    
-                    symbolTablePush(key, type); //might need to push args + return type
+                    Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
+                    type->list = args;
+                    if(symbolTableGetLocal(key) == NULL)
+                        symbolTablePush(key, type); //might need to push args + return type
+                    else{
+                        createError(ECnameSpaceClash);
+                    }
                 }
             )
         }
@@ -164,13 +169,21 @@ Data* visitExprs(Exprs* self){
         return tcAccept();
     }
     indent++;
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
 	FOREACH(Expr*, self, 
 		Data* value = visitExpr(foreach_value);
 		if(value->errorCode != ECnoError) return value;
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
 		// return tcExpr(foreach_value, value);
 	)
+    rval = tcCopy(rval->list);
     indent--;
-    return tcAccept(); //<----
+    return rval; //<----
 }
 
 Data* visitStmts(Stmts* self){
@@ -222,15 +235,23 @@ Data* visitArgs(Args* self){
         prettyPrint("Args");
     }
     indent++;
+
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
+
     FOREACH(Initialization*, self, 
 		Data* value = visitInitialization(foreach_value);
-		// if(value->errorCode != ECnoError) return value;
-        //symbolTablePush(value->value, void *value)
-		// return tcExpr(foreach_value, value);
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
 	)
+    rval = tcCopy(rval->list);
+    // free(temp);
     //visitExprs(self);
     indent--;
-    return tcAccept(); //<----
+    return rval; //<----
 }
 
 Data* visitFuncs(Funcs* self){
@@ -642,11 +663,11 @@ Data*  visitIdMutationCall(IdMutationCall* self){
     Data* rval;
  
     Data* child = visitIdMutationChild(self->child); //suptype
-    Data*  exprs = visitExprs(self->args);
+    Data*  args = visitExprs(self->args);
 
-    rval = tcIdMutationCall(self, child, exprs);
+    rval = tcIdMutationCall(self, child, args);
     free(child);
-    free(exprs);
+    free(args);
     
     indent--;
     return rval;

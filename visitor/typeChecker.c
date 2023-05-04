@@ -55,7 +55,7 @@ Data* tcExpr(Expr* self, Data* child)
 
     }
     else {
-        return createData(child->type);
+        return tcCopy(child);
     }
 }
 
@@ -267,7 +267,7 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
             return createError(ECnameSpaceClash);
     }
     
-    return type;
+    return tcCopy(type);
 }
 Data* tcType(Type* self, Data* typeVal){ //might not be needed
     if(typeVal== NULL)
@@ -275,26 +275,49 @@ Data* tcType(Type* self, Data* typeVal){ //might not be needed
     return typeVal;
 }
 
+Data* tcCmpArgs(Data* list1, Data* list2){
+    Data* rval;
+    if(list1 != NULL && list2 != NULL){
+        if(list1->type == list2->type){
+            rval = tcCmpArgs(list1->list, list2->list);
+        }
+    }
+    else{
+        if(list1 == NULL ^ list2 == NULL){
+            return createError(ECargumentExeption);
+        }
+        return tcAccept();
+    }
+    return rval;
+}
+
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
     if(self == NULL)
         return createError(ECempty);
     if(id->errorCode != ECnoError)
         return createError(id->errorCode);
-    if(child != NULL && child->errorCode != ECnoError){
+
+    Data* var = symbolTableGet((id->value));
+
+    if(self->child != NULL){
         switch (*((IdMutations*)self->child)) {
+             case im_call:
+                Data* args = var->list;
+                tcCmpArgs(args, child);
+                break;
+
             case im_none:
             case im_value:
                 break;
             case im_dot:
-            case im_call:
             case im_index:
                 if(child == NULL)
                     return createError(ECmissingChild);
                 break;
         }
-        return createError(child->errorCode);
     }
     Data* rval = symbolTableGet((id->value));
+    // tcListTypeCheck(rval);
     
     return rval; 
 }
@@ -324,7 +347,7 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
     if(args->errorCode != ECnoError)
         return createError(args->errorCode);
 
-    return tcAccept();
+    return tcCopy(args);
 }
 Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 {
@@ -346,13 +369,13 @@ Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 
 Data* tcListTypeCheck(Data* list){
     Data* rval;
-     if(list->type == bt_list){
-        return createData(bt_number); //<---- fix list læst fra expr først
-        rval = tcListTypeCheck(list->list);
-     }
-     else{
+
+    if(list->type == bt_list){
+       rval = tcListTypeCheck(list->list);
+    }
+    else{
         return list;
-     }
+    }
     return rval;
 }
 

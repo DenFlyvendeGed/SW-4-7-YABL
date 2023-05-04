@@ -1,22 +1,12 @@
 
 setup
 do
-    number a = 5;
+    test(20, 4 ,5);
+    test(2);
 end
-function test() returns number 
+function test(number a, number b, number c) returns number 
 do
-    text inputX;
-    text inputY;
-    logic currentTurn = true;
-    inputX = input();
-    inputY = input();
-    
-end
-
-
-function test(number a, number b, number c)
-do
-    number a = 10;
-
-
+    list text inputX;
+    list text inputY;
+    inputX = inputY;
 end
