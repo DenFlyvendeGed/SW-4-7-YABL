@@ -1,5 +1,5 @@
 #include "cfg.h"
-#include "data-structures/list.h"
+#include "../data-structures/list.h"
 #include <stdlib.h>
 #include <string.h>
 

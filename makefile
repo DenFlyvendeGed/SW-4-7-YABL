@@ -5,6 +5,7 @@ DESTINATION := ./.target
 DATA_STRUCTURES:= $(DESTINATION)/data-structures
 VISITOR:= $(DESTINATION)/visitor
 CODE_GENERATION:= $(DESTINATION)/code-generation
+CFG:=$(DESTINATION)/cfg
 
 OMAIN := $(DESTINATION)/main.o 
 OTEST := $(DESTINATION)/test.o 
@@ -12,8 +13,8 @@ OTEST := $(DESTINATION)/test.o
 OFILES := \
 	$(DESTINATION)/cfg.tab.parse.o \
 	$(DESTINATION)/lex.yy.parse.o \
-	$(DESTINATION)/cfgfunctions.o \
-	$(DESTINATION)/cfg.test.o \
+	$(CFG)/cfgfunctions.o \
+	$(CFG)/cfg.test.o \
 	$(DATA_STRUCTURES)/hashtable.o \
 	$(DATA_STRUCTURES)/list.o \
 	$(VISITOR)/typeChecker.o \
@@ -25,6 +26,7 @@ $(DESTINATION):
 	if [ ! -d $(DATA_STRUCTURES) ] ; then mkdir $(DATA_STRUCTURES) ; fi
 	if [ ! -d $(VISITOR) ] ; then mkdir $(VISITOR) ; fi
 	if [ ! -d $(CODE_GENERATION) ] ; then mkdir $(CODE_GENERATION) ; fi
+	if [ ! -d $(CFG) ] ; then mkdir $(CFG) ; fi
 
 
 
@@ -42,10 +44,10 @@ test : $(DESTINATION) $(OFILES) $(OTEST)
 	gcc -c -o $(DESTINATION)/main.o main.c -DTEST $(CFLAGS);
 	gcc -o $@ $(OFILES) $(OMAIN) $(OTEST) $(CFLAGS)
 
-$(DESTINATION)/cfg.tab.c : cfg.y $(DESTINATION)/lex.yy.c
+$(DESTINATION)/cfg.tab.c : cfg/cfg.y $(DESTINATION)/lex.yy.c
 	bison -d  $< -o $@
 
-$(DESTINATION)/lex.yy.c : cfg.l 
+$(DESTINATION)/lex.yy.c : cfg/cfg.l 
 	flex --header-file=./.target/lex.yy.h -o $@ $<
 
 $(DESTINATION)/cfg.tab.parse.o : $(DESTINATION)/cfg.tab.c 

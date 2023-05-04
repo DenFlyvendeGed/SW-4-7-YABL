@@ -1,5 +1,5 @@
 %{
-#include "../cfg.h"
+#include "../cfg/cfg.h"
 #include "cfg.tab.h"
 #include <stdio.h>
 #include <string.h>

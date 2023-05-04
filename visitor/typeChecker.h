@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../cfg.h"
+#include "../cfg/cfg.h"
 #include "data.h"
 
 //Jeg kan ikke huske borders :)
@@ -22,7 +22,6 @@ extern void prettyPrint(char string[]);
 
 
 
-typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace, ECnameSpaceClash} ErrorCode;
 
 
 

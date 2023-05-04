@@ -1,4 +1,4 @@
-#include "../cfg.h"
+#include "../cfg/cfg.h"
 #include "code-generation.h"
 #include "../data-structures/list.h"
 #include <stdlib.h>

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "cfg.h"
+#include "cfg/cfg.h"
 #include "test.h"
 #include "visitor/visitor.h"
 #include "string.h"
