@@ -5,10 +5,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define FD_WRITE 1
-#define FD_READ 0
-
-
 const char* HEADER = 
     "#include <stdlib.h>\n"
     "#include <stdio.h>\n"
@@ -22,26 +18,6 @@ const char* FOOTER =
         "setup();"
     "}\n"
 ;
-
-
-void cgStartGCC(Repeatable* tree){
-    int fd[2];
-    pipe(fd);
-    if(!fork()){
-        close(fd[FD_WRITE]);
-        dup2(fd[FD_READ],STDIN_FILENO);
-        //system("gcc -o code -x c -");
-        system("cat");
-        close(fd[FD_READ]);
-        exit(EXIT_SUCCESS);
-    }else{
-        close(fd[FD_READ]);
-        dup2(fd[FD_WRITE],STDOUT_FILENO);
-        FILE* writer = fdopen(STDOUT_FILENO, "w");
-        cgStart(tree, writer);
-        close(fd[FD_WRITE]);
-    }
-}
 
 void cgScope(Scope* self, FILE* writer){
     fprintf(writer, "\n{\n");

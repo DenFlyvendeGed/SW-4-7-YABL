@@ -6,6 +6,7 @@ DATA_STRUCTURES:= $(DESTINATION)/data-structures
 VISITOR:= $(DESTINATION)/visitor
 CODE_GENERATION:= $(DESTINATION)/code-generation
 CFG:=$(DESTINATION)/cfg
+CONFIGURATION:=$(DESTINATION)/configuration
 
 OMAIN := $(DESTINATION)/main.o 
 OTEST := $(DESTINATION)/test.o 
@@ -19,7 +20,8 @@ OFILES := \
 	$(DATA_STRUCTURES)/list.o \
 	$(VISITOR)/typeChecker.o \
 	$(VISITOR)/visitor.o \
-	$(CODE_GENERATION)/code-generation.o 
+	$(CODE_GENERATION)/code-generation.o \
+	$(CONFIGURATION)/configuration.o
 
 $(DESTINATION):
 	if [ ! -d $(DESTINATION) ] ; then mkdir $(DESTINATION) ; fi;
@@ -27,6 +29,7 @@ $(DESTINATION):
 	if [ ! -d $(VISITOR) ] ; then mkdir $(VISITOR) ; fi
 	if [ ! -d $(CODE_GENERATION) ] ; then mkdir $(CODE_GENERATION) ; fi
 	if [ ! -d $(CFG) ] ; then mkdir $(CFG) ; fi
+	if [ ! -d $(CONFIGURATION) ] ; then mkdir $(CONFIGURATION) ; fi
 
 
 
