@@ -66,7 +66,7 @@ Data* tcStmt(Stmt* self, Data* child)
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     if(self == NULL)
         return createError(ECempty);
-    if(args->errorCode != ECnoError)
+    if(args != NULL && args->errorCode != ECnoError)
         return createError(args->errorCode);
     if(returntype->errorCode != ECnoError)
         return createError(returntype->errorCode);
@@ -344,7 +344,7 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
         prettyPrint("IdMutationCall");
         return createError(idMutation->errorCode);
     }
-    if(args->errorCode != ECnoError)
+    if(args != NULL && args->errorCode != ECnoError)
         return createError(args->errorCode);
 
     return tcCopy(args);
@@ -577,13 +577,17 @@ Data* tcAccept()
 }
 
 Data* tcCopy(Data*in){
-    Data* d = malloc(sizeof(Data));
-    d->errorCode = in->errorCode;
-    // d->nonterminal = in->nonterminal;
-    d->type = in->type;
-    d->value = in->value;
-    d->list = in->list;
-    return d;
+    if(in != NULL){
+
+        Data* d = malloc(sizeof(Data));
+        d->errorCode = in->errorCode;
+        // d->nonterminal = in->nonterminal;
+        d->type = in->type;
+        d->value = in->value;
+        d->list = in->list;
+        return d;
+    }
+    return NULL;
 }
 
 Data* tcValue(void* val){

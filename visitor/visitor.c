@@ -44,6 +44,25 @@ void symbolTableAddKeywords(){
     prettyPrint("------------------------------------\n");
 }
 
+Data* prototypeArgs(Args* self)
+{
+    //get args
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
+
+    FOREACH(Initialization*, self, 
+        Data* value = visitType(foreach_value->type);
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
+    )
+    rval = tcCopy(rval->list);
+
+    return rval;
+}
+
 void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
     
     prettyPrint("Prototypes: -------------------\n");
@@ -53,7 +72,10 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                 if(foreach_value->nonterminal==func){
                     char* key = visitId(foreach_value->name)->value;
                     Data* type = visitType(foreach_value->returntype);
-                    Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
+                    //Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
+                    Data* args = prototypeArgs(foreach_value->args);
+                   
+
                     type->list = args;
                     if(symbolTableGetLocal(key) == NULL)
                         symbolTablePush(key, type); //might need to push args + return type
@@ -263,8 +285,6 @@ Data* visitFuncs(Funcs* self){
     // yablListSipleForeach(self->children, &visitFunc, 0);
     FOREACH(Func*, self, 
 		Data* value = visitFunc(foreach_value);
-		if(value->errorCode != ECnoError);
-        // tcAccept();//<---
 	)
     indent--;
     return tcAccept(); //<----
