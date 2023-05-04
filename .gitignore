@@ -1,5 +1,9 @@
 .target/
+*.yabl
 yabl
 test
-testprog.yabl
-.txt
+code
+*.txt
+yabl.c
+yabl.out
+

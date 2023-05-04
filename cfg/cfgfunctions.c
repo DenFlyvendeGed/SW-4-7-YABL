@@ -1,5 +1,5 @@
 #include "cfg.h"
-#include "data-structures/list.h"
+#include "../data-structures/list.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -146,6 +146,7 @@ Expr* createExpr(ExprType exprType, void* child)
 	p->nonterminal = expr;
 	p->child = child;
 	p->exprType = exprType;
+	p->extension = NULL;
 
 
 	return p;
@@ -209,6 +210,19 @@ void destroyUnaryOperator(UnaryOperator* p)
 {
 	destroyExpr((p->childExpr));
 	free(p);
+}
+
+TypeCast* createTypeCast(Type* type, Expr* cast){
+	TypeCast* self = malloc(sizeof(TypeCast));
+	self->type = type;
+	self->cast = cast;
+	return self;
+}
+
+void destroyTypeCast(TypeCast* self){
+	destroyType(self->type);
+	destroyExpr(self->cast);
+	free(self);
 }
 
 // struct IdMutationDot *IdMutationDot;
@@ -501,6 +515,7 @@ void destroyStmts(Stmts* p)
 // typedef Repeatable Scope;
 Scope* createScope(Stmts* p)
 {
+	p->nonterminal = scope;
 	return (Scope*)p;
 }
 
@@ -600,7 +615,7 @@ void destroyPreambleTile(PreambleTile* self){
 }
 
 PreamblePlayers* createPreamblePlayers(){
-	return createRepeatable(preambleTile);
+	return createRepeatable(preamblePlayers);
 }
 
 PreamblePlayers* preamblePlayersAddPlayer(PreamblePlayers* self, char* player){
@@ -614,6 +629,7 @@ void destroyPreamblePlayers(PreamblePlayers* self){
 
 PreambleBoard* createPreambleBoard(char* size){
 	PreambleBoard* self = malloc(sizeof(PreambleBoard));
+	self->nonterminal = preambleBoard;
 	self->width = atoi(strtok(size, "x"));
 	self->height= atoi(strtok(NULL, "\0"));
 	return self;

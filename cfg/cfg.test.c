@@ -1,9 +1,9 @@
-#include"test.h"
+#include"../test.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include"cfg.h"
-#include".target/cfg.tab.h"
-#include".target/lex.yy.h"
+#include"../.target/cfg.tab.h"
+#include"../.target/lex.yy.h"
 
 extern Repeatable* YABL_AST;
 

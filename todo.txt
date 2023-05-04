@@ -1,17 +1,15 @@
-er setup event globals?
+Code genneration
 
-Typecheck IdMutationCall ??
+IdMutation
+
+
+
 
 functions
     check value type af args givet vs stored
     
 
-mutation im_index
-    expr skal være number //måske brude checke dybden af listen i forhold til lister i lister
 
-loops
 
-IdMutationDot
-    check table i forhold til dot mutation.
 
-args expr håndtere ikke lister
+

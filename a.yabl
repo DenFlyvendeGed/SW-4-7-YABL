@@ -1,12 +1,12 @@
 
-setup
-do
-    test(20, 4 ,5);
-    test(2);
+
+setup do
+	print("Hello World");
 end
-function test(number a, number b, number c) returns number 
-do
-    list text inputX;
-    list text inputY;
-    inputX = inputY;
-end
+
+
+
+
+
+
+

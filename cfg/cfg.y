@@ -2,7 +2,7 @@
     void yyerror();
 
     #include <stdlib.h>
-    #include "../cfg.h"
+    #include "../cfg/cfg.h"
 	#include "lex.yy.h"
 	#define YYERROR_VERBOSE 1
 	extern char* yytext;
@@ -52,8 +52,8 @@
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
 %token setpreamble board player tile
-%token forkeyword in repeat ifkeyword elsekeyword whilekeyword times onkeyword
-%token addition subtraction multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or negate returnkeyword
+%token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
+%token addition minus multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
 
@@ -61,7 +61,7 @@
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
 %type<stmts> Stmts
 %type<stmt>  Stmt If
-%type<scope> Scope AfterIf AfterElse
+%type<scope> Scope AfterIf 
 %type<args>  Args ArgsContinue
 %type<funcs> Funcs
 %type<func>  Func
@@ -74,7 +74,7 @@
 %type<idMutationIndex> Index 
 %type<idMutationCall> Call 
 %type<type> Type ReturnsType
-%type<initialization> Initialization
+%type<initialization> Initialization DeclarationInitialization
 
 %type<preambles> Preambles
 %type<preambleTile> PreambleTile PreambleTileTypes
@@ -112,11 +112,11 @@ PreamblePlayers:
 ;
 
 PreambleTile:
-	tile PreambleTileTypes
+	tile PreambleTileTypes { $$ = $2; }
 ;
 
 PreambleTileTypes:
-	Initialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); }
+	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); $$ = $2; }
 |   %empty { $$ = createPreambleTile(); }
 ;
 
@@ -149,7 +149,7 @@ CloseEvent :
 ;
 
 Args :
-	 Initialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
+	 DeclarationInitialization ArgsContinue { $$ = argsAddInitialization($2, $1); }
 |    %empty { $$ = createArgs(); }
 ;
 
@@ -185,17 +185,16 @@ Stmt :
 ;
 
 If :
-	ifkeyword Condition Scope AfterIf { $$ = (Stmt*)createIfStmt($2, $3, $4); }
+	ifkeyword Condition scopebegin Stmts AfterIf { $$ = (Stmt*)createIfStmt($2, createScope($4), $5); }
 ;
 
 AfterIf :
-	elsekeyword AfterElse {$$ = $2;}
-|   %empty { $$ = createScope(createStmts()); }
-;
-
-AfterElse :
-	If    { $$ = (Scope*)createStmts(); scopeAddStmt($$, (Stmt*)$1); }
-|   Scope { $$ = $1; }
+	elifkeyword Condition scopebegin Stmts AfterIf {
+		$$ = createScope(createStmts()); 
+		scopeAddStmt($$, (Stmt*)createIfStmt($2, createScope($4), $5));
+	} 
+|   elsekeyword Stmts scopeend { $$ = createScope($2); }
+|   scopeend { $$ = createScope(createStmts()); }
 ;
 
 Condition : 
@@ -225,7 +224,7 @@ Expr :
 
 Factor :
     lparen Expr rparen { $$ = $2; }
-|   negate Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
+|   Factor as Type { $$ = createExpr(et_typecast, createTypeCast($3, $1));}
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
@@ -235,6 +234,7 @@ Factor :
 
 P0 :
     not Factor { $$ = createExpr(et_unary_operator, createUnaryOperator(uo_not, $2)); }
+|   minus Factor{ $$ = createExpr(et_unary_operator, createUnaryOperator(uo_negate, $2)); }
 |   Factor { $$ = $1; }
 ;
 
@@ -247,7 +247,7 @@ P1 :
 
 P2 :
     P2 addition P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_plus, $1, $3)); }
-|   P2 subtraction P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_minus, $1, $3)); }
+|   P2 minus P1 { $$ = createExpr(et_binary_operator, createBinaryOperator(bo_minus, $1, $3)); }
 |   P1 { $$ = $1; }
 ;
 
@@ -280,7 +280,11 @@ Assign :
 ;
 
 Initialization :
-	Type id AssignInitialization { $$ = (Stmt*)createInitialization($2, $1, $3); }
+	DeclarationInitialization AssignInitialization { $$ = $1; $$->initialValue = $2; }
+;
+
+DeclarationInitialization :
+	Type id { $$ = createInitialization($2, $1, NULL); }
 ;
 
 AssignInitialization :

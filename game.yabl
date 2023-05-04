@@ -1,6 +1,7 @@
 !board 3x3
 !player "X" "O"
 
+
 setup do
     //print("Welcome to Tic Tac Toe, YABL edition!");
 end
@@ -25,7 +26,7 @@ turn do
         if validMove(punkt) do
             makeMove(punkt);
             currentTurn = false;
-        end else do 
+        else 
             print("Invalid move, try again");
         end;
     end;
