@@ -19,6 +19,7 @@ Data*visitExpr(Expr* self);
 Data*visitStmt(Nonterminals* self);
 Data*visitFunc(Func* self);
 Data*visitIdMutation(IdMutation* self);
+Data* visitIdMutationChild(IdMutations* self);
 Data*visitUnaryop(UnaryOperator* self);
 Data*visitBinaryOp(BinaryOperator* self);
 Data*visitAssign(Assign* self);

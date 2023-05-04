@@ -29,34 +29,24 @@ Data* tcExpr(Expr* self, Data* child)
     if(child->errorCode == ECempty) {
         return createError(ECmissingChild); 
     } 
+    // if(self->nonterminal == listConstant){ //Exprs seem to return bt_number
+
+    // }
     if(self->exprType == et_constant)
     {
         Constant* child = self->child;
+        if(child->value == NULL)   
+            return createError(ECtypeExeption);
+            
         switch (child->typeDcl) {
-            case td_logic:
-                 //Logic
-                if(child->value != NULL){    
+            case td_logic:            
                     return createData((BasicTypes)bt_logic);
-                }
-                else {
-                    return createError(ECtypeExeption);
-                }
                 break;
             case td_number:
-                if(child->value != NULL){
                     return createData((BasicTypes)bt_number);
-                }   
-                else {
-                    return createError(ECtypeExeption);
-                }
                 break;
             case td_text:
-                if(child->value != NULL){
                     return createData((BasicTypes)bt_text); //<--- check om det er en streng?
-                }   
-                else {
-                    return createError(ECtypeExeption);
-                }
                 
                 break;
             default:
@@ -85,6 +75,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     if(id->errorCode != ECnoError)
         return createError(id->errorCode);
     
+    
     //check scope and args id's match? <--------
 
     //return type is checked in the scope
@@ -96,7 +87,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     return returntype;
 }
 
-Data* tcEvent(Event* self, Data* scope){ //<---
+Data* tcEvent(Event* self, Data* scope){ 
     if(self == NULL){
         free(scope);
         return createError(ECempty);
@@ -104,7 +95,7 @@ Data* tcEvent(Event* self, Data* scope){ //<---
         
     if(scope->errorCode)
         return scope;
-    //<---- return eventType?
+
     return scope;
 }
 
@@ -118,7 +109,7 @@ Data* tcUnaryop(UnaryOperator* self, Data* expr)
 
     return expr; //error or not expr contains relavent data
 }
-Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal samenligningen retuneres?
+Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){
     if(self == NULL)
         return createError(ECempty);
     if(self->bo < 0 || self->bo > 13)
@@ -219,12 +210,16 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){  //<---- skal 
 Data* tcAssign(Assign* self, Data* id, Data* expr){
     if(self == NULL)
         return createError(ECempty);
-    if(id->errorCode >=0)
-        return id;
-    if(expr->errorCode >=0)
-        return expr;
-    
-	return tcAccept();
+    if(id->errorCode !=ECnoError)
+        return createError(id->errorCode);
+    if(expr->errorCode !=ECnoError)
+        return createError(expr->errorCode);
+    if(id->type != expr->type){
+        prettyPrint("Attempting to assign new type to variable");
+        return createError(ECtypeExeption);
+    }
+    Data* rval = createData(id->type);
+	return rval;
 }
 Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(self == NULL)
@@ -236,9 +231,11 @@ Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
     if(elseScope->errorCode != ECnoError)
         return createError(elseScope->errorCode);
 
-    if(condition->type != bt_logic)
+    if(condition->type != bt_logic){
+        prettyPrint("If condition must return logic");
         return createError(ECtypeExeption);
-
+    }
+    int a = 5;
 	return tcAccept();
 }   
 
@@ -257,11 +254,17 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
 
         if(type->type != val->type)
             return createError(ECtypeExeption);
-        symbolTablePush(id->value, val);
+        if(symbolTableGetLocal(id->value) == NULL)
+            symbolTablePush(id->value, tcCopy(val));
+        else
+            return createError(ECnameSpaceClash);
 
     }
     else {
-        symbolTablePush(id->value, type);
+        if(symbolTableGetLocal(id->value) == NULL)
+            symbolTablePush(id->value, tcCopy(type));
+        else
+            return createError(ECnameSpaceClash);
     }
     
     return type;
@@ -291,16 +294,16 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         }
         return createError(child->errorCode);
     }
-    symbolTableGet(id->value);
+    Data* rval = symbolTableGet((id->value));
     
-    return tcAccept(); 
+    return rval; 
 }
 Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
 {
     if(self == NULL)
         tcAccept();
     if(idMutation == NULL){
-        prettyPrint("IdMutationDot: ");
+        prettyPrint("IdMutationDot");
         createError(ECempty);
     }
     if(idMutation->errorCode != ECnoError){
@@ -315,7 +318,7 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
         tcAccept();
 
     if(idMutation->errorCode != ECnoError){
-        prettyPrint("IdMutationCall: ");
+        prettyPrint("IdMutationCall");
         return createError(idMutation->errorCode);
     }
     if(args->errorCode != ECnoError)
@@ -323,20 +326,34 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
 
     return tcAccept();
 }
-Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation)
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 {
     if(self == NULL)
         tcAccept();
 
-    if(idMutation->errorCode){
-        prettyPrint("IdMutationCall: ");
-        return createError(idMutation->errorCode);
+    if(child->errorCode){
+        return createError(child->errorCode);
     }
     if(expr->errorCode != ECnoError)
         return createError(expr->errorCode);
-
+    if(tcListTypeCheck(expr)->type != bt_number){
+        prettyPrint("Index must be number");
+        return createError(ECtypeExeption); 
+    }
 
     return tcAccept(); //expr should be able to return  datatype if needed
+}
+
+Data* tcListTypeCheck(Data* list){
+    Data* rval;
+     if(list->type == bt_list){
+        return createData(bt_number); //<---- fix list læst fra expr først
+        rval = tcListTypeCheck(list->list);
+     }
+     else{
+        return list;
+     }
+    return rval;
 }
 
 Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
@@ -444,7 +461,11 @@ Data*  createData(BasicTypes dType)
         case bt_list:
             type = "List";
             break;
+        case bt_unset:
+            type = "Unset";
+            break;
         default:
+            type = "Invalid type";
             createError(ECtypeExeption);
     };
     char msg[20] = "data type: ";
@@ -455,11 +476,28 @@ Data*  createData(BasicTypes dType)
     printf("\033[0m");
     Data*  d = malloc(sizeof(Data));
     d->type = dType;
-    // d->value = value;
+    d->value = NULL;
     d->errorCode = ECnoError;
 
     return d;
 };
+
+Data* createList(Data* child){
+    char* type = "List";
+    char msg[20] = "data type: ";
+    printf("\033[0;36m");
+    strcat(msg ,type);
+    prettyPrint(msg);
+    printf("\n");
+    printf("\033[0m");
+    Data*  d = malloc(sizeof(Data));
+    d->type = bt_list;
+    d->list = child;
+    // d->value = value;
+    d->errorCode = ECnoError;
+
+    return d;
+}
 
 Data* createError(ErrorCode error){
     TYPE_CHECKER_ERROR_COUNT++;
@@ -483,6 +521,12 @@ Data* createError(ErrorCode error){
     case ECoutOfRange:
         val = "out of range";
         break;
+    case ECoutOfNamespace:
+        val = "outOfNamespace";
+        break;
+    case ECnameSpaceClash:
+        val = "nameSpaceClash";
+        break;
     default:
         val = "Your an idiot";
     }
@@ -495,6 +539,8 @@ Data* createError(ErrorCode error){
     printf("\n");
     Data* d = malloc(sizeof(Data));
     d->errorCode = error;
+    d->list = NULL;
+    d->type = bt_unset;
 	return d;
 }
 
@@ -502,7 +548,18 @@ Data* tcAccept()
 {
     Data*  d = malloc(sizeof(Data));
     d->errorCode = ECnoError;
+    d->type = bt_unset;
+    d->list = NULL;
+    return d;
+}
 
+Data* tcCopy(Data*in){
+    Data* d = malloc(sizeof(Data));
+    d->errorCode = in->errorCode;
+    // d->nonterminal = in->nonterminal;
+    d->type = in->type;
+    d->value = in->value;
+    d->list = in->list;
     return d;
 }
 
@@ -510,6 +567,8 @@ Data* tcValue(void* val){
     Data*  d = malloc(sizeof(Data));
     d->errorCode = ECnoError;
     d->value = val;
+    d->list = NULL;
+    d->type = bt_unset;
     return d;
 }
 
@@ -526,38 +585,61 @@ void symbolTablePush( char* key, void* value){
      yablHashPush(SYMBOL_TABLE, key, value, &stringcompare);
 }
 
-Data* symbolTableGet(char* key){//<-- needs to hceck parent
+Data* symbolTableGet(char* key){//<-- 
     void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
-    if(value == NULL)
-        return createError(ECoutOfNamespace);
-    value = ((YablHashNode*)value)->item;
-    YablHash* table;
+    // if(value == NULL)
+    //     return createError(ECoutOfNamespace);
+    
+    YablHash* table = SYMBOL_TABLE;
     while(value == NULL){
-        table = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
+        table = yablHashGet(table, "PARENT", &stringcompare);
         if(table == NULL)
-            return NULL;
-        value = ((YablHashNode*)yablHashGet(table, key, &stringcompare))->item;
+            return createError(ECoutOfNamespace);
+        table = ((YablHashNode*)table)->item;
+        value = yablHashGet(table, key, &stringcompare);
 
     }
-    return value;
+    value = ((YablHashNode*)value)->item;
+
+    return tcCopy(value);
+}
+
+// Data* symbolTableCheckParent(YablHash table, )
+
+Data* symbolTableGetLocal(char* key){//check for prexisting keys
+    void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
+    if(value == NULL)
+        return NULL;
+    value = ((YablHashNode*)value)->item;
+
+    return tcCopy(value);
 }
 
 void createSymbolTable(){ //creates SYMBOL_TABLE and sets parent table to PARENT, and sets global pointer to new table.
 
     YablHash* st = malloc(sizeof(YablHash));
     *st  = yablHashCreate(HASHLISTLENGTH, &stringHash);
-    symbolTablePush("PARENT", st);
-    SYMBOL_TABLE = st;//update table pointer
+    YablHash* temp = SYMBOL_TABLE;
+    SYMBOL_TABLE = st;
+    symbolTablePush("PARENT", temp);
+
 }
 
 void deleteSymbolTable(){
-    YablHash* parent = symbolTableGet("PARENT");
+    YablHash* parent = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
     if(parent== NULL){
         prettyPrint("No parent SYMBOL_TABLE found\n");
         createError(ECoutOfRange);
         return;
     }
+    YablHash* temp = ((YablHashNode*)parent)->item;
+    yablHashDelete(SYMBOL_TABLE, symbolFreeFunc);
     free(SYMBOL_TABLE); //release SYMBOL_TABLE for scope
-    SYMBOL_TABLE = parent; //point to parent scope table
+    SYMBOL_TABLE = temp; //point to parent scope table
     
+}
+
+void symbolFreeFunc(void* item){
+    if(((YablHash*)item)->hashFunc != stringHash)
+        free(item);
 }

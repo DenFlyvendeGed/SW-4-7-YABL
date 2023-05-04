@@ -1,0 +1,19 @@
+er setup event globals?
+
+Typecheck IdMutationCall ??
+
+functions
+    check value type af args givet vs stored
+    gem args i symboplTable
+    prototype checker ikke om navnet er ledigt
+    
+
+mutation im_index
+    expr skal være number //måske brude checke dybden af listen i forhold til lister i lister
+
+loops
+
+IdMutationDot
+    check table i forhold til dot mutation.
+
+args expr håndtere ikke lister

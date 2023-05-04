@@ -23,6 +23,8 @@ void* yablHashGet(YablHash* self, void* key, int(*compare)(void*, void*)){
     int hashIndex = self->hashFunc(key);
     YablList list = self->map[hashIndex];
     int length = 0;
+    if(list!=NULL) length = yablListLen(list);
+     
     for(int i = 0; i < length; i++){
         if(compare(((Node*)list->item)->key, key)){
             return list->item;

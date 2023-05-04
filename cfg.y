@@ -219,6 +219,7 @@ ExprsContinue:
 
 Expr :
     P6 { $$ = $1; }
+
 ;
 
 Factor :
@@ -227,7 +228,7 @@ Factor :
 |   number { $$ = createExpr(et_constant, createConstant(td_number, $1)); }
 |   logic { $$ = createExpr(et_constant, createConstant(td_logic, $1)); }
 |   text { $$ = createExpr(et_constant, createConstant(td_text, $1)); }
-|   List { $$ = createExpr(et_constant, $1); }
+|   List { $$ = createExpr(et_list, $1); }
 |   Id { $$ = createExpr(et_id_mutation, $1); } 
 ;
 
