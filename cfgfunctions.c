@@ -146,6 +146,7 @@ Expr* createExpr(ExprType exprType, void* child)
 	p->nonterminal = expr;
 	p->child = child;
 	p->exprType = exprType;
+	p->extension = NULL;
 
 
 	return p;

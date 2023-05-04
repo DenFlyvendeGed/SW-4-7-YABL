@@ -1,18 +1,15 @@
-!tile number a list number b
-!board 5x5
-!player "p1" "p2"
-
 
 
 setup do
+    text a = "hej";
+    text b = " world";
 
+    text c = a + b;
+    print(c);
 end
 
 
 
-function kage() do
-    number x = (x + 1) * 2;
-end
 
 
 

@@ -326,6 +326,7 @@ Data*  visitExpr(Expr* self){
         break;
     }
     rval = tcExpr(self, child);
+    self->extension = rval;
     free(child);
     indent--;
     return rval;

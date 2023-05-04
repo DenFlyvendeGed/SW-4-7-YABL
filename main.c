@@ -13,8 +13,8 @@ extern Repeatable* YABL_AST;
 
 int main(int argv, char ** args){
 	yyparse();
-	//visit(YABL_AST);
-	cgStart(YABL_AST, stdout);
+	visit(YABL_AST);
+	cgStartGCC(YABL_AST);
 }
 
 #else

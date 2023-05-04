@@ -23,7 +23,7 @@ void cgType(Type* self, FILE* writer);
 void cgId(Id* self, FILE* writer);
 void cgReturnStmt(ReturnStmt* self, FILE* writer);
 void cgBreakStmt(Break* self, FILE* writer);
-void cgBinaryOperator(BinaryOperator* self, FILE* writer);
+void cgBinaryOperator(Expr* self, FILE* writer);
 void cgUnaryOperator(UnaryOperator* self, FILE* writer);
 void cgConstant(Constant* self, FILE* writer);
 void cgTypeCast(TypeCast* self, FILE* writer);
@@ -36,6 +36,7 @@ void cgPreambleTile(PreambleTile* self, FILE* writer);
 void cgPreambleBoard(PreambleBoard* self, FILE* writer);
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer);
 void cgFuncProtoType(Func* self, FILE* writer);
+void cgStartGCC(Repeatable* tree);
 
 
 

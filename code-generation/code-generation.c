@@ -3,7 +3,45 @@
 #include "../data-structures/list.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
+#define FD_WRITE 1
+#define FD_READ 0
+
+
+const char* HEADER = 
+    "#include <stdlib.h>\n"
+    "#include <stdio.h>\n"
+    "void print(char* value){"
+        "printf(\"%%s\",value);"
+    "}"
+;
+
+const char* FOOTER = 
+    "int main(){"
+        "setup();"
+    "}\n"
+;
+
+
+void cgStartGCC(Repeatable* tree){
+    int fd[2];
+    pipe(fd);
+    if(!fork()){
+        close(fd[FD_WRITE]);
+        dup2(fd[FD_READ],STDIN_FILENO);
+        //system("gcc -o code -x c -");
+        system("cat");
+        close(fd[FD_READ]);
+        exit(EXIT_SUCCESS);
+    }else{
+        close(fd[FD_READ]);
+        dup2(fd[FD_WRITE],STDOUT_FILENO);
+        FILE* writer = fdopen(STDOUT_FILENO, "w");
+        cgStart(tree, writer);
+        close(fd[FD_WRITE]);
+    }
+}
 
 void cgScope(Scope* self, FILE* writer){
     fprintf(writer, "\n{\n");
@@ -219,7 +257,7 @@ void cgExpr(Expr* self, FILE* writer){
         cgUnaryOperator(self->child, writer);
         break;
     case et_binary_operator:
-        cgBinaryOperator(self->child, writer);
+        cgBinaryOperator(self, writer);
         break;
     case et_expression:
         cgExpr(self->child, writer);
@@ -234,7 +272,21 @@ void cgExpr(Expr* self, FILE* writer){
 }
 
 void cgConstant(Constant* self, FILE* writer){
-    fprintf(writer, "%s", self->value);
+    switch (self->typeDcl)
+    {
+    case td_logic:
+        if(strcmp(self->value, "true") == 0){
+            fprintf(writer, "1");
+        }else{
+            fprintf(writer, "0");
+        }
+        break;
+    default:
+        fprintf(writer, "%s", self->value);
+        break;
+    }
+    
+    
 }
 
 //Skal snakke med Simon
@@ -246,57 +298,93 @@ void cgTypeCast(TypeCast* self, FILE* writer){
     cgExpr(self->cast, writer);
 }
 
-void cgBinaryOperator(BinaryOperator* self, FILE* writer){
-    cgExpr(self->childExpr1, writer);
-    switch (self->bo)
-    {
+void cgBinaryOperator(Expr* self, FILE* writer){
+    BinaryOperator* bo = self->child;
+    switch (bo->bo){
     case bo_plus:
-        fprintf(writer, " + ");
+        if(self->extension->type == bt_number){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " + ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcat(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, ",");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, ")");
+        }
+        
         break;
     case bo_minus:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " - ");
+        cgExpr(bo->childExpr2, writer);
         break;
     case bo_division:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " / ");
+        cgExpr(bo->childExpr2, writer);
         break;
     case bo_mul:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " * ");
+        cgExpr(bo->childExpr2, writer);   
         break;
     case bo_modulus:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " %% ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_not:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " ! ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_eq:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " == ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_neq:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " != ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_gt:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " > ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case  bo_gteq:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " >= ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_lt:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " < ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_lteq:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " <= ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_and:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " && ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     case bo_or:
+        cgExpr(bo->childExpr1, writer);
         fprintf(writer, " || ");
+        cgExpr(bo->childExpr2, writer); 
         break;
     
     default:
         break;
     }
-    cgExpr(self->childExpr2, writer);
+    
 }
 
 void cgUnaryOperator(UnaryOperator* self, FILE* writer){
@@ -315,6 +403,7 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
 
 
 void cgStart(Repeatable* tree, FILE* writer){
+    fprintf(writer, HEADER);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
@@ -324,24 +413,8 @@ void cgStart(Repeatable* tree, FILE* writer){
         }
     );
     cgFuncs(funcsNode, writer);
-
-    /*
-    YABL_LIST_FOREACH(Nonterminals*, tree->children, 
-        switch (*foreach_value)
-        {
-        case funcs:
-            cgFuncs(foreach_value, writer);
-            break;
-        case preambles:
-            cgPreambles(foreach_value, writer);
-            break;
-        default:
-            break;
-        } 
-    );
-    */
-
     fprintf(writer, "\n");
+    fprintf(writer, FOOTER);
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
@@ -371,32 +444,44 @@ void cgPreambles(Preambles* self, FILE* writer){
 }
 
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
-    fprintf(writer, "char* PLAYERS[] = {");
-    if(self->children->item != NULL){
-        fprintf(writer, "%s", (char*)self->children->item);
-        if(self->children->next != NULL){
-            YABL_LIST_FOREACH(char*, self->children->next, 
-                fprintf(writer, ",%s", foreach_value);
-            );
+    if(self != NULL){
+        fprintf(writer, "char* PLAYERS[] = {");
+        if(self->children->item != NULL){
+            fprintf(writer, "%s", (char*)self->children->item);
+            if(self->children->next != NULL){
+                YABL_LIST_FOREACH(char*, self->children->next, 
+                    fprintf(writer, ",%s", foreach_value);
+                );
+            }
         }
+        fprintf(writer, "};\n");
+    }else{
+        fprintf(writer, "char* PLAYERS[] = {\"P1\"};\n");
     }
-    fprintf(writer, "};\n");
+    
 }
 
 
 void cgPreambleBoard(PreambleBoard* self, FILE* writer){
-    fprintf(writer, "struct Tile BOARD[%d][%d];\n",self->width, self->height);
+    if(self != NULL){
+        fprintf(writer, "struct Tile BOARD[%d][%d];\n",self->width, self->height);
+    }else{
+        fprintf(writer, "struct Tile BOARD[1][1];\n");
+    }
 }
 
 void cgPreambleTile(PreambleTile* self, FILE* writer){
-    fprintf(writer, "struct Tile {");
-   
-    YABL_LIST_FOREACH(Initialization*, self->children, 
-        cgInitialization(foreach_value, writer);
-        fprintf(writer, ";");
-    );
-
-    fprintf(writer, "};\n");
+    if(self != NULL){
+        fprintf(writer, "struct Tile {");
+        YABL_LIST_FOREACH(Initialization*, self->children, 
+            cgInitialization(foreach_value, writer); 
+            fprintf(writer, ";");
+        );
+        fprintf(writer, "};\n");
+    }
+    else{
+        fprintf(writer, "struct Tile {};\n");
+    }
 }
 
 

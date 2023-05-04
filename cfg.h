@@ -2,6 +2,8 @@
 #define YABL_CFG_H
 
 #include "./data-structures/list.h"
+#include "./visitor/data.h"
+
 
 char* copystringalloc(char*);
 
@@ -80,10 +82,11 @@ typedef struct {
 
 // Expr
 
-typedef enum {et_constant, et_list, et_id_mutation, et_unary_operator, et_binary_operator, et_expression} ExprType;
+typedef enum {et_constant, et_list, et_id_mutation, et_unary_operator, et_binary_operator, et_expression, et_typecast} ExprType;
 typedef struct Expr{
 	Nonterminals nonterminal;
 	ExprType exprType;
+	Data* extension;
 	void* child;
 } Expr;
 

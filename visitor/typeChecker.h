@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../cfg.h"
+#include "data.h"
 
 //Jeg kan ikke huske borders :)
 #define NUMBERMAX 255
@@ -23,13 +24,7 @@ extern void prettyPrint(char string[]);
 
 typedef enum  {ECnoError, ECempty, ECargumentExeption, ECtypeExeption, ECmissingChild, ECoutOfRange, ECoutOfNamespace, ECnameSpaceClash} ErrorCode;
 
-typedef struct {
-    // Nonterminals nonterminal;
-    BasicTypes type;
-    ErrorCode errorCode;
-    void* list; //Data*
-    void* value; 
-} Data;
+
 
 //Symbol table setup
 
