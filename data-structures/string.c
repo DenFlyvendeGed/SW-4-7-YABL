@@ -7,6 +7,10 @@ String makeStringSize(char* string, int stringSize){
     return new_string;
 }
 
+String makeString(char *string){
+	return makeStringSize(string, 30);
+}
+
 void reallocString(String string, int stringSize){
     string.string = realloc(string.string ,stringSize);
     string.alloc = stringSize;
@@ -22,3 +26,4 @@ String strConcat(String string_1, String string_2){
     }
     return string_1;
 }
+
