@@ -205,7 +205,7 @@ Data* visitExprs(Exprs* self){
 	)
     rval = tcCopy(rval->list);
     indent--;
-    return rval; //<----
+    return rval; 
 }
 
 Data* visitStmts(Stmts* self){
@@ -221,7 +221,7 @@ Data* visitStmts(Stmts* self){
 		// return tcStmt(foreach_value, value);
 	)
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitScope(Scope* self, Data* returnType){
@@ -244,11 +244,11 @@ Data* visitScope(Scope* self, Data* returnType){
                 }
             }
         }  
-		// return tcAccept(); //<---
+		
 	)
     
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitArgs(Args* self){
@@ -273,7 +273,7 @@ Data* visitArgs(Args* self){
     // free(temp);
     //visitExprs(self);
     indent--;
-    return rval; //<----
+    return rval; 
 }
 
 Data* visitFuncs(Funcs* self){
@@ -287,7 +287,7 @@ Data* visitFuncs(Funcs* self){
 		Data* value = visitFunc(foreach_value);
 	)
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitListConstant(ListConstant* self){
@@ -399,7 +399,7 @@ Data* visitStmt(Nonterminals* self){
     case expr:
         rtn =  visitExpr((Expr*)self);
         break;
-     case returnstmt: //<-----
+     case returnstmt: 
         rtn = visitReturnStmt((ReturnStmt*)self);
         break;
     default:
@@ -446,7 +446,7 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
-    if(self == NULL){ //<-- might need fixes
+    if(self == NULL){ 
         return tcAccept();
     }
     if(PPRINTFLAG == 1)
@@ -603,7 +603,7 @@ Data* visitRepeat(Repeat* self){
     return rval;
 }
 
-//Mangler <-----
+
 Data* visitReturnStmt(ReturnStmt* self){
     if(PPRINTFLAG == 1)
     {
