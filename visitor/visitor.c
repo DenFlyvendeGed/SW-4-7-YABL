@@ -616,7 +616,7 @@ Data* visitRepeat(Repeat* self){
         prettyPrint("Repeat");
     }
     indent++;
-
+    createSymbolTable();
     Data* rval;
     Data* loopHeader;
     switch (*(LoopType*)self->loopType)
@@ -645,6 +645,7 @@ Data* visitRepeat(Repeat* self){
     free(loopHeader);
     free(scope);
 
+    deleteSymbolTable();
     indent--;
     return rval;
 }
