@@ -35,7 +35,12 @@ Data* visitor(){
 void symbolTableAddKeywords(){
     prettyPrint("stdlip keywords: -----------------\n");
     symbolTablePush("input", createData(bt_text));
-    symbolTablePush("print", createData(bt_NULL));
+
+
+    Data* rtnType = createData(bt_NULL);
+    Data* args = createData(bt_text);
+    rtnType->list = args;
+    symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
     symbolTablePush("board", createData(bt_text));//<--- list list text
@@ -138,7 +143,24 @@ Data* visitPreamble(Preambles* self){
     {
         prettyPrint("Preamble");
     }
+    indent++;
+    switch(self->nonterminal)
+    {
+        case preambleTile:
+            visitPreambleTile(self);
+            break;
+        case preambleBoard:
+            visitPreambleBoard(self);
+            break;
+        case preamblePlayers:
+            visitPreamblePlayer(self);
+            break;
+        default:
+            return createError(ECoutOfRange);
 
+    }
+    indent++;
+    
     return tcAccept();
 }
 
@@ -319,7 +341,11 @@ Data* visitPreambles(Preambles* self){
     {
         prettyPrint("Preambles");
     }
-
+    indent++;
+    FOREACH(Repeatable*, self, 
+        visitPreamble(foreach_value);
+    )
+    indent--;
     return tcAccept(); //<----
 }
 
@@ -362,6 +388,10 @@ Data*  visitExpr(Expr* self){
     case et_list:
         child = visitListConstant((ListConstant*)self->child);
         break;
+    case et_typecast:
+        child = visitTypeCast(self->child);
+        //<---
+        break;
     default:
         createError(ECoutOfRange);
         break;
@@ -370,6 +400,21 @@ Data*  visitExpr(Expr* self){
     self->extension = rval;
     free(child);
     indent--;
+    return rval;
+}
+
+Data* visitTypeCast(TypeCast* self){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("TypeCast");
+    }
+    indent++;
+    Data* expr = visitExpr(self->cast);
+    Data* type = visitType(self->type);
+
+    Data* rval = tcTypeCast(self, expr, type);
+    indent--;
+    free(expr);
     return rval;
 }
 
@@ -900,20 +945,63 @@ Data* visitVariable(Variable* self){
 }
 
 Data* visitPreambleBoard(PreambleBoard* self){
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Board");
+    }
+    indent++;
+    if(self->width >= 0 && self->height >= 0){
+        // symbolTablePush("Board", self);
+    }
+    else {
+        prettyPrint("Board dimensions must be over 0");
+        return createError(ECargumentExeption);
+    }
+
+    indent--;
     return tcAccept();
 }
 
-Data* visitPreambleTileItem(Type* self){
+Data* visitPreambleTileItem(Type* self){//<--- not used
     return tcAccept();
 }
 
-Data* visitPreambleTile(PreambleTile* self){ //<----
-	FOREACH(Type*, self, visitType(foreach_value);)
+Data* visitPreambleTile(PreambleTile* self){
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Tile");
+    }
+    indent++;
+    // char str[30];
+    // strcat(str, "tile.");
+    // strcat(str, ((Initialization*)self->children->item)->variable);
+    // free(((Initialization*)self->children->item)->variable);
+    // ((Initialization*)self->children->item)->variable = str;
+    FOREACH(Initialization*, self,
+        
+        char* str = malloc(sizeof(char[30]));
+        strcat(str, "tile.");
+        strcat(str, foreach_value->variable);
+        free(foreach_value->variable);
+        foreach_value->variable = str;
+        visitInitialization(foreach_value);
+    )
+    indent--;
     return tcAccept();
 }
 
-Data* visitPreamblePlayer(PreamblePlayers* self){ //<--
-    // yablListSimpleForeach(*self->ids, &visitId);
+Data* visitPreamblePlayer(PreamblePlayers* self){
+    //list of string with playernames.
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Players");
+    }
+    indent++;
+    // symbolTablePush("Players", self);
+    FOREACH(Id, self,
+        visitId(foreach_value);
+    );
+    indent--;
     return tcAccept();
 }
 

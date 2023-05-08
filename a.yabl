@@ -1,7 +1,15 @@
 
 
 setup do
-	print("Hello World");
+    repeat 5 times
+    do
+        number a = 5;
+    end
+    number a = 5;
+    repeat while a == 5
+    do
+        a = 6;
+    end
 end
 
 

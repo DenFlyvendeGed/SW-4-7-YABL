@@ -207,6 +207,24 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){
 	return tcAccept();
 }
 
+Data* tcTypeCast(TypeCast* self, Data* expr, Data* type){
+    if(expr != NULL){
+
+        if(expr->errorCode != ECnoError)
+            return createError(expr->errorCode);
+    }
+    else
+        return createError(ECmissingChild);
+    if (type != NULL) {
+        if(type->errorCode != ECnoError)
+            return createError(expr->errorCode);
+    }
+    else{
+        return createError(ECmissingChild);
+    }
+    return type;
+}
+
 Data* tcAssign(Assign* self, Data* id, Data* expr){
     if(self == NULL)
         return createError(ECempty);
