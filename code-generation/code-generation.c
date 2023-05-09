@@ -1,9 +1,12 @@
 #include "../cfg/cfg.h"
 #include "code-generation.h"
 #include "../data-structures/list.h"
+#include "hashtable.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <../visitor/typeChecker.h>
+
 
 #define FD_WRITE 1
 #define FD_READ 0
@@ -22,6 +25,7 @@ const char* FOOTER =
         "setup();"
     "}\n"
 ;
+
 
 
 void cgStartGCC(Repeatable* tree){
@@ -44,9 +48,13 @@ void cgStartGCC(Repeatable* tree){
 }
 
 void cgScope(Scope* self, FILE* writer){
+    createSymbolTable();
     fprintf(writer, "\n{\n");
-    YABL_LIST_FOREACH(Nonterminals*, self->children, cgStmt(foreach_value, writer););
+    YABL_LIST_FOREACH(Nonterminals*, self->children, 
+        cgStmt(foreach_value, writer);
+    );
     fprintf(writer, "\n}\n");
+    deleteSymbolTable();
 }
 
 
@@ -100,7 +108,7 @@ void cgInitialization(Initialization* self, FILE* writer){
     cgType(self->type, writer);
     cgId(self->variable, writer);
     if(self->initialValue != NULL){
-         fprintf(writer, " = ");
+        fprintf(writer, " = ");
         cgExpr(self->initialValue, writer);
     }
     
