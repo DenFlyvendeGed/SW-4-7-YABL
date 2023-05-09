@@ -43,7 +43,10 @@ void symbolTableAddKeywords(){
     symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-    symbolTablePush("board", createData(bt_text));//<--- list list text
+    Data* list = createData(bt_list);
+    list->list = createData(bt_text);
+    
+    symbolTablePush("board", list );//<--- list list text
     symbolTablePush("currentPlayer", createData(bt_text));
 
     prettyPrint("------------------------------------\n");
@@ -397,7 +400,7 @@ Data*  visitExpr(Expr* self){
         break;
     }
     rval = tcExpr(self, child);
-    self->extension = rval;
+    self->extension = tcCopy(rval);
     free(child);
     indent--;
     return rval;

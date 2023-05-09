@@ -89,7 +89,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
 
 Data* tcEvent(Event* self, Data* scope){ 
     if(self == NULL){
-        free(scope);
+        //free(scope); would most likely crash
         return createError(ECempty);
     }
         
@@ -266,25 +266,26 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
     else if(type->errorCode != ECnoError)
         return createError(type->errorCode);
 
+    Data* var = symbolTableGetLocal(id->value);
     if(val != NULL){
         if(val->errorCode != ECnoError)
             return createError(type->errorCode);
 
         if(type->type != val->type)
             return createError(ECtypeExeption);
-        if(symbolTableGetLocal(id->value) == NULL)
+        if(var == NULL)
             symbolTablePush(id->value, tcCopy(val));
         else
             return createError(ECnameSpaceClash);
 
     }
     else {
-        if(symbolTableGetLocal(id->value) == NULL)
+        if(var == NULL)
             symbolTablePush(id->value, tcCopy(type));
         else
             return createError(ECnameSpaceClash);
     }
-    
+    free(var);
     return tcCopy(type);
 }
 Data* tcType(Type* self, Data* typeVal){ //might not be needed
@@ -329,12 +330,15 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
                 break;
             case im_dot:
             case im_index:
+                if(var->type != bt_list)
+                    return createError(ECtypeExeption);
                 if(child == NULL)
                     return createError(ECmissingChild);
+                var->type = tcListTypeCheck(var)->type;
                 break;
         }
     }
-    Data* rval = symbolTableGet((id->value));
+    Data* rval = var;
     // tcListTypeCheck(rval);
     
     return rval; 
@@ -620,7 +624,7 @@ Data* tcValue(void* val){
 //Symbol table setup
 
 int stringHash(char* string){
-    return (int)(strlen(string) % 5);
+    return (int)(strlen(string) % 10);
 }
 int stringcompare(char* s1, char* s2){
     return strcmp(s1, s2) == 0;
