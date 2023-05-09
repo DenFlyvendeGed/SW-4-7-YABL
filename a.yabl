@@ -1,11 +1,8 @@
+function add(number a, number b) returns number do return a + b; end
 
 
 setup do
-	text a = "Hello World" + "!" + "KAGE";
-	text b;
-	b = a + "\n";
-	b = b + a + b;
-	print(b);
+	print(add(3, 4) as text);
 end
 
 

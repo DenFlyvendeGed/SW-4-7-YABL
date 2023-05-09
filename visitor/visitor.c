@@ -1,4 +1,5 @@
 #include "visitor.h"
+#include "typeChecker.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -359,9 +360,12 @@ Data* visitStmt(Nonterminals* self){
     case expr:
         rtn =  visitExpr((Expr*)self);
         break;
-     case returnstmt: //<-----
+    case returnstmt: //<-----
         rtn = visitReturnStmt((ReturnStmt*)self);
         break;
+	case breakstmt:
+		rtn = tcAccept();
+		break;
     default:
         return createError(ECoutOfRange);
         break;
