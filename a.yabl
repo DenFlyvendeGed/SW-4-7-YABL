@@ -1,3 +1,4 @@
+function add(number a, number b) returns number do return a + b; end
 
 
 setup do 
@@ -6,6 +7,8 @@ setup do
    text c = (a + b) as text;
    text d = c as text;
    print(c + "\n" + d);
+setup do
+	print(add(3, 4) as text);
 end
 
 

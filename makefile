@@ -19,6 +19,7 @@ OFILES := \
 	$(CFG)/cfg.test.o \
 	$(DATA_STRUCTURES)/hashtable.o \
 	$(DATA_STRUCTURES)/list.o \
+	$(DATA_STRUCTURES)/stack.o \
 	$(VISITOR)/typeChecker.o \
 	$(VISITOR)/visitor.o \
 	$(CODE_GENERATION)/code-generation.o \
