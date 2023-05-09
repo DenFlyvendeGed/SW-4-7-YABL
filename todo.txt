@@ -5,6 +5,10 @@ IdMutation
 
 
 
+functions
+    check value type af args givet vs stored
+    
+
 
 
 

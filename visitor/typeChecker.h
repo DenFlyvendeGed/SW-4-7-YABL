@@ -78,6 +78,7 @@ Data* tcPreambles(Preambles* self);
 
 
 Data* tcExpr(Expr* self, Data* child);
+Data* tcTypeCast(TypeCast* self, Data* expr, Data* type);
 Data* tcStmt(Stmt* self, Data* child); //return visit data
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id);
 Data* tcEvent(Event* self, Data* scope);
