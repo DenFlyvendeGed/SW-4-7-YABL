@@ -274,41 +274,47 @@ void cgTypeCast(TypeCast* self, FILE* writer){
     switch (self->cast->extension->type)
     {
     case bt_number:
-        if(self->type->typeval == bt_text){
-           
-        }else if(self->type->typeval == bt_logic){
-
-        }else if(self->type->typeval == bt_number){
-
+        if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcNumberToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcNumberToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_number){
+            cgExpr(self->cast, writer);
         }
         break;
     case  bt_text:
-        if(self->type->typeval == bt_number){
+        if(self->type->typeval->type == bt_number){
             fprintf(writer, "tcTextToNumber(");
             cgExpr(self->cast, writer);
-            fprintf(writer, ");");
-        }else if(self->type->typeval == bt_logic){
-
-        }else if(self->type->typeval == bt_text){
-
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcTextToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            cgExpr(self->cast, writer);
         }
         break;
     case bt_logic:
-        if(self->type->typeval == bt_number){
-
-        }else if(self->type->typeval == bt_text){
-
-        }else if(self->type->typeval == bt_logic){
-
+        if(self->type->typeval->type == bt_number){
+            fprintf(writer, "tcLogicToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcLogicToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            cgExpr(self->cast, writer);
         }
         break;
     default:
         break;
     }
-    //fprintf(writer, "(");
-    //cgType(self->type, writer);
-    //fprintf(writer, ")");
-    //cgExpr(self->cast, writer);
 }
 
 

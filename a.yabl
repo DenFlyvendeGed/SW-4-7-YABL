@@ -1,9 +1,11 @@
 
 
 setup do 
-   text a = "1";
-   number b = a as number;
-	
+   number a = 4;
+   number b = 2;
+   text c = (a + b) as text;
+   text d = c as text;
+   print(c + "\n" + d);
 end
 
 
