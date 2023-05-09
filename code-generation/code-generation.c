@@ -5,29 +5,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "./const-code/const-code.h"
 
-const char* HEADER = 
-    "#include <stdlib.h>\n"
-    "#include <stdio.h>\n"
-    "void print(char* value){"
-        "printf(\"%%s\",value);"
-    "}"
-;
+#define STRING_ADD "(strConcat())"
 
-const char* FOOTER = 
-    "int main(){"
-        "setup();"
-    "}\n"
-;
+int HAS_RETURNED = 0;
 
 void cgScope(Scope* self, FILE* writer){
     createSymbolTable();
     fprintf(writer, "\n{\n");
-    YABL_LIST_FOREACH(Nonterminals*, self->children, 
-        cgStmt(foreach_value, writer);
-    );
-    fprintf(writer, "\n}\n");
-    deleteSymbolTable();
+    YABL_LIST_FOREACH(Stmt*, self->children, cgStmt(foreach_value, writer););
+	fprintf(writer, "\n}\n");
 }
 
 
@@ -79,16 +67,19 @@ void cgReturnStmt(ReturnStmt* self, FILE* writer){
 
 void cgInitialization(Initialization* self, FILE* writer){
     cgType(self->type, writer);
-    cgId(self->variable, writer);
+    cgId(&self->variable, writer);
     if(self->initialValue != NULL){
-        fprintf(writer, " = ");
-        cgExpr(self->initialValue, writer);
+		fprintf(writer, " = ");
+		if(self->initialValue->extension->type == bt_text 
+		&& self->initialValue->exprType == et_id_mutation){
+			fprintf(writer, "copyString");
+		} 
+		cgExpr(self->initialValue, writer);
     }
-    
 }
 
 void cgId(Id* self, FILE* writer){
-    fprintf(writer, "%s",self);
+    fprintf(writer, "%s",*self);
 }
 
 void cgType(Type* self, FILE* writer){
@@ -101,7 +92,7 @@ void cgType(Type* self, FILE* writer){
         fprintf(writer, "int ");
         break;
     case bt_text:
-        fprintf(writer, "char* ");
+        fprintf(writer, "String* ");
         break;
     case bt_list:
         fprintf(writer, "list ");
@@ -172,9 +163,13 @@ void cgIfStmt(IfStmt* self, FILE* writer){
 
 
 void cgAssign(Assign* self, FILE* writer){
-    cgIdMutation(self->variable, writer);
-    fprintf(writer, "=");
-    cgExpr(self->expression, writer);
+	cgIdMutation(self->variable, writer);
+	fprintf(writer, "=");
+	if(self->expression->extension->type == bt_text 
+	&& self->expression->exprType == et_id_mutation){
+		fprintf(writer, "copyString");
+	}
+	cgExpr(self->expression, writer);
     fprintf(writer, ";\n");
 }
 
@@ -262,6 +257,9 @@ void cgConstant(Constant* self, FILE* writer){
             fprintf(writer, "0");
         }
         break;
+	case td_text:
+        fprintf(writer, "makeString(%s)", self->value);
+		break;
     default:
         fprintf(writer, "%s", self->value);
         break;
@@ -279,6 +277,39 @@ void cgTypeCast(TypeCast* self, FILE* writer){
     cgExpr(self->cast, writer);
 }
 
+int cgIsConstantString(Expr* s){
+	switch (s->exprType) {
+		case et_constant:
+		case et_typecast:
+		case et_expression:
+		case et_binary_operator:
+		case et_unary_operator:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+void cgPlusString(Expr* right, Expr* left, FILE* writer){
+	int usetmp1 = cgIsConstantString(right);
+	int usetmp2 = cgIsConstantString(left);
+
+	fprintf(writer, "( STRING_RTN = strConcatCpy(");
+
+	if(usetmp1) fprintf(writer, "*(STRING_STACK++) = "); 
+	cgExpr(right, writer);
+
+	fprintf(writer, ",");
+
+	if(usetmp2) fprintf(writer, "*(STRING_STACK++) = "); 
+	cgExpr(left, writer);
+
+	fprintf(writer, ")");
+	if(usetmp2) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
+	if(usetmp1) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
+	fprintf(writer, ", STRING_RTN)");
+}
+
 void cgBinaryOperator(Expr* self, FILE* writer){
     BinaryOperator* bo = self->child;
     switch (bo->bo){
@@ -288,11 +319,7 @@ void cgBinaryOperator(Expr* self, FILE* writer){
             fprintf(writer, " + ");
             cgExpr(bo->childExpr2, writer);
         }else{
-            fprintf(writer, "strcat(");
-            cgExpr(bo->childExpr1, writer);
-            fprintf(writer, ",");
-            cgExpr(bo->childExpr2, writer);
-            fprintf(writer, ")");
+			cgPlusString(bo->childExpr1, bo->childExpr2, writer);
         }
         
         break;
@@ -384,7 +411,12 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
 
 
 void cgStart(Repeatable* tree, FILE* writer){
-    fprintf(writer, HEADER);
+    fprintf(writer, "%s", INCLUDES);
+	fprintf(writer, "%s", LIST);
+	fprintf(writer, "%s", STRING);
+	fprintf(writer, "%s", GLOBALS);
+	fprintf(writer, "%s", GARBAGE_COLLECTION);
+    fprintf(writer, "%s", PRINT);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
@@ -395,7 +427,7 @@ void cgStart(Repeatable* tree, FILE* writer){
     );
     cgFuncs(funcsNode, writer);
     fprintf(writer, "\n");
-    fprintf(writer, FOOTER);
+    fprintf(writer, "%s", YABL_MAIN);
 }
 
 void cgPreambles(Preambles* self, FILE* writer){

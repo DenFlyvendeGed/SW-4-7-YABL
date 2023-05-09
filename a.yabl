@@ -1,12 +1,11 @@
 
 
 setup do
-   text a = "Hej";
-   text b = " Simon";
-
-   text c = a + b;
-
-   print(c);
+	text a = "Hello World" + "!" + "KAGE";
+	text b;
+	b = a + "\n";
+	b = b + a + b;
+	print(b);
 end
 
 
