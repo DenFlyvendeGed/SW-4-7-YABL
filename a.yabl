@@ -1,11 +1,9 @@
 
 
-setup do
-	text a = "Hello World" + "!" + "KAGE";
-	text b;
-	b = a + "\n";
-	b = b + a + b;
-	print(b);
+setup do 
+   text a = "1";
+   number b = a as number;
+	
 end
 
 

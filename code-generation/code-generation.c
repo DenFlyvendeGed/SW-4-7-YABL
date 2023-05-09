@@ -1,10 +1,11 @@
 #include "../cfg/cfg.h"
 #include "code-generation.h"
 #include "../data-structures/list.h"
-#include "hashtable.h"
+#include "../data-structures/hashtable.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "./const-code/const-code.h"
 
 #define STRING_ADD "(strConcat())"
@@ -270,12 +271,48 @@ void cgConstant(Constant* self, FILE* writer){
 
 //Skal snakke med Simon
 void cgTypeCast(TypeCast* self, FILE* writer){
-    fprintf(writer, "(");
-    cgType(self->type, writer);
-    fprintf(writer, ")");
+    switch (self->cast->extension->type)
+    {
+    case bt_number:
+        if(self->type->typeval == bt_text){
+           
+        }else if(self->type->typeval == bt_logic){
 
-    cgExpr(self->cast, writer);
+        }else if(self->type->typeval == bt_number){
+
+        }
+        break;
+    case  bt_text:
+        if(self->type->typeval == bt_number){
+            fprintf(writer, "tcTextToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ");");
+        }else if(self->type->typeval == bt_logic){
+
+        }else if(self->type->typeval == bt_text){
+
+        }
+        break;
+    case bt_logic:
+        if(self->type->typeval == bt_number){
+
+        }else if(self->type->typeval == bt_text){
+
+        }else if(self->type->typeval == bt_logic){
+
+        }
+        break;
+    default:
+        break;
+    }
+    //fprintf(writer, "(");
+    //cgType(self->type, writer);
+    //fprintf(writer, ")");
+    //cgExpr(self->cast, writer);
 }
+
+
+
 
 int cgIsConstantString(Expr* s){
 	switch (s->exprType) {
@@ -417,6 +454,7 @@ void cgStart(Repeatable* tree, FILE* writer){
 	fprintf(writer, "%s", GLOBALS);
 	fprintf(writer, "%s", GARBAGE_COLLECTION);
     fprintf(writer, "%s", PRINT);
+    fprintf(writer, "%s", TYPE_CAST);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
