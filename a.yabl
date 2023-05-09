@@ -1,7 +1,11 @@
 
 
 setup do
-	print("Hello World");
+	text a = "Hello World" + "!" + "KAGE";
+	text b;
+	b = a + "\n";
+	b = b + a + b;
+	print(b);
 end
 
 

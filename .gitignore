@@ -3,7 +3,9 @@
 yabl
 test
 code
-*.txt
+todo.txt
 yabl.c
 yabl.out
+code-generation/const-code/const-code.h
+code-generation/const-code/const-code.c
 
