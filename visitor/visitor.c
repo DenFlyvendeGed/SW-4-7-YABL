@@ -46,7 +46,7 @@ void symbolTableAddKeywords(){
     Data* list = createData(bt_list);
     list->list = createData(bt_text);
     
-    symbolTablePush("board", list );//<--- list list text
+    symbolTablePush("board", list );//<--- list list tile
     symbolTablePush("currentPlayer", createData(bt_text));
 
     prettyPrint("------------------------------------\n");
@@ -98,11 +98,11 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
 }
 
 //Visit function
-Repeatable* visit(Repeatable* self){ //Start <----
+int visit(Repeatable* self){ //Start <----
     if(self == NULL){
 
         printf("No AST\n");
-        return NULL;
+        return 1;
     }
     //innit outersymbolTable
     SYMBOL_TABLE = malloc(sizeof(YablHash));
@@ -118,7 +118,7 @@ Repeatable* visit(Repeatable* self){ //Start <----
     visitRepeatable(self);
     // indent--;
     printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
-    return self;
+    return TYPE_CHECKER_ERROR_COUNT;
 }
 
 Data* visitStart(Repeatable* self){

@@ -4,7 +4,7 @@
 
 #include "typeChecker.h"
 
-Repeatable* visit(Repeatable* self);
+int visit(Repeatable* self);
 
 Data*visitPreamble(Preambles* self);
 Data*visitRepeatable(Repeatable* self);
