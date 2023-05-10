@@ -1,8 +1,9 @@
-function add(number a, number b) returns number do return a + b; end
-
+!tile
+	number b
+	logic c
 
 setup do
-	print(add(3, 4) as text);
+	board[0][0].b = 10;
 end
 
 

@@ -33,6 +33,7 @@ CONST_CODE_FILES := \
 	./code-generation/const-code/list.c \
 	./code-generation/const-code/string.c \
 	./code-generation/const-code/globals.c \
+	./code-generation/const-code/events_initializers.c \
 	./code-generation/const-code/garbage_collection.c
 	
 

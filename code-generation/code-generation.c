@@ -7,6 +7,12 @@
 #include <unistd.h>
 #include "./const-code/const-code.h"
 
+////////////////////// EVENTS /////////////////////
+
+int SEEN_SETUP = 0;
+int SEEN_TURN = 0;
+int SEEN_CLOSE = 0;
+
 //////////////////// RETURN TYPE //////////////////
 
 Type* RETURN_TYPE;
@@ -253,15 +259,14 @@ void cgIdMutationChild(IdMutations* self, FILE* writer){
         /* code - Not implemented */
         break;
     case im_dot:
-        /* code */
+		cgDot((IdMutationDot*)self, writer);
         break;
     case im_call:
-        cgCall(self, writer);
+        cgCall((IdMutationCall*)self, writer);
         break;
     case im_index:
-        /* code */
+		cgIndex((IdMutationIndex*)self, writer);
         break;
-    
     default:
         break;
     }
@@ -274,6 +279,18 @@ void cgCall(IdMutationCall* self, FILE* writer){
         cgIdMutationChild(self->child, writer);
     }
     fprintf(writer, ")");
+}
+
+void cgIndex(IdMutationIndex* self, FILE* writer){
+	fprintf(writer, "[");
+	cgExpr(self->index, writer);
+	fprintf(writer, "]");
+	cgIdMutationChild(self->child, writer);
+}
+
+void cgDot(IdMutationDot* self, FILE* writer){
+	fprintf(writer, ".");
+	cgIdMutation(self->child, writer);
 }
 
 void cgExprs(Exprs* self, FILE* writer){
@@ -486,6 +503,7 @@ void cgStart(Repeatable* tree, FILE* writer){
 	fprintf(writer, "%s", GLOBALS);
 	fprintf(writer, "%s", GARBAGE_COLLECTION);
     fprintf(writer, "%s", PRINT);
+	fprintf(writer, "%s", EVENTS_INITIALIZERS);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
@@ -497,6 +515,10 @@ void cgStart(Repeatable* tree, FILE* writer){
     cgFuncs(funcsNode, writer);
     fprintf(writer, "\n");
     fprintf(writer, "%s", YABL_MAIN);
+	if(!SEEN_SETUP) fprintf(writer, "void setup(){}\n");
+	if(!SEEN_TURN ) fprintf(writer, "void turn(){}\n");
+	if(!SEEN_CLOSE) fprintf(writer, "void close(){}\n");
+
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
@@ -546,9 +568,9 @@ void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
 
 void cgPreambleBoard(PreambleBoard* self, FILE* writer){
     if(self != NULL){
-        fprintf(writer, "struct Tile BOARD[%d][%d];\n",self->width, self->height);
+        fprintf(writer, "struct Tile board[%d][%d];\n",self->width, self->height);
     }else{
-        fprintf(writer, "struct Tile BOARD[1][1];\n");
+        fprintf(writer, "struct Tile board[1][1];\n");
     }
 }
 
@@ -556,7 +578,8 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
     if(self != NULL){
         fprintf(writer, "struct Tile {");
         YABL_LIST_FOREACH(Initialization*, self->children, 
-            cgInitialization(foreach_value, writer); 
+			cgType(foreach_value->type, writer);
+			cgId(&foreach_value->variable, writer);
             fprintf(writer, ";");
         );
         fprintf(writer, "};\n");
@@ -630,12 +653,15 @@ void cgEvent(Event* self, FILE* writer){
     switch (self->eventType)
     {
     case event_setup:
+		SEEN_SETUP = 1;
         fprintf(writer, "setup()");
         break;
     case event_turn:
+		SEEN_TURN = 1;
         fprintf(writer, "turn()");
         break;
     case event_close:
+		SEEN_CLOSE = 1;
         fprintf(writer, "close()");
         break;
     default:
