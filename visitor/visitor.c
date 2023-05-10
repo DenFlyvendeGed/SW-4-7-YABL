@@ -36,13 +36,40 @@ Data* visitor(){
 void symbolTableAddKeywords(){
     prettyPrint("stdlip keywords: -----------------\n");
     symbolTablePush("input", createData(bt_text));
-    symbolTablePush("print", createData(bt_NULL));
+
+
+    Data* rtnType = createData(bt_NULL);
+    Data* args = createData(bt_text);
+    rtnType->list = args;
+    symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-    symbolTablePush("board", createData(bt_text));//<--- list list text
+    Data* list = createData(bt_list);
+    list->list = createData(bt_text);
+    
+    symbolTablePush("board", list );//<--- list list text
     symbolTablePush("currentPlayer", createData(bt_text));
 
     prettyPrint("------------------------------------\n");
+}
+
+Data* prototypeArgs(Args* self)
+{
+    //get args
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
+
+    FOREACH(Initialization*, self, 
+        Data* value = visitType(foreach_value->type);
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
+    )
+    rval = tcCopy(rval->list);
+
+    return rval;
 }
 
 void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
@@ -54,8 +81,16 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                 if(foreach_value->nonterminal==func){
                     char* key = visitId(foreach_value->name)->value;
                     Data* type = visitType(foreach_value->returntype);
-                    
-                    symbolTablePush(key, type); //might need to push args + return type
+                    //Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
+                    Data* args = prototypeArgs(foreach_value->args);
+                   
+
+                    type->list = args;
+                    if(symbolTableGetLocal(key) == NULL)
+                        symbolTablePush(key, type); //might need to push args + return type
+                    else{
+                        createError(ECnameSpaceClash);
+                    }
                 }
             )
         }
@@ -112,7 +147,24 @@ Data* visitPreamble(Preambles* self){
     {
         prettyPrint("Preamble");
     }
+    indent++;
+    switch(self->nonterminal)
+    {
+        case preambleTile:
+            visitPreambleTile(self);
+            break;
+        case preambleBoard:
+            visitPreambleBoard(self);
+            break;
+        case preamblePlayers:
+            visitPreamblePlayer(self);
+            break;
+        default:
+            return createError(ECoutOfRange);
 
+    }
+    indent++;
+    
     return tcAccept();
 }
 
@@ -165,13 +217,21 @@ Data* visitExprs(Exprs* self){
         return tcAccept();
     }
     indent++;
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
 	FOREACH(Expr*, self, 
 		Data* value = visitExpr(foreach_value);
 		if(value->errorCode != ECnoError) return value;
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
 		// return tcExpr(foreach_value, value);
 	)
+    rval = tcCopy(rval->list);
     indent--;
-    return tcAccept(); //<----
+    return rval; 
 }
 
 Data* visitStmts(Stmts* self){
@@ -187,7 +247,7 @@ Data* visitStmts(Stmts* self){
 		// return tcStmt(foreach_value, value);
 	)
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitScope(Scope* self, Data* returnType){
@@ -210,11 +270,11 @@ Data* visitScope(Scope* self, Data* returnType){
                 }
             }
         }  
-		// return tcAccept(); //<---
+		
 	)
     
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitArgs(Args* self){
@@ -223,15 +283,23 @@ Data* visitArgs(Args* self){
         prettyPrint("Args");
     }
     indent++;
+
+    Data* temp = malloc(sizeof(Data));
+    Data* temp2; // = createData(bt_unset);
+    Data* rval = temp;
+
     FOREACH(Initialization*, self, 
 		Data* value = visitInitialization(foreach_value);
-		// if(value->errorCode != ECnoError) return value;
-        //symbolTablePush(value->value, void *value)
-		// return tcExpr(foreach_value, value);
+        temp2 = tcCopy(value);
+        free(value);
+        temp->list = temp2;
+        temp = temp2;
 	)
+    rval = tcCopy(rval->list);
+    // free(temp);
     //visitExprs(self);
     indent--;
-    return tcAccept(); //<----
+    return rval; 
 }
 
 Data* visitFuncs(Funcs* self){
@@ -243,11 +311,9 @@ Data* visitFuncs(Funcs* self){
     // yablListSipleForeach(self->children, &visitFunc, 0);
     FOREACH(Func*, self, 
 		Data* value = visitFunc(foreach_value);
-		if(value->errorCode != ECnoError);
-        // tcAccept();//<---
 	)
     indent--;
-    return tcAccept(); //<----
+    return tcAccept(); 
 }
 
 Data* visitListConstant(ListConstant* self){
@@ -279,7 +345,11 @@ Data* visitPreambles(Preambles* self){
     {
         prettyPrint("Preambles");
     }
-
+    indent++;
+    FOREACH(Repeatable*, self, 
+        visitPreamble(foreach_value);
+    )
+    indent--;
     return tcAccept(); //<----
 }
 
@@ -322,6 +392,10 @@ Data*  visitExpr(Expr* self){
     case et_list:
         child = visitListConstant((ListConstant*)self->child);
         break;
+    case et_typecast:
+        child = visitTypeCast(self->child);
+        //<---
+        break;
     default:
         createError(ECoutOfRange);
         break;
@@ -330,6 +404,21 @@ Data*  visitExpr(Expr* self){
     self->extension = tcCopy(rval);
     free(child);
     indent--;
+    return rval;
+}
+
+Data* visitTypeCast(TypeCast* self){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("TypeCast");
+    }
+    indent++;
+    Data* expr = visitExpr(self->cast);
+    Data* type = visitType(self->type);
+
+    Data* rval = tcTypeCast(self, expr, type);
+    indent--;
+    free(expr);
     return rval;
 }
 
@@ -360,7 +449,7 @@ Data* visitStmt(Nonterminals* self){
     case expr:
         rtn =  visitExpr((Expr*)self);
         break;
-    case returnstmt: //<-----
+     case returnstmt: 
         rtn = visitReturnStmt((ReturnStmt*)self);
         break;
 	case breakstmt:
@@ -410,7 +499,7 @@ Data* visitFunc(Func* self){
 //--------------------------------------
 
 Data* visitIdMutation(IdMutation* self){
-    if(self == NULL){ //<-- might need fixes
+    if(self == NULL){ 
         return tcAccept();
     }
     if(PPRINTFLAG == 1)
@@ -534,7 +623,7 @@ Data* visitRepeat(Repeat* self){
         prettyPrint("Repeat");
     }
     indent++;
-
+    createSymbolTable();
     Data* rval;
     Data* loopHeader;
     switch (*(LoopType*)self->loopType)
@@ -563,11 +652,12 @@ Data* visitRepeat(Repeat* self){
     free(loopHeader);
     free(scope);
 
+    deleteSymbolTable();
     indent--;
     return rval;
 }
 
-//Mangler <-----
+
 Data* visitReturnStmt(ReturnStmt* self){
     if(PPRINTFLAG == 1)
     {
@@ -647,11 +737,11 @@ Data*  visitIdMutationCall(IdMutationCall* self){
     Data* rval;
  
     Data* child = visitIdMutationChild(self->child); //suptype
-    Data*  exprs = visitExprs(self->args);
+    Data*  args = visitExprs(self->args);
 
-    rval = tcIdMutationCall(self, child, exprs);
+    rval = tcIdMutationCall(self, child, args);
     free(child);
-    free(exprs);
+    free(args);
     
     indent--;
     return rval;
@@ -863,20 +953,63 @@ Data* visitVariable(Variable* self){
 }
 
 Data* visitPreambleBoard(PreambleBoard* self){
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Board");
+    }
+    indent++;
+    if(self->width >= 0 && self->height >= 0){
+        // symbolTablePush("Board", self);
+    }
+    else {
+        prettyPrint("Board dimensions must be over 0");
+        return createError(ECargumentExeption);
+    }
+
+    indent--;
     return tcAccept();
 }
 
-Data* visitPreambleTileItem(Type* self){
+Data* visitPreambleTileItem(Type* self){//<--- not used
     return tcAccept();
 }
 
-Data* visitPreambleTile(PreambleTile* self){ //<----
-	FOREACH(Type*, self, visitType(foreach_value);)
+Data* visitPreambleTile(PreambleTile* self){
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Tile");
+    }
+    indent++;
+    // char str[30];
+    // strcat(str, "tile.");
+    // strcat(str, ((Initialization*)self->children->item)->variable);
+    // free(((Initialization*)self->children->item)->variable);
+    // ((Initialization*)self->children->item)->variable = str;
+    FOREACH(Initialization*, self,
+        
+        char* str = malloc(sizeof(char[30]));
+        strcat(str, "tile.");
+        strcat(str, foreach_value->variable);
+        free(foreach_value->variable);
+        foreach_value->variable = str;
+        visitInitialization(foreach_value);
+    )
+    indent--;
     return tcAccept();
 }
 
-Data* visitPreamblePlayer(PreamblePlayers* self){ //<--
-    // yablListSimpleForeach(*self->ids, &visitId);
+Data* visitPreamblePlayer(PreamblePlayers* self){
+    //list of string with playernames.
+     if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Players");
+    }
+    indent++;
+    // symbolTablePush("Players", self);
+    FOREACH(Id, self,
+        visitId(foreach_value);
+    );
+    indent--;
     return tcAccept();
 }
 

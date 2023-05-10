@@ -1,10 +1,12 @@
 #include "../cfg/cfg.h"
 #include "code-generation.h"
 #include "../data-structures/list.h"
+#include "../data-structures/hashtable.h"
 #include "../data-structures/stack.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "./const-code/const-code.h"
 
 ////////////////////// EVENTS /////////////////////
@@ -354,14 +356,55 @@ void cgConstant(Constant* self, FILE* writer){
     
 }
 
-//Skal snakke med Simon
 void cgTypeCast(TypeCast* self, FILE* writer){
-    fprintf(writer, "(");
-    cgType(self->type, writer);
-    fprintf(writer, ")");
-
-    cgExpr(self->cast, writer);
+    switch (self->cast->extension->type)
+    {
+    case bt_number:
+        if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcNumberToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcNumberToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_number){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    case  bt_text:
+        if(self->type->typeval->type == bt_number){
+            fprintf(writer, "tcTextToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcTextToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    case bt_logic:
+        if(self->type->typeval->type == bt_number){
+            fprintf(writer, "tcLogicToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcLogicToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    default:
+        break;
+    }
 }
+
+
+
 
 int cgIsConstantString(Expr* s){
 	switch (s->exprType) {
@@ -435,14 +478,30 @@ void cgBinaryOperator(Expr* self, FILE* writer){
         cgExpr(bo->childExpr2, writer); 
         break;
     case bo_eq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " == ");
-        cgExpr(bo->childExpr2, writer); 
+         if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " == ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) == 0");
+        }
         break;
     case bo_neq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " != ");
-        cgExpr(bo->childExpr2, writer); 
+        if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " != ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) != 0");
+        }
         break;
     case bo_gt:
         cgExpr(bo->childExpr1, writer);
@@ -504,6 +563,7 @@ void cgStart(Repeatable* tree, FILE* writer){
 	fprintf(writer, "%s", GARBAGE_COLLECTION);
     fprintf(writer, "%s", PRINT);
 	fprintf(writer, "%s", EVENTS_INITIALIZERS);
+    fprintf(writer, "%s", TYPE_CAST);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);

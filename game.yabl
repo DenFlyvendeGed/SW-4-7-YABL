@@ -1,6 +1,6 @@
 !board 3x3
 !player "X" "O"
-
+!tile number str text name
 
 setup do
     //print("Welcome to Tic Tac Toe, YABL edition!");

@@ -55,7 +55,7 @@ Data* tcExpr(Expr* self, Data* child)
 
     }
     else {
-        return createData(child->type);
+        return tcCopy(child);
     }
 }
 
@@ -66,7 +66,7 @@ Data* tcStmt(Stmt* self, Data* child)
 Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     if(self == NULL)
         return createError(ECempty);
-    if(args->errorCode != ECnoError)
+    if(args != NULL && args->errorCode != ECnoError)
         return createError(args->errorCode);
     if(returntype->errorCode != ECnoError)
         return createError(returntype->errorCode);
@@ -89,7 +89,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
 
 Data* tcEvent(Event* self, Data* scope){ 
     if(self == NULL){
-        free(scope);
+        //free(scope); would most likely crash
         return createError(ECempty);
     }
         
@@ -207,6 +207,24 @@ Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){
 	return tcAccept();
 }
 
+Data* tcTypeCast(TypeCast* self, Data* expr, Data* type){
+    if(expr != NULL){
+
+        if(expr->errorCode != ECnoError)
+            return createError(expr->errorCode);
+    }
+    else
+        return createError(ECmissingChild);
+    if (type != NULL) {
+        if(type->errorCode != ECnoError)
+            return createError(expr->errorCode);
+    }
+    else{
+        return createError(ECmissingChild);
+    }
+    return type;
+}
+
 Data* tcAssign(Assign* self, Data* id, Data* expr){
     if(self == NULL)
         return createError(ECempty);
@@ -248,26 +266,27 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
     else if(type->errorCode != ECnoError)
         return createError(type->errorCode);
 
+    Data* var = symbolTableGetLocal(id->value);
     if(val != NULL){
         if(val->errorCode != ECnoError)
             return createError(type->errorCode);
 
         if(type->type != val->type)
             return createError(ECtypeExeption);
-        if(symbolTableGetLocal(id->value) == NULL)
+        if(var == NULL)
             symbolTablePush(id->value, tcCopy(val));
         else
             return createError(ECnameSpaceClash);
 
     }
     else {
-        if(symbolTableGetLocal(id->value) == NULL)
+        if(var == NULL)
             symbolTablePush(id->value, tcCopy(type));
         else
             return createError(ECnameSpaceClash);
     }
-    
-    return type;
+    free(var);
+    return tcCopy(type);
 }
 Data* tcType(Type* self, Data* typeVal){ //might not be needed
     if(typeVal== NULL)
@@ -275,26 +294,52 @@ Data* tcType(Type* self, Data* typeVal){ //might not be needed
     return typeVal;
 }
 
+Data* tcCmpArgs(Data* list1, Data* list2){
+    Data* rval;
+    if(list1 != NULL && list2 != NULL){
+        if(list1->type == list2->type){
+            rval = tcCmpArgs(list1->list, list2->list);
+        }
+    }
+    else{
+        if(list1 == NULL ^ list2 == NULL){
+            return createError(ECargumentExeption);
+        }
+        return tcAccept();
+    }
+    return rval;
+}
+
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
     if(self == NULL)
         return createError(ECempty);
     if(id->errorCode != ECnoError)
         return createError(id->errorCode);
-    if(child != NULL && child->errorCode != ECnoError){
+
+    Data* var = symbolTableGet((id->value));
+
+    if(self->child != NULL){
         switch (*((IdMutations*)self->child)) {
+             case im_call:
+                Data* args = var->list;
+                tcCmpArgs(args, child);
+                break;
+
             case im_none:
             case im_value:
                 break;
             case im_dot:
-            case im_call:
             case im_index:
+                if(var->type != bt_list)
+                    return createError(ECtypeExeption);
                 if(child == NULL)
                     return createError(ECmissingChild);
+                var->type = tcListTypeCheck(var)->type;
                 break;
         }
-        return createError(child->errorCode);
     }
-    Data* rval = symbolTableGet((id->value));
+    Data* rval = var;
+    // tcListTypeCheck(rval);
     
     return rval; 
 }
@@ -321,10 +366,10 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
         prettyPrint("IdMutationCall");
         return createError(idMutation->errorCode);
     }
-    if(args->errorCode != ECnoError)
+    if(args != NULL && args->errorCode != ECnoError)
         return createError(args->errorCode);
 
-    return tcAccept();
+    return tcCopy(args);
 }
 Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 {
@@ -346,13 +391,13 @@ Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
 
 Data* tcListTypeCheck(Data* list){
     Data* rval;
-     if(list->type == bt_list){
-        return createData(bt_number); //<---- fix list læst fra expr først
-        rval = tcListTypeCheck(list->list);
-     }
-     else{
+
+    if(list->type == bt_list){
+       rval = tcListTypeCheck(list->list);
+    }
+    else{
         return list;
-     }
+    }
     return rval;
 }
 
@@ -554,13 +599,17 @@ Data* tcAccept()
 }
 
 Data* tcCopy(Data*in){
-    Data* d = malloc(sizeof(Data));
-    d->errorCode = in->errorCode;
-    // d->nonterminal = in->nonterminal;
-    d->type = in->type;
-    d->value = in->value;
-    d->list = in->list;
-    return d;
+    if(in != NULL){
+
+        Data* d = malloc(sizeof(Data));
+        d->errorCode = in->errorCode;
+        // d->nonterminal = in->nonterminal;
+        d->type = in->type;
+        d->value = in->value;
+        d->list = in->list;
+        return d;
+    }
+    return NULL;
 }
 
 Data* tcValue(void* val){
@@ -575,7 +624,7 @@ Data* tcValue(void* val){
 //Symbol table setup
 
 int stringHash(char* string){
-    return (int)(strlen(string) % 5);
+    return (int)(strlen(string) % 10);
 }
 int stringcompare(char* s1, char* s2){
     return strcmp(s1, s2) == 0;

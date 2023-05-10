@@ -34,7 +34,7 @@ CONST_CODE_FILES := \
 	./code-generation/const-code/string.c \
 	./code-generation/const-code/globals.c \
 	./code-generation/const-code/events_initializers.c \
-	./code-generation/const-code/garbage_collection.c
+	./code-generation/const-code/type_cast.c
 	
 
 $(DESTINATION):
@@ -73,7 +73,7 @@ $(DESTINATION)/lex.yy.parse.o : $(DESTINATION)/lex.yy.c
 	gcc -c -o $@ $^ $(CFLAGS)
 
 ./code-generation/const-code/const-code.c : $(CONST_CODE_FILES)
-	./code-generation/const-code/run.py $^
+	python ./code-generation/const-code/run.py $^
 	
 $(DESTINATION)/%.o : %.c $(DESTINATION)/cfg.tab.parse.o $(DESTINATION)/lex.yy.parse.o ./code-generation/const-code/const-code.c
 	gcc -c -o $@ $< $(CFLAGS)
