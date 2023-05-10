@@ -339,7 +339,6 @@ void cgConstant(Constant* self, FILE* writer){
     
 }
 
-//Skal snakke med Simon
 void cgTypeCast(TypeCast* self, FILE* writer){
     switch (self->cast->extension->type)
     {
@@ -462,14 +461,30 @@ void cgBinaryOperator(Expr* self, FILE* writer){
         cgExpr(bo->childExpr2, writer); 
         break;
     case bo_eq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " == ");
-        cgExpr(bo->childExpr2, writer); 
+         if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " == ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) == 0");
+        }
         break;
     case bo_neq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " != ");
-        cgExpr(bo->childExpr2, writer); 
+        if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " != ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) != 0");
+        }
         break;
     case bo_gt:
         cgExpr(bo->childExpr1, writer);
