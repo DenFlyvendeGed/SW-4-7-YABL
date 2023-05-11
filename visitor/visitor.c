@@ -1,1075 +1,706 @@
-#include "visitor.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+int TYPE_CHECKER_ERROR_COUNT;
 
-#define PPRINTFLAG 1
+#include "typeChecker.h"
 
-#define FOREACH(T, X, E){\
-	YablList _l = X->children;\
-	if(_l->item != NULL) for(; _l != NULL; _l = _l->next){\
-		T foreach_value = _l->item;\
-		E\
-	}\
-}
+Data* tcPreamble(Preambles* self);
 
-int indent = 0;
-YablHash* SYMBOL_TABLE ;
+//List
+// Data* tcRepeatable(Repeatable* self)  //return child
+// {
+
+// }
 
 
-void pIndent(){
-    for(int i=1; i<=indent; i++){
-        printf("|   ");
-    }
-}
-void prettyPrint(char string[]){
-    pIndent();
-    printf("%s\n", string);
-}
-
-//Visitor function
-Data* visitor(){
-	return tcAccept();
-}
-
-void symbolTableAddKeywords(){
-    prettyPrint("stdlip keywords: -----------------\n");
-    symbolTablePush("input", createData(bt_text));
 
 
-    Data* rtnType = createData(bt_NULL);
-    Data* args = createData(bt_text);
-    rtnType->list = args;
-    symbolTablePush("print", rtnType);
-    symbolTablePush("quit", createData(bt_NULL));
+Data* tcExprs(Exprs* self);
+Data* tcStmts(Stmts* self);
+Data* tcScope(Scope* self);
+Data* tcArgs(Args* self);
+Data* tcFuncs(Funcs* self);
+Data* tcListConstant(ListConstant* self);
+Data* tcPreambles(Preambles* self);
 
-    Data* list = createData(bt_list);
-    list->list = createData(bt_list);
-    Data* tileType = createData(bt_custom);
-    tileType->value = "tile";
-    ((Data*)list->list)->list = tileType; //<---
-    
-    symbolTablePush("board", list );//<--- list list tile
-    symbolTablePush("currentPlayer", createData(bt_text));
 
-    prettyPrint("------------------------------------\n");
-}
-
-Data* prototypeArgs(Args* self)
+Data* tcExpr(Expr* self, Data* child)
 {
-    //get args
-    Data* temp = malloc(sizeof(Data));
-    Data* temp2; // = createData(bt_unset);
-    Data* rval = temp;
+    if(self == NULL)
+        return createError(ECempty);
+    if(child->errorCode == ECempty) {
+        return createError(ECmissingChild); 
+    } 
+    // if(self->nonterminal == listConstant){ //Exprs seem to return bt_number
 
-    FOREACH(Initialization*, self, 
-        Data* value = visitType(foreach_value->type);
-        temp2 = tcCopy(value);
-        free(value);
-        temp->list = temp2;
-        temp = temp2;
-    )
-    rval = tcCopy(rval->list);
-
-    return rval;
-}
-
-void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
-    
-    prettyPrint("Prototypes: -------------------\n");
-    FOREACH(Repeatable*, self, 
-        if(foreach_value->nonterminal == funcs){
-            FOREACH(Func*, foreach_value,
-                if(foreach_value->nonterminal==func){
-                    char* key = visitId(foreach_value->name)->value;
-                    Data* type = visitType(foreach_value->returntype);
-                    //Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
-                    Data* args = prototypeArgs(foreach_value->args);
-                   
-                    if(strcmp(key, "gettoken")== 0){
-                        Data* tmp = createData(bt_number);
-                        Data* tmp2 = createData(bt_number);
-                        tmp->list=tmp2;
-                        if(type->type != bt_text && tcCmpArgs(args, tmp) != ECnoError){
-                            printf("Illegal instance of gettoken\n");
-                            free(tmp);
-                            free(tmp2);
-                            free(createError(ECnameSpaceClash));
-                            return ;   
-
-                        }
-                        free(tmp);
-                            free(tmp2);
-                    }
-                    type->list = args;
-                    if(symbolTableGetLocal(key) == NULL)
-                        symbolTablePush(key, type); //might need to push args + return type
-                    else{
-                        createError(ECnameSpaceClash);
-                    }
-                }
-            )
-        }
-    )
-    prettyPrint("--------------------------------\n");
-}
-
-//Visit function
-int visit(Repeatable* self){ //Start <----
-    if(self == NULL){
-
-        printf("No AST\n");
-        return 1;
-    }
-    //innit outersymbolTable
-    SYMBOL_TABLE = malloc(sizeof(YablHash));
-    *SYMBOL_TABLE = yablHashCreate(HASHLISTLENGTH, &stringHash);
-    symbolTableAddKeywords();
-    symbolTablePrototypes(self);
-    // if(PPRINTFLAG == 1)
-    // {
-    //     prettyPrint("start");
     // }
-    // indent++;
-    // visitPreamble(self->preamble);
-    visitRepeatable(self);
-    // indent--;
-    printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
-    return TYPE_CHECKER_ERROR_COUNT;
-}
-
-Data* visitStart(Repeatable* self){
-    if(PPRINTFLAG == 1)
+    if(self->exprType == et_constant)
     {
-        prettyPrint("start");
-    }
-    indent++;
-
-    FOREACH(Repeatable*, self, 
-		Data* value = visitRepeatable(foreach_value);
-		// if(value->errorCode != ECnoError) return value;
-	)
-    //visitRepeatable(self->children);
-    indent--;
-    //printf("Error Count: %d\n", TYPE_CHECKER_ERROR_COUNT);
-    return self;
-}
-
-//--------------------------------------
-
-//Mangler
-Data* visitPreamble(Preambles* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Preamble");
-    }
-    indent++;
-    switch(self->nonterminal)
-    {
-        case preambleTile:
-            visitPreambleTile(self);
-            break;
-        case preambleBoard:
-            visitPreambleBoard(self);
-            break;
-        case preamblePlayers:
-            visitPreamblePlayer(self);
-            break;
-
-        case preambleGlobals:
-            visitPreambleGlobal(self);
-        default:
-            return createError(ECoutOfRange);
-
-    }
-    indent--;
-    
-    return tcAccept();
-}
-
-Data* visitRepeatable(Repeatable* self){
-    // if(PPRINTFLAG == 1)
-    // {
-    //     prettyPrint("Repeatable");
-    // }
-    // indent++;
-    Data* rtn;
-    switch (self->nonterminal)
-    {
-        
-    case exprs:
-        rtn = visitExprs(self);
-        break;
-    case stmts:
-        rtn =  visitStmts(self);
-        break;
-    case scope:
-        rtn =  visitScope(self, NULL);
-        break;
-    case args:
-        rtn =  visitArgs(self);
-        break;
-    case funcs:
-        rtn =  visitFuncs(self);
-        break;
-    case preambles:
-        rtn =  visitPreambles(self);
-        break;
-    case start:
-        rtn = visitStart(self);
-        break;
-    default:
-        rtn = createError(ECoutOfRange);
-        break;
-    }
-    // indent--;
-	return rtn;
-}
-
-Data* visitExprs(Exprs* self){
-    
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Exprs");
-    }
-    if(self == NULL){
-        return tcAccept();
-    }
-    indent++;
-    Data* temp = malloc(sizeof(Data));
-    Data* temp2; // = createData(bt_unset);
-    Data* rval = temp;
-	FOREACH(Expr*, self, 
-		Data* value = visitExpr(foreach_value);
-		if(value->errorCode != ECnoError) return value;
-        temp2 = tcCopy(value);
-        free(value);
-        temp->list = temp2;
-        temp = temp2;
-		// return tcExpr(foreach_value, value);
-	)
-    rval = tcCopy(rval->list);
-    indent--;
-    return rval; 
-}
-
-Data* visitStmts(Stmts* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Stmts");
-    }
-    indent++;
-    // yablListSimpleForeach(self->children, &visitStmt);
-    FOREACH(Stmt*, self, 
-		Data* value = visitStmt(foreach_value);
-		if(value->errorCode != ECnoError) return value;
-		// return tcStmt(foreach_value, value);
-	)
-    indent--;
-    return tcAccept(); 
-}
-
-Data* visitScope(Scope* self, Data* returnType){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Scope");
-    }
-    indent++;
-    
-	// YablList l = self->children;
-	
-    // yablListSipleForeach(self->children, &visitStmt, 0);
-    FOREACH(Stmt*, self, 
-		Data* value = visitStmt(foreach_value);
-		if(*(Nonterminals*)foreach_value == returnstmt){//check returnstmt against returnType
-            if(returnType != NULL ){
-                if(value->type != returnType->type){ //currently dosent work against id's
-                    printf("invalid return type: (scope)%i, (expected)%i", value->type, returnType->type);
-                    createError(ECtypeExeption);
-                }
-            }
-        }  
-		
-	)
-    
-    indent--;
-    return tcAccept(); 
-}
-
-Data* visitArgs(Args* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Args");
-    }
-    indent++;
-
-    Data* temp = malloc(sizeof(Data));
-    Data* temp2; // = createData(bt_unset);
-    Data* rval = temp;
-
-    FOREACH(Initialization*, self, 
-		Data* value = visitInitialization(foreach_value);
-        temp2 = tcCopy(value);
-        free(value);
-        temp->list = temp2;
-        temp = temp2;
-	)
-    rval = tcCopy(rval->list);
-    // free(temp);
-    //visitExprs(self);
-    indent--;
-    return rval; 
-}
-
-Data* visitFuncs(Funcs* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Funcs");
-    }
-    indent++;
-    // yablListSipleForeach(self->children, &visitFunc, 0);
-    FOREACH(Func*, self, 
-		Data* value = visitFunc(foreach_value);
-	)
-    indent--;
-    return tcAccept(); 
-}
-
-Data* visitListConstant(ListConstant* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("List");
-    }
-    indent++;
-    Data* type = createData(bt_unset);
-    // visitExprs(self);
-    FOREACH(Expr*, self->exprs, 
-		Data* value = visitExpr(foreach_value);
-        if(value->errorCode != ECnoError) return createError(value->errorCode);
-		if(value->type == type->type){
+        Constant* child = self->child;
+        if(child->value == NULL)   
+            return createError(ECtypeExeption);
+            
+        switch (child->typeDcl) {
+            case td_logic:            
+                    return createData((BasicTypes)bt_logic);
+                break;
+            case td_number:
+                    return createData((BasicTypes)bt_number);
+                break;
+            case td_text:
+                    return createData((BasicTypes)bt_text); //<--- check om det er en streng?
+                
+                break;
+            default:
+                return createError(ECoutOfRange);
         }
-        else if(type->type == bt_unset)
-        {
-            type->type = value->type;
-        }
-	)
 
-    indent--;
-    return createList(type);
-}
-
-//Mangler
-Data* visitPreambles(Preambles* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Preambles");
-    }
-    indent++;
-    FOREACH(Repeatable*, self, 
-        visitPreamble(foreach_value);
-    )
-    indent--;
-    return tcAccept(); //<----
-}
-
-//--------------------------------------
-
-Data*  visitExpr(Expr* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Expr");
-    }
-    indent++;
-
-    Data* child;
-    Data* rval;
-    if(self == NULL){
-        indent--;
-        return NULL;
-    }
-    switch (self->exprType)
-    {
-    case et_constant:
-        child = tcAccept();       
-        break;
-    case et_id_mutation:
-        child = visitIdMutation(self->child);
-        break;
-    case et_unary_operator:
-        child = visitUnaryop(self->child);
-        break;
-    case et_binary_operator:
-        child = visitBinaryOp(self->child);
-        break;
-    case et_expression:
-        child = visitExpr(self->child);
-        break;
-    case et_list:
-        child = visitListConstant((ListConstant*)self->child);
-        break;
-    case et_typecast:
-        child = visitTypeCast(self->child);
-        break;
-    default:
-        return createError(ECoutOfRange);
-        break;
-    }
-    rval = tcExpr(self, child);
-    self->extension = tcCopy(rval);
-    free(child);
-    indent--;
-    return rval;
-}
-
-Data* visitTypeCast(TypeCast* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("TypeCast");
-    }
-    indent++;
-    Data* expr = visitExpr(self->cast);
-    Data* type = visitType(self->type);
-
-    Data* rval = tcTypeCast(self, expr, type);
-    indent--;
-    free(expr);
-    return rval;
-}
-
-Data* visitStmt(Nonterminals* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Stmt");
-    }
-    indent++;
-    Data* rtn;
-    switch (*self)
-    {
-    case assign:
-        rtn =  visitAssign((Assign*)self);
-        break;
-    case ifstmt:
-        rtn =  visitIfStmt((IfStmt*)self);
-        break;
-    case repeatstmt:
-        rtn =  visitRepeat((Repeat*)self);
-        break;
-    case initialization:
-        rtn =  visitInitialization((Initialization*)self);
-        break;
-    case scope:
-        rtn =  visitScope((Scope*)self, NULL);
-        break;
-    case expr:
-        rtn =  visitExpr((Expr*)self);
-        break;
-     case returnstmt: 
-        rtn = visitReturnStmt((ReturnStmt*)self);
-        break;
-    default:
-        return createError(ECoutOfRange);
-        break;
-    }
-    indent--;
-    return rtn;
-}
-
-Data* visitFunc(Func* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Func");
-    }
-    createSymbolTable();
-    indent++;
-    Data* rval;
-    switch (self->nonterminal){
-		case func:;
-            Data* id = visitId(self->name);
-			Data* args = visitArgs(self->args);
-			Data* returnType = visitType(self->returntype);
-			Data* scope = visitScope(self->scope, returnType); //check returnstmt against returntype
-			
-			rval = tcFunc(self, args, returnType, scope, id);
-			free(args);
-			//free(returnType);
-			free(scope);
-			free(id);
-			break;
-		case event:
-			rval = visitEvent((Event*)self);
-			break;
-		default:
-			return createError(ECoutOfRange);
-			break;
-    }
-    indent--;
-    deleteSymbolTable();
-    return rval;
-}
-
-//--------------------------------------
-
-Data* visitIdMutation(IdMutation* self){
-    if(self == NULL){ 
-        return tcAccept();
-    }
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("IdMutation");
-    }
-    indent++;
-    
-
-    Data* id = visitId(self->name);
-    Data* child;
-    Data* rval;
-    if(self->child!= NULL){
-        switch (*(IdMutations*)(self->child))
-        {
-        case im_none:
-            break;
-        case im_dot:
-            child = visitIdMutationDot(self->child, id->value); // <--
-            break;
-        case im_call:
-            child = visitIdMutationCall(self->child);
-            break;
-        case im_index:
-            char temp[40] = "index";
-            strcat(temp, id->value);
-            Data* data = symbolTableGet(id->value);
-            symbolTablePush(temp, data); //save local instance 
-            child = visitIdMutationIndex(self->child, temp);
-            break;
-        default:
-            createError(ECoutOfRange);
-            break;
-
-        }
-    }
-    else{
-        child = tcAccept();
-    }
-    
-    rval = tcIdMutation(self, child, id);
-    if(PPRINTFLAG == 1)
-    {
-        free(createData(rval->type));
-    }
-    free(child);
-    free(id);
-    indent--;
-    return rval;
-}
-
-Data* visitUnaryop(UnaryOperator* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Unaryop");
-    }
-    indent++;
-    Data* rval;
-    Data* expr = visitExpr(self->childExpr);
-
-    rval = tcUnaryop(self, expr);
-    free(expr);
-    indent--;
-    return rval;
-}
-
-Data* visitBinaryOp(BinaryOperator* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("BinaryOp");
-    }
-    indent++;
-    Data* rval;
-    Data* child1 = visitExpr(self->childExpr1);
-    Data* child2 = visitExpr(self->childExpr2);
-    
-
-    rval = tcBinaryOp(self, child1, child2);
-    free(child1);
-    free(child2);
-
-    indent--;
-    return rval;
-}
-
-Data* visitAssign(Assign* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Assign");
-    }
-    indent++;
-    Data* rval;
-    Data* id = visitIdMutation(self->variable);
-    Data* expr = visitExpr(self->expression);
-
-    rval = tcAssign(self, id, expr);
-
-    free(id);
-    free(expr);
-
-    indent--;
-    return rval;
-}
-
-Data* visitIfStmt(IfStmt* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("IfStmt");
-    }
-    indent++;
-    Data* rval;
-    Data* expr = visitExpr(self->condition);
-    Data* scope1 = visitScope(self->then, NULL);
-    Data* scope2 = visitScope(self->elsestmt, NULL);
-
-
-    rval = tcIfStmt(self, expr, scope1, scope2);
-    free(expr);
-    free(scope1);
-    free(scope2);
-
-    indent--;
-    return rval;
-}
-
-Data* visitRepeat(Repeat* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Repeat");
-    }
-    indent++;
-    createSymbolTable();
-    Data* rval;
-    Data* loopHeader;
-    switch (*(LoopType*)self->loopType)
-    {
-    case lt_timesloop:
-        loopHeader = visitTimesLoop(self->loopType);
-        break;
-    case lt_forloop:
-        loopHeader = visitForLoop(self->loopType);
-        break;
-    case lt_whileloop:
-        loopHeader = visitWhileLoop(self->loopType);
-        break;
-    case lt_repeatloop:
-        loopHeader = visitRepeatLoop(self->loopType);
-        
-        break;
-    
-    default:
-        loopHeader = createError(ECoutOfRange);
-        break;
-    }
-    Data* scope = visitScope(self->scope,NULL);
-
-    rval = tcRepeat(self, loopHeader, scope);
-    free(loopHeader);
-    free(scope);
-
-    deleteSymbolTable();
-    indent--;
-    return rval;
-}
-
-
-Data* visitReturnStmt(ReturnStmt* self){
-    if(PPRINTFLAG == 1)
-    {
-    prettyPrint("returnstmt");
-    }
-    Data* rtn = visitExpr(self->expr);
-    return rtn;
-}
-
-Data* visitInitialization(Initialization* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Initialization");
-    }
-    
-    indent++;
-    Data* rval;
-    Data* id = visitId(self->variable);
-    Data* type = visitType(self->type);
-    Data* val = visitExpr(self->initialValue);
-    
-
-    rval = tcInitialization(self,id, type, val);
-    free(type);
-    free(val);
-    indent--;
-    return rval;
-}
-
-Data* visitType(Type* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Type");
-    }
-    indent++;
-    Data* rval;
-    Data* type = NULL;
-    if(self != NULL){
-        type = visitTypeValue(self->typeval);
-    }
-
-    rval = tcType(self, type); //returns type
-    // free(type);
-
-    indent--;
-    return rval;
-}
-
-//--------------------------------------
-
-Data*  visitIdMutationDot(IdMutationDot* self, Id id){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("IdMutationDot");
-    }
-    indent++;
-    Data* rval;
-    Data* type;
-    if(strstr(id, "index") != NULL){
-        type = symbolTableGet(id);
-        id += 5;
-    }
-    else{
-        type = symbolTableGet(id);
-    }
-    
-    if(type->type == bt_custom){
-        char customType[30];
-        strcpy(customType,type->value);
-        id = strcat(customType, ".");
-    }
-    else{
-        id = strcat(id, ".");
-    }
-    self->child->name = strcat(id, self->child->name);
-
-
-    //Data* name = visitId(NULL);
-    Data* child = visitIdMutation(self->child);
-
-    rval = tcIdMutationDot(self, child);
-    //free(name);
-    free(child);
-
-    indent--;
-    return rval;
-}
-
-Data*  visitIdMutationCall(IdMutationCall* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("IdMutationCall");
-    }
-    indent++;
-
-    Data* rval;
- 
-    Data* child = visitIdMutationChild(self->child, NULL); //suptype
-    Data*  args = visitExprs(self->args);
-
-    rval = tcIdMutationCall(self, child, args);
-    free(child);
-    free(args);
-    
-    indent--;
-    return rval;
-}   
-
-Data* visitIdMutationIndex(IdMutationIndex* self, Id id){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("IdMutationIndex");
-    }
-    indent++;
-    Data* rval;
-
-    Data* type = symbolTableGet(id);
-    Data* typeCopy = tcCopy(type);
-
-    symbolTablePush(id, type->list);
-
-    Data* expr = visitExpr(self->index);
-    Data* child = visitIdMutationChild(self->child, id); // suptype
-
-    rval = tcIdMutationIndex(self, expr, child, typeCopy);
-    free(type);
-    free(typeCopy);
-    free(expr);
-    free(child);
-
-    indent--;
-    return rval;
-}
-
-Data* visitIdMutationChild(IdMutations* self, Id id){
-    if(self == NULL)    return tcAccept();
-    Data* rval;
-    switch (*self) {
-
-    
-    case im_dot:
-        rval = visitIdMutationDot((IdMutationDot*)self, id);
-        break;
-    case im_call:
-        rval = visitIdMutationCall((IdMutationCall*)self);
-        break;
-    case im_index:
-        rval = visitIdMutationIndex((IdMutationIndex*)self, id);
-        break;
-    case im_none:
-    case im_value:
-        rval = tcAccept();
-        break;
-    default:
-        rval = createError(ECoutOfRange);
-    }
-
-    return rval;
-}
-
-Data* visitTimesLoop(TimesLoop* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("TimesLoop");
-    }
-    indent++;
-    Data* rval;
-    Data* goalExpr = visitExpr(self->goal);
-
-    rval = tcTimesLoop(self, goalExpr);
-    free(goalExpr);
-
-    indent--;
-    return rval;
-}
-
-Data* visitForLoop(ForLoop* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("ForLoop");
-    }
-    indent++;
-    Data* rval;
-    Data* id = visitId(NULL);
-
-    rval = tcForLoop(self, id);
-    free(id);
-
-    indent--;
-    return rval;
-}
-
-Data* visitWhileLoop(WhileLoop* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("WhileLoop");
-    }
-    indent++;
-    Data* rval;
-    Data* expr = visitExpr(self->condition);
-
-    rval = tcWhileLoop(self, expr);
-    free(expr);
-
-    indent--;
-    return rval;
-}
-
-Data* visitRepeatLoop(RepeatLoop* self){ // <--
-
-    return tcRepeatLoop(self);
-}
-
-Data* visitTypeValue(TypeValue* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("TypeValue");
-    }
-    indent++;
-    Data* rval;
-
-    switch (self->type) {
-
-    case bt_NULL:
-    case bt_number:
-    case bt_text:
-    case bt_logic:  
-    case bt_unset:
-        rval = createData(self->type);
-        break;
-    case bt_list:
-        rval = createList(visitType(self->list));
-        break;
-    default:
-        createError(ECoutOfRange);
-    }
-
-
-    indent--;
-    return rval;
-}
-
-//--------------------------------------
-
-//mangler
-Data* visitId(Id self){ //<--- check imod reserved
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Id");
-    }
-    
-    return tcId(self);
-}
-Data* visitBasicType(BasicTypes* self){ //det er en enum <---
-    switch (*self)
-    {
-    case bt_number:
-        visitTypeDCL(self);
-        break;
-    case bt_text:
-        visitTypeDCL(self);
-        break;
-    case bt_logic:
-        visitTypeDCL(self);
-        break;
-    default:
-        break;
-    }
-}
-Data* visitTypeDCL(Type* self){ //<-does nothing
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("TypeDCL");
-    }
-    indent++;
-    // Data* rval;
-    // Data* tval = visitTypeValue(self->typeval);
-
-    // rval = tcTypeDCL(self, tval);
-    // free(tval);
-
-    indent--;
-    return tcAccept();
-    // return rval;
-}
-
-Data* visitEvent(Event* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Event");
-    }
-    Data* test = symbolTableGet("board"); // <---
-    indent++;
-    Data* rval;
-
-    Data* scope = visitScope(self->scope, NULL);
-    rval = tcEvent(self, scope);
-    // free(scope);
-
-    indent--;
-    return rval;
-}
-
-Data* visitVariable(Variable* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Variable");
-    }
-    indent++;
-    Data* rval;
-    Data* id = visitId(&self->name);
-    Data* type = visitType(self->type);
-
-    rval = tcVariable(self, type, id);
-    free(id);
-    free(type);
-
-    indent--;
-    return rval;
-}
-
-Data* visitPreambleBoard(PreambleBoard* self){
-     if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Board");
-    }
-    indent++;
-    if(self->width >= 0 && self->height >= 0){
-        // symbolTablePush("Board", self);
     }
     else {
-        prettyPrint("Board dimensions must be over 0");
+        return tcCopy(child);
+    }
+}
+
+Data* tcStmt(Stmt* self, Data* child)
+{
+    return tcAccept();
+}
+Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
+    if(self == NULL)
+        return createError(ECempty);
+    if(args != NULL && args->errorCode != ECnoError)
+        return createError(args->errorCode);
+    if(returntype->errorCode != ECnoError)
+        return createError(returntype->errorCode);
+    if(scope->errorCode != ECnoError)
+        return createError(scope->errorCode);
+    if(id->errorCode != ECnoError)
+        return createError(id->errorCode);
+    
+    
+    //check scope and args id's match? <--------
+
+    //return type is checked in the scope
+    // if(returntype->type != scope->type)
+    // {
+    //     return createError(ECtypeExeption);
+    // }
+
+    return tcCopy(returntype);
+}
+
+Data* tcEvent(Event* self, Data* scope){ 
+    if(self == NULL){
+        //free(scope); would most likely crash
+        return createError(ECempty);
+    }
+        
+
+
+    return tcCopy(scope);
+}
+
+Data* tcUnaryop(UnaryOperator* self, Data* expr)
+{
+    if(self == NULL)
+        return createError(ECempty);
+     if(self->uo != 0){
+        return createError(ECoutOfRange);
+    }
+
+    return  tcCopy(expr);
+}
+Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){
+    if(self == NULL)
+        return createError(ECempty);
+    if(self->bo < 0 || self->bo > 13)
+    {
+        return createError(ECoutOfRange);
+    }
+
+    //2 exprs
+    if(self->childExpr1 != NULL && self->childExpr2 != NULL)
+    {
+        //logic + logic
+        if(expr1->type == bt_logic && expr2->type == bt_logic){
+            switch (self->bo) {
+                //returns logic
+                case bo_eq:
+                case bo_neq:
+                // case bo_gt:
+                // case bo_gteq: 
+                // case bo_lt:
+                // case bo_lteq:
+                case bo_and:
+                case bo_or:
+                    return createData(bt_logic);
+                    //return createData(logic, void *value);
+                    break;
+
+                default:
+                    return createError(ECtypeExeption);
+                    //error
+                    break;
+            }
+        }
+        //number + number
+        if(expr1->type == bt_number && expr2->type == bt_number){
+            switch (self->bo) {
+                //returns number
+                case bo_plus:
+                case bo_minus:
+                case bo_division:
+                case bo_mul:
+                case bo_modulus:
+                    return createData(bt_number);
+                    break;
+
+                //returns logic
+                case bo_eq:
+                case bo_neq:
+                case bo_gt:
+                case bo_gteq:
+                case bo_lt:
+                case bo_lteq:
+                    return createData(bt_logic);
+                    break;
+
+                default:
+                    return createError(ECoutOfRange);
+                    //error
+                    break;
+            }
+        }
+        //text + text
+        if(expr1->type == bt_text && expr2->type == bt_text){
+            switch (self->bo) {
+                //returns text
+                case bo_plus:
+                    return createData(bt_text);
+                    break;
+
+                //returns logic
+                case bo_eq:
+                case bo_neq:
+                    return createData(bt_logic);
+                    break;
+
+                //returns logic based on length ? <-----
+                case bo_gt:
+                case bo_lt:
+                case bo_gteq:
+                case bo_lteq:
+
+                default:
+                    return createError(ECoutOfRange);
+                    break;
+            }
+        }
+        else {
+            return createError(ECtypeExeption);
+        }
+    }
+    else
+    {
         return createError(ECargumentExeption);
     }
 
-    indent--;
-    return tcAccept();
+	return tcAccept();
 }
 
-Data* visitPreambleTileItem(Type* self){//<--- not used
-    return tcAccept();
-}
+Data* tcTypeCast(TypeCast* self, Data* expr, Data* type){
+    if(expr != NULL){
 
-Data* visitPreambleGlobal(Repeatable* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Globals");
+        if(expr->errorCode != ECnoError)
+            return createError(expr->errorCode);
     }
-    indent++;
-    FOREACH(Initialization*, self,
-        visitInitialization(foreach_value);
-    )
-    indent--;
-    return tcAccept();
+    else
+        return createError(ECmissingChild);
+    if (type != NULL) {
+        if(type->errorCode != ECnoError)
+            return createError(expr->errorCode);
+    }
+    else{
+        return createError(ECmissingChild);
+    }
+    return tcCopy(type);
 }
 
-Data* visitPreambleTile(PreambleTile* self){
-    if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Tile");
+Data* tcAssign(Assign* self, Data* id, Data* expr){
+    if(self == NULL)
+        return createError(ECempty);
+    if(id->errorCode !=ECnoError)
+        return createError(id->errorCode);
+    if(expr->errorCode !=ECnoError)
+        return createError(expr->errorCode);
+    if(id->type != expr->type){
+        prettyPrint("Attempting to assign new type to variable");
+        return createError(ECtypeExeption);
     }
-    indent++;
-    // char str[30];
-    // strcat(str, "tile.");
-    // strcat(str, ((Initialization*)self->children->item)->variable);
-    // free(((Initialization*)self->children->item)->variable);
-    // ((Initialization*)self->children->item)->variable = str;
-    FOREACH(Initialization*, self,
+    Data* rval = createData(id->type);
+	return rval;
+}
+Data* tcIfStmt(IfStmt* self, Data* condition, Data* thenScope, Data* elseScope){
+    if(self == NULL)
+        return createError(ECempty);
+    if(condition->errorCode != ECnoError)
+        return createError(condition->errorCode);
+    if(thenScope->errorCode != ECnoError)
+        return createError(thenScope->errorCode);
+    if(elseScope->errorCode != ECnoError)
+        return createError(elseScope->errorCode);
+
+    if(condition->type != bt_logic){
+        prettyPrint("If condition must return logic");
+        return createError(ECtypeExeption);
+    }
+    int a = 5;
+	return tcAccept();
+}   
+
+//Data* tcReturnStmt(self);
+Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ //might not be needed
+    if(self == NULL){
+        return createError(ECempty);
         
-        char* str = malloc(sizeof(char[30]));
-        strcat(str, "tile.");
-        strcat(str, foreach_value->variable);
-        free(foreach_value->variable);
-        foreach_value->variable = str;
-        visitInitialization(foreach_value);
-    )
-    indent--;
-    return tcAccept();
-}
-
-Data* visitPreamblePlayer(PreamblePlayers* self){
-    //list of string with playernames.
-     if(PPRINTFLAG == 1)
-    {
-        prettyPrint("Players");
     }
-    indent++;
-    // symbolTablePush("Players", self);
-    FOREACH(Id, self,
-        visitId(foreach_value);
-    );
-    indent--;
+    else if(type->errorCode != ECnoError)
+        return createError(type->errorCode);
+
+    Data* var = symbolTableGetLocal(id->value);
+    if(val != NULL){
+        if(val->errorCode != ECnoError)
+            return createError(type->errorCode);
+
+        if(type->type != val->type)
+            return createError(ECtypeExeption);
+        if(var == NULL)
+            symbolTablePush(id->value, tcCopy(val));
+        else
+            return createError(ECnameSpaceClash);
+
+    }
+    else {
+        if(var == NULL)
+            symbolTablePush(id->value, tcCopy(type));
+        else
+            return createError(ECnameSpaceClash);
+    }
+    free(var);
+    return tcCopy(type);
+}
+Data* tcType(Type* self, Data* typeVal){ //might not be needed
+    if(typeVal== NULL)
+        return createData(bt_NULL);
+    return typeVal;
+}
+
+Data* tcCmpArgs(Data* list1, Data* list2){
+    Data* rval;
+    if(list1 != NULL && list2 != NULL){
+        if(list1->type == list2->type){
+            rval = tcCmpArgs(list1->list, list2->list);
+        }
+    }
+    else{
+        if(list1 == NULL ^ list2 == NULL){
+            return createError(ECargumentExeption);
+        }
+        return tcAccept();
+    }
+    return rval;
+}
+
+Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
+    if(self == NULL)
+        return createError(ECempty);
+    if(id->errorCode != ECnoError)
+        return createError(id->errorCode);
+
+    Data* var = symbolTableGet((id->value));
+
+    if(self->child != NULL){
+        switch (*((IdMutations*)self->child)) {
+             case im_call:
+                // Data* args;
+                
+                Data* args = tcListTypeCheck(var)->list;
+                
+                
+                if(tcCmpArgs(args, child)->errorCode != ECnoError)
+                    return createError(ECargumentExeption);
+                break;
+
+            case im_none:
+            case im_value:
+                break;
+            case im_dot:
+            case im_index:
+                if(var->type != bt_list)
+                    return createError(ECtypeExeption);
+                if(child == NULL)
+                    return createError(ECmissingChild);
+                var = tcCopy(child);
+                break;
+        }
+    }
+    Data* rval = var;
+    // tcListTypeCheck(rval);
+    
+    return rval; 
+}
+Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
+{
+    if(self == NULL)
+        tcAccept();
+    if(idMutation == NULL){
+        prettyPrint("IdMutationDot");
+        createError(ECempty);
+    }
+    if(idMutation->errorCode != ECnoError){
+        return createError(idMutation->errorCode);
+    }
+
+    return tcCopy(idMutation);
+}
+Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
+{
+     if(self == NULL)
+        tcAccept();
+
+    if(idMutation->errorCode != ECnoError){
+        prettyPrint("IdMutationCall");
+        return createError(idMutation->errorCode);
+    }
+    if(args != NULL && args->errorCode != ECnoError)
+        return createError(args->errorCode);
+
+    return tcCopy(args);
+}
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child, Data* type)
+{
+    if(self == NULL)
+        tcAccept();
+
+    if(child->errorCode){
+        return createError(child->errorCode);
+    }
+    if(expr->errorCode != ECnoError)
+        return createError(expr->errorCode);
+    if(tcListTypeCheck(expr)->type != bt_number){
+        prettyPrint("Index must be number");
+        return createError(ECtypeExeption); 
+    }
+
+    return tcCopy(child); //expr should be able to return  datatype if needed
+}
+
+Data* tcListTypeCheck(Data* list){
+    Data* rval;
+
+    if(list->type == bt_list){
+       rval = tcListTypeCheck(list->list);
+    }
+    else{
+        return list;
+    }
+    return rval;
+}
+
+Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope)
+{
+    if(self == NULL)
+        return createError(ECempty);
+    if(loopHeader->errorCode != ECnoError)
+        return createError(loopHeader->errorCode);
+    if(scope->errorCode != ECnoError)
+        return createError(scope->errorCode);
+    
+    return tcAccept();
+}
+Data* tcTimesLoop(TimesLoop* self, Data* goalExpr)
+{
+    if(self == NULL)
+        return createError(ECempty);
+    if(goalExpr->errorCode != ECnoError)
+        return createError(goalExpr->errorCode);
+    
+    return tcAccept();
+}
+Data* tcForLoop(ForLoop* self, Data* inputName)
+{
+    if(self == NULL)
+        return createError(ECempty);
+    if(inputName->errorCode != ECnoError)
+        return createError(inputName->errorCode);
+    
+    return tcAccept();
+}
+Data* tcWhileLoop(WhileLoop* self, Data* cond){
+    if(self == NULL)
+        return createError(ECempty);
+    if(cond->errorCode != ECnoError)
+        return createError(cond->errorCode);
+
+    return tcAccept();
+}
+
+Data* tcRepeatLoop(RepeatLoop* self){
+    if(self == NULL)
+        return createError(ECempty);
+    return tcAccept();
+}
+
+Data* tcTypeValue(TypeValue* self, Data* list, Data* typedcl){
+	return tcAccept();
+}
+
+
+Data* tcId(Id self){
+    pIndent();
+    printf("\033[0;32m");
+    printf("Id: %s\n", self);
+    printf("\033[0m");
+
+    return tcValue(self);
+}; //<----
+Data* tcBasicType(BasicTypes* self); //<----- enum
+Data* tcTypeDCL(Type* self, Data* typeval){
+    if(self == NULL)
+        return createError(ECempty);
+    if(typeval->errorCode != ECnoError)
+        return createError(typeval->errorCode);
+    
     return tcAccept();
 }
 
 
+Data* tcVariable(Variable* self, Data* type, Data* id){
+    if(self == NULL)
+        return createError(ECempty);
+    if(type->errorCode != ECnoError)
+        return  createError(type->errorCode);
+    if(id->errorCode != ECnoError)
+        return createError(id->errorCode);
+
+    return tcAccept();
+}
+
+//work in progress
+Data* tcPreambleBoard(PreambleBoard* self);
+Data* tcPreambleTileItem(Type* self);
+Data* tcPreambleTile(PreambleTile* self);
+Data* tcPreamblePlayer(PreamblePlayers* self);
+
+
+Data*  createData(BasicTypes dType)
+{
+    char* type;
+    switch(dType){
+        case bt_logic:
+            type = "logic";
+            break;
+        case bt_number:
+            type = "number";
+            break;
+        case bt_text:
+            type = "text";
+            break;
+        case bt_NULL:
+            type = "NULL";
+            break;
+        case bt_list:
+            type = "List";
+            break;
+        case bt_unset:
+            type = "Unset";
+            break;
+        case bt_custom:
+            type = "custom";
+            break;
+        default:
+            type = "Invalid type";
+            createError(ECtypeExeption);
+    };
+    char msg[25] = "Data type: ";
+    printf("\033[0;36m");
+    strcat(msg ,type);
+    prettyPrint(msg);
+    // printf("\n");
+    printf("\033[0m");
+    Data*  d = malloc(sizeof(Data));
+    d->type = dType;
+    d->value = NULL;
+    d->errorCode = ECnoError;
+
+    return d;
+};
+
+Data* createList(Data* child){
+    char* type = "List";
+    char msg[20] = "data type: ";
+    printf("\033[0;36m");
+    strcat(msg ,type);
+    prettyPrint(msg);
+    printf("\n");
+    printf("\033[0m");
+    Data*  d = malloc(sizeof(Data));
+    d->type = bt_list;
+    d->list = child;
+    // d->value = value;
+    d->errorCode = ECnoError;
+
+    return d;
+}
+
+Data* createError(ErrorCode error){
+    TYPE_CHECKER_ERROR_COUNT++;
+    char* val;
+    switch(error){
+    case ECnoError:
+        val = "no error";
+        break;
+    case ECempty:
+        val = "empty";
+        break;
+    case ECargumentExeption:
+        val = "argument exception";
+        break;
+    case ECtypeExeption:
+        val = "type exception";
+        break;
+    case ECmissingChild:
+        val = "missing child";
+        break;
+    case ECoutOfRange:
+        val = "out of range";
+        break;
+    case ECoutOfNamespace:
+        val = "outOfNamespace";
+        break;
+    case ECnameSpaceClash:
+        val = "nameSpaceClash";
+        break;
+    default:
+        val = "Your an idiot";
+    }
+    char msg[30] = "error: ";
+
+    strcat(msg, val);
+    printf("\033[0;31m");
+    prettyPrint(msg);
+    printf("\033[0m");
+    printf("\n");
+    Data* d = malloc(sizeof(Data));
+    d->errorCode = error;
+    d->list = NULL;
+    d->type = bt_unset;
+	return d;
+}
+
+Data* tcAccept()
+{
+    Data*  d = malloc(sizeof(Data));
+    d->errorCode = ECnoError;
+    d->type = bt_unset;
+    d->list = NULL;
+    return d;
+}
+
+Data* tcCopy(Data*in){
+    if(in != NULL){
+
+        Data* d = malloc(sizeof(Data));
+        d->errorCode = in->errorCode;
+        // d->nonterminal = in->nonterminal;
+        d->type = in->type;
+        d->value = in->value;
+        if(in->type == bt_list){
+            d->list = tcCopy(in->list);
+        }
+        else{
+            d->list = in->list;
+        }
+        return d;
+    }
+    return NULL;
+}
+
+Data* tcValue(void* val){
+    Data*  d = malloc(sizeof(Data));
+    d->errorCode = ECnoError;
+    d->value = val;
+    d->list = NULL;
+    d->type = bt_unset;
+    return d;
+}
+
+//Symbol table setup
+
+int stringHash(char* string){
+    return (int)(strlen(string) % 10);
+}
+int stringcompare(char* s1, char* s2){
+    return strcmp(s1, s2) == 0;
+}
+
+void symbolTablePush( char* key, void* value){
+     yablHashPush(SYMBOL_TABLE, key, value, &stringcompare);
+}
+
+Data* symbolTableGet(char* key){//<-- 
+    void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
+    // if(value == NULL)
+    //     return createError(ECoutOfNamespace);
+    
+    YablHash* table = SYMBOL_TABLE;
+    while(value == NULL){
+        table = yablHashGet(table, "PARENT", &stringcompare);
+        if(table == NULL)
+            return createError(ECoutOfNamespace);
+        table = ((YablHashNode*)table)->item;
+        value = yablHashGet(table, key, &stringcompare);
+
+    }
+    value = ((YablHashNode*)value)->item;
+
+    return tcCopy(value);
+}
+
+// Data* symbolTableCheckParent(YablHash table, )
+
+Data* symbolTableGetLocal(char* key){//check for prexisting keys
+    void* value = ((YablHashNode*)yablHashGet(SYMBOL_TABLE, key, &stringcompare));
+    if(value == NULL)
+        return NULL;
+    value = ((YablHashNode*)value)->item;
+
+    return tcCopy(value);
+}
+
+void createSymbolTable(){ //creates SYMBOL_TABLE and sets parent table to PARENT, and sets global pointer to new table.
+
+    YablHash* st = malloc(sizeof(YablHash));
+    *st  = yablHashCreate(HASHLISTLENGTH, &stringHash);
+    YablHash* temp = SYMBOL_TABLE;
+    SYMBOL_TABLE = st;
+    symbolTablePush("PARENT", temp);
+
+}
+
+void deleteSymbolTable(){
+    YablHash* parent = yablHashGet(SYMBOL_TABLE, "PARENT", &stringcompare);
+    if(parent== NULL){
+        prettyPrint("No parent SYMBOL_TABLE found\n");
+        createError(ECoutOfRange);
+        return;
+    }
+    YablHash* temp = ((YablHashNode*)parent)->item;
+    yablHashDelete(SYMBOL_TABLE, symbolFreeFunc);
+    free(SYMBOL_TABLE); //release SYMBOL_TABLE for scope
+    SYMBOL_TABLE = temp; //point to parent scope table
+    
+}
+
+void symbolFreeFunc(void* item){
+    if(((YablHash*)item)->hashFunc != stringHash)
+        free(item);
+}
