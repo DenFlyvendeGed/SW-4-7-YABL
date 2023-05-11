@@ -685,11 +685,23 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
 }
 
 void cgPreambleGlobals(PreambleGlobals* self, FILE* writer){
-	YABL_LIST_FOREACH(Initialization*, self->children, 
+	YablStack s = YABL_STACK_CREATE;
+	if(self != NULL) YABL_LIST_FOREACH(Initialization*, self->children, 
+		if(foreach_value->type->typeval->type == bt_text)
+			yablStackPush(&s, foreach_value);
 		cgType(foreach_value->type, writer);
 		cgId(&foreach_value->variable, writer);
 		fprintf(writer, ";");
-	)
+	);
+
+	fprintf(writer, "void __INITIATE_GLOABLS__(){\n");
+	while(s != NULL){
+		Initialization* str = yablStackPop(&s);
+		cgId(&str->variable, writer);
+		fprintf(writer, " = makeString(\"\");\n");
+	} 
+	fprintf(writer, "}\n");
+
 }
 
 
