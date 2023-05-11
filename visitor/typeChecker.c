@@ -321,8 +321,13 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
     if(self->child != NULL){
         switch (*((IdMutations*)self->child)) {
              case im_call:
-                Data* args = var->list;
-                tcCmpArgs(args, child);
+                // Data* args;
+                
+                Data* args = tcListTypeCheck(var)->list;
+                
+                
+                if(tcCmpArgs(args, child)->errorCode != ECnoError)
+                    return createError(ECargumentExeption);
                 break;
 
             case im_none:
@@ -334,7 +339,7 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
                     return createError(ECtypeExeption);
                 if(child == NULL)
                     return createError(ECmissingChild);
-                var->type = tcListTypeCheck(var)->type;
+                var = tcCopy(child);
                 break;
         }
     }
@@ -355,7 +360,7 @@ Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation) //<----
         return createError(idMutation->errorCode);
     }
 
-    return tcAccept();
+    return tcCopy(idMutation);
 }
 Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
 {
@@ -371,7 +376,7 @@ Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args)
 
     return tcCopy(args);
 }
-Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child, Data* type)
 {
     if(self == NULL)
         tcAccept();
@@ -386,7 +391,7 @@ Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* child)
         return createError(ECtypeExeption); 
     }
 
-    return tcAccept(); //expr should be able to return  datatype if needed
+    return tcCopy(child); //expr should be able to return  datatype if needed
 }
 
 Data* tcListTypeCheck(Data* list){
@@ -509,15 +514,18 @@ Data*  createData(BasicTypes dType)
         case bt_unset:
             type = "Unset";
             break;
+        case bt_custom:
+            type = "custom";
+            break;
         default:
             type = "Invalid type";
             createError(ECtypeExeption);
     };
-    char msg[20] = "data type: ";
+    char msg[25] = "Data type: ";
     printf("\033[0;36m");
     strcat(msg ,type);
     prettyPrint(msg);
-    printf("\n");
+    // printf("\n");
     printf("\033[0m");
     Data*  d = malloc(sizeof(Data));
     d->type = dType;

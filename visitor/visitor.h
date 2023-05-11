@@ -4,7 +4,7 @@
 
 #include "typeChecker.h"
 
-Repeatable* visit(Repeatable* self);
+int visit(Repeatable* self);
 
 Data*visitPreamble(Preambles* self);
 Data*visitRepeatable(Repeatable* self);
@@ -20,7 +20,7 @@ Data*visitTypeCast(TypeCast* self);
 Data*visitStmt(Nonterminals* self);
 Data*visitFunc(Func* self);
 Data*visitIdMutation(IdMutation* self);
-Data*visitIdMutationChild(IdMutations* self);
+Data*visitIdMutationChild(IdMutations* self, Id id);
 Data*visitUnaryop(UnaryOperator* self);
 Data*visitBinaryOp(BinaryOperator* self);
 Data*visitAssign(Assign* self);
@@ -29,9 +29,9 @@ Data*visitRepeat(Repeat* self);
 Data*visitReturnStmt(ReturnStmt* self);
 Data*visitInitialization(Initialization* self);
 Data*visitType(Type* self);
-Data*visitIdMutationDot(IdMutationDot* self);
+Data*visitIdMutationDot(IdMutationDot* self, Id id);
 Data*visitIdMutationCall(IdMutationCall* self);
-Data*visitIdMutationIndex(IdMutationIndex* self);
+Data*visitIdMutationIndex(IdMutationIndex* self, Id id);
 Data*visitTimesLoop(TimesLoop* self);
 Data*visitForLoop(ForLoop* self);
 Data*visitWhileLoop(WhileLoop* self);
