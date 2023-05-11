@@ -13,6 +13,8 @@ int main(){
 	do {
 		printBoard();
 		yablEventTurn();
+		PLAYER_INDEX = ++PLAYER_INDEX % (sizeof(PLAYERS)/sizeof(char*));
+
 	} while(GAME_RUNNING);
 	yablEventClose();
 }

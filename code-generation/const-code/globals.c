@@ -3,6 +3,7 @@
 #include "./string.c"
 //#
 int GAME_RUNNING = 1;
+int PLAYER_INDEX = 0;
 //#
 #endif
 

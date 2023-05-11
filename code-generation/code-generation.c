@@ -584,6 +584,9 @@ void cgStart(Repeatable* tree, FILE* writer){
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
 
+    //Init reserved keywords
+    fprintf(writer, "%s", RESERVED_KEYWORD);
+
 	// BOARD CODE	
 	fprintf(writer, "%s", BOARD);
 

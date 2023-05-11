@@ -36,7 +36,9 @@ CONST_CODE_FILES := \
 	./code-generation/const-code/garbage_collection.c \
 	./code-generation/const-code/events_initializers.c \
 	./code-generation/const-code/board.c \
-	./code-generation/const-code/type_cast.c
+	./code-generation/const-code/type_cast.c \
+	./code-generation/const-code/reserved_keyword.c
+
 
 	
 

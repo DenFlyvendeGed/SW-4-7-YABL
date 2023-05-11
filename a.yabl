@@ -1,19 +1,14 @@
-!board 2x1
+!board 1x1
 
 
-function p(text a) returns text do
-	return a;
+function gettoken(number x, number y) returns text do
+    return "a";
 end
 
 setup do
-	text b = "Hello World";
-	text c = p(b);
-	print(c + "\n");
+    gettoken(2,1);
 end
 
 
 
-function hej () do
-    number b = 1 + 1;
-end
 
