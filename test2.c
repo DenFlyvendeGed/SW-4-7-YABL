@@ -2,10 +2,11 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <time.h>
+#include "yabl_stdlib.h"
 
 struct winsize size;
-int m = 20, n = 4;
-char buffer[20][4] = {};
+int m = 10, n = 4;
+char buffer[10][4] = {};
 
 void printBoard();
 void redraw_screen();
@@ -70,6 +71,13 @@ void printBoard()
             fprintf(stdout, "\x1b[32m*");
             fflush(stdout);
         }
+        //fprintf(stdout, "\n");
+        fprintf(stdout, "\x1b[0;0H");
+        for(i = 0; i <= n; i++)
+        {
+            fprintf(stdout, "\x1b[3B");
+        }
+        fprintf(stdout, "\x1b[s");
         updateBoard();
     }
 }
@@ -79,20 +87,21 @@ void updateBoard()
     int column, row;
     int i, j;
     char c;
-
+    char* text = input();
+    print(text);
     fprintf(stdout, "Update token board positions by providing an integer for column(x), one for row(y), aswell as a token to be printed:\x1b[0m ");
     scanf(" %d %d %c", &column, &row, &c);
     column = column -1;
     row = row - 1;
     buffer[column][row] = c;
     fprintf(stdout, "\x1b[32m");
-    fprintf(stdout, "Column %d, row %d has been updated with your new token board position.", column, row);
+    //fprintf(stdout, "Column %d, row %d has been updated with your new token board position.", column, row);
     fprintf(stdout, "\x1b[0;0H\x1b[32m");
-    for(i = 0; i < n; i++)
+    for(i = 0; i <= n; i++)
     {
         fprintf(stdout, "\x1b[3B");
     }
-    fprintf(stdout, "\x1b[1B\x1b[0J");
+    //fprintf(stdout, "\x1b[2B\x1b[0J");
     printBoard();
 }
 
