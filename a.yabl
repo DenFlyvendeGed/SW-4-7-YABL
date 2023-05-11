@@ -1,4 +1,10 @@
-!board 2x1
+!board 10x3
+!tile number n
+
+function gettoken(number x, number y) returns text do
+	text n = ((x + y + board[0][0].n) remains 10) as text; 
+	return "\x1b[3" + n + "m" + n + "\x1b[31m";
+end
 
 
 function p(text a) returns text do
@@ -10,6 +16,12 @@ setup do
 	text c = p(b);
 	print(c + "\n");
 end
+
+turn do 
+	board[0][0].n = 1;
+end 
+
+close do end
 
 
 

@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <time.h>
+#include "./globals.c"
 
 #define YABL_BOARD_WIDTH 20
 #define YABL_BOARD_HEIGHT 4
@@ -65,7 +66,9 @@ void printBoard()
 
             for(i = 0; i < m; i++)
             {
-                fprintf(stdout, "\x1b[31m\x1b[2A╔═══╗\x1b[1B\x1b[5D║ %c ║\x1b[1B\x1b[5D╚═══╝", buffer[i][j]);
+				String* s = gettoken(i, j);
+                fprintf(stdout, "\x1b[31m\x1b[2A╔═══╗\x1b[1B\x1b[5D║ %s ║\x1b[1B\x1b[5D╚═══╝", s->string);
+				destroyString(s);
                 fflush(stdout);
             }
 

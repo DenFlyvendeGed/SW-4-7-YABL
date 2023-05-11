@@ -14,6 +14,7 @@
 int SEEN_SETUP = 0;
 int SEEN_TURN = 0;
 int SEEN_CLOSE = 0;
+int SEEN_GET_TOKEN = 0;
 
 /////////////////// FUNCTION CALLS ////////////////
 
@@ -598,7 +599,7 @@ void cgStart(Repeatable* tree, FILE* writer){
 	if(!SEEN_SETUP) fprintf(writer, "void yablEventSetup(){}\n");
 	if(!SEEN_TURN ) fprintf(writer, "void yablEventTurn(){ GAME_RUNNING = 0; }\n");
 	if(!SEEN_CLOSE) fprintf(writer, "void yablEventClose(){}\n");
-
+	if(!SEEN_GET_TOKEN) fprintf(writer, "String* gettoken(int i, int j){ return makeString(\" \");}\n");
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
@@ -696,6 +697,9 @@ void cgFuncs(Funcs* self, FILE* writer){
 
 void cgFunc(Func* self, FILE* writer){
 	RETURN_TYPE = self->returntype;
+	if(!SEEN_GET_TOKEN && strcmp(self->name, "gettoken") == 0)
+		SEEN_GET_TOKEN = 1;
+
     if(self->returntype != NULL){
         cgType(self->returntype, writer);
     }else{
