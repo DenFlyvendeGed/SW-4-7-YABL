@@ -1,3 +1,9 @@
 .target/
+*.yabl
 yabl
 test
+code
+*.txt
+yabl.c
+yabl.out
+

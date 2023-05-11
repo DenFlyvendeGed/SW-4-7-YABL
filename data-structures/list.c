@@ -12,9 +12,10 @@ YablList yablListCreate(){
 }
 
 void yablListDelete(YablList self, void(*delete_var)(void*)){
-	if(self->next == NULL) return;
+	if(self->next == NULL) goto end;
 	yablListDelete(self->next, delete_var);
 	if(self->item != NULL) delete_var(self->item);
+	end:
 	free(self);
 }
 
@@ -88,6 +89,12 @@ int yablListRemove(YablList* self, int index, void(*deleteFunc)(void*)){
 }
 
 int yablListInsert(YablList* self, int index, void* item){
+	YablList s = *self;
+	if(s->item == NULL && s->next == NULL){
+		if( index > 0 ) return 0;
+		s->item = item;
+		return 1;
+	}
 	YablList new = yablListCreate();
 	new->item = item;
 	if(index == 0){
@@ -142,6 +149,13 @@ void yablListForeach(YablList self, void(*foreach)(void *, va_list), int n_args,
 		foreach(self->item, ap);
 	}
 	va_end(ap);
+}
+
+void yablListSimpleForeach(YablList self, void(*foreach)(void*)){
+	if(self->item == NULL) return;
+	for(; self != NULL; self = self->next){
+		foreach(self->item);
+	}
 }
 
 /// Tests
