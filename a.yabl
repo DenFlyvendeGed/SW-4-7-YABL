@@ -7,7 +7,7 @@ function gettoken(number x, number y) returns text do
 end
 
 setup do
-    gettoken(2,1);
+    
 end
 
 
