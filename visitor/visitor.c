@@ -433,6 +433,7 @@ Data* visitTypeCast(TypeCast* self){
     Data* rval = tcTypeCast(self, expr, type);
     indent--;
     free(expr);
+    free(type);
     return rval;
 }
 
@@ -491,7 +492,7 @@ Data* visitFunc(Func* self){
 			
 			rval = tcFunc(self, args, returnType, scope, id);
 			free(args);
-			//free(returnType);
+			free(returnType);
 			free(scope);
 			free(id);
 			break;
@@ -974,7 +975,7 @@ Data* visitEvent(Event* self){
 
     Data* scope = visitScope(self->scope, NULL);
     rval = tcEvent(self, scope);
-    // free(scope);
+    free(scope);
 
     indent--;
     return rval;
