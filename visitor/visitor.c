@@ -44,10 +44,6 @@ void symbolTableAddKeywords(){
     symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-    //Reserved output
-    Data* outputList = createData(bt_list);
-    outputList->list = createData(bt_text);
-    symbolTablePush("output", outputList);
 
     //Reserved input
     Data* indputList = createData(bt_text);

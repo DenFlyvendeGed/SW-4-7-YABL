@@ -1,15 +1,14 @@
 
-!board 1x2
-!tile text b number c
-!player "p1" "p2"
-
 setup do
+    hej();
     text a = input();
-    output("hej");
+    print("hej");
     endgame();
 end
 
 
 
-
+function hej () do
+    number b = 1 + 1;
+end
 
