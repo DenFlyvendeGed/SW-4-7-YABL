@@ -177,6 +177,7 @@ Data* visitPreamble(Preambles* self){
             break;
         case preambleGlobals:
             visitPreambleGlobal(self);
+			break;
         default:
             return createError(ECoutOfRange);
 
