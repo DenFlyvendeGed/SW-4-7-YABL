@@ -75,13 +75,13 @@ void printBoard()
                 for(i = 0; i < m; i++)
                 {
                     if(i == 0){
-                        fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴",s->string);
+                        fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴", s->string);
                     }
                     else if (i == m - 1){
-                        fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘".s->string);
+                        fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘", s->string);
                     }
                     else{
-                        fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┴",s->string);
+                        fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┴", s->string);
                     }
                     
                 }
@@ -92,36 +92,36 @@ void printBoard()
                     for(i = 0; i < m; i++){
                         if(i == 0){
                             if(YABL_BOARD_WIDTH == 1){
-                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┐\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D├───┤");
+                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┐\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┤", s->string);
                             }
                             else{
-                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D├───┼");
+                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
                             }
                             
                         }
                         else if (i == m - 1){
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┤");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┤", s->string);
                         }
                         else{
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┼");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
                         }
                     }
                 }else if(j == n - 1){
                     for(i = 0; i < m; i++){
                         if(i == 0){
                             if(YABL_BOARD_WIDTH == 1){
-                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D└───┘");
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┘", s->string);
                             }else{
-                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D└───┴");
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴", s->string);
                             }
 
                             
                         }
                         else if (i == m - 1){
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┘");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘", s->string);
                         }
                         else{
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┴");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┴", s->string);
                         }
                     }
                 }
@@ -129,18 +129,18 @@ void printBoard()
                     for(i = 0; i < m; i++){
                         if(i == 0){
                             if(YABL_BOARD_WIDTH == 1){
-                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D├───┤");
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┤", s->string);
                             }else{
-                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│   │\x1b[1B\x1b[5D├───┼");
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
                             }
 
                             
                         }
                         else if (i == m - 1){
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┼");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
                         }
                         else{
-                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D   │\x1b[1B\x1b[4D───┼");
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
                         }
                     }
                 }

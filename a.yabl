@@ -1,5 +1,5 @@
 
-!board 1x1
+!board 5x1
 
 
 function gettoken(number x, number y) returns text do
