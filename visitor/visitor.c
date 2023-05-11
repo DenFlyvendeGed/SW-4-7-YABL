@@ -44,7 +44,10 @@ void symbolTableAddKeywords(){
     symbolTablePush("quit", createData(bt_NULL));
 
     Data* list = createData(bt_list);
-    list->list = createData(bt_text);
+    list->list = createData(bt_list);
+    Data* tileType = createData(bt_custom);
+    tileType->value = "tile";
+    ((Data*)list->list)->list = tileType; //<---
     
     symbolTablePush("board", list );//<--- list list tile
     symbolTablePush("currentPlayer", createData(bt_text));
@@ -162,7 +165,7 @@ Data* visitPreamble(Preambles* self){
             return createError(ECoutOfRange);
 
     }
-    indent++;
+    indent--;
     
     return tcAccept();
 }
@@ -509,13 +512,16 @@ Data* visitIdMutation(IdMutation* self){
         case im_none:
             break;
         case im_dot:
-            child = visitIdMutationDot(self->child);
+            child = visitIdMutationDot(self->child, id->value); // <--
             break;
         case im_call:
             child = visitIdMutationCall(self->child);
             break;
         case im_index:
-            child = visitIdMutationIndex(self->child);
+            char temp[40] = "index";
+            strcat(temp, id->value);
+            symbolTablePush(temp, symbolTableGet(id->value)); //save local instance 
+            child = visitIdMutationIndex(self->child, temp);
             break;
         default:
             createError(ECoutOfRange);
@@ -703,14 +709,33 @@ Data* visitType(Type* self){
 
 //--------------------------------------
 
-Data*  visitIdMutationDot(IdMutationDot* self){
+Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     if(PPRINTFLAG == 1)
     {
         prettyPrint("IdMutationDot");
     }
     indent++;
     Data* rval;
+    Data* type;
+    if(strstr(id, "index") != NULL){
+        type = symbolTableGet(id);
+        id += 5;
+    }
+    else{
+        type = symbolTableGet(id);
+    }
     
+    if(type->type == bt_custom){
+        char customType[30];
+        strcpy(customType,type->value);
+        id = strcat(customType, ".");
+    }
+    else{
+        id = strcat(id, ".");
+    }
+    self->child->name = strcat(id, self->child->name);
+
+
     //Data* name = visitId(NULL);
     Data* child = visitIdMutation(self->child);
 
@@ -731,7 +756,7 @@ Data*  visitIdMutationCall(IdMutationCall* self){
 
     Data* rval;
  
-    Data* child = visitIdMutationChild(self->child); //suptype
+    Data* child = visitIdMutationChild(self->child, NULL); //suptype
     Data*  args = visitExprs(self->args);
 
     rval = tcIdMutationCall(self, child, args);
@@ -742,7 +767,7 @@ Data*  visitIdMutationCall(IdMutationCall* self){
     return rval;
 }   
 
-Data* visitIdMutationIndex(IdMutationIndex* self){
+Data* visitIdMutationIndex(IdMutationIndex* self, Id id){
     if(PPRINTFLAG == 1)
     {
         prettyPrint("IdMutationIndex");
@@ -750,10 +775,16 @@ Data* visitIdMutationIndex(IdMutationIndex* self){
     indent++;
     Data* rval;
 
-    Data* expr = visitExpr(self->index);
-    Data* child = visitIdMutationChild(self->child); // suptype
+    Data* type = symbolTableGet(id);
+    Data* typeCopy = tcCopy(type);
 
-    rval = tcIdMutationIndex(self, expr, child);
+    symbolTablePush(id, type->list);
+
+    Data* expr = visitExpr(self->index);
+    Data* child = visitIdMutationChild(self->child, id); // suptype
+
+    rval = tcIdMutationIndex(self, expr, child, typeCopy);
+    free(typeCopy);
     free(expr);
     free(child);
 
@@ -761,20 +792,20 @@ Data* visitIdMutationIndex(IdMutationIndex* self){
     return rval;
 }
 
-Data* visitIdMutationChild(IdMutations* self){
+Data* visitIdMutationChild(IdMutations* self, Id id){
     if(self == NULL)    return tcAccept();
     Data* rval;
     switch (*self) {
 
     
     case im_dot:
-        rval = visitIdMutationDot((IdMutationDot*)self);
+        rval = visitIdMutationDot((IdMutationDot*)self, id);
         break;
     case im_call:
         rval = visitIdMutationCall((IdMutationCall*)self);
         break;
     case im_index:
-        rval = visitIdMutationIndex((IdMutationIndex*)self);
+        rval = visitIdMutationIndex((IdMutationIndex*)self, id);
         break;
     case im_none:
     case im_value:

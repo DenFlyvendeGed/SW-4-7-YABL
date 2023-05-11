@@ -1,8 +1,11 @@
-
+!board 3x3
+!tile number a
 
 setup do
     number a = 5;
     text b = a as text;
+    list text gg = board();
+    number c = board[1][1].a;
 end
 
 

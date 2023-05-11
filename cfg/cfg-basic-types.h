@@ -1,6 +1,6 @@
 #ifndef YABL_BASIC_TYPES_H
 #define YABL_BASIC_TYPES_H
-typedef enum {bt_NULL, bt_number, bt_text, bt_logic, bt_list, bt_unset} BasicTypes;
+typedef enum {bt_NULL, bt_number, bt_text, bt_logic, bt_list, bt_unset, bt_custom} BasicTypes;
 
 typedef struct { 
 	struct Typedcl* list;
