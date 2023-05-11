@@ -153,7 +153,10 @@ void cgInitialization(Initialization* self, FILE* writer){
 }
 
 void cgId(Id* self, FILE* writer){
-    fprintf(writer, "%s",*self);
+	int i;
+	for(i = 0; *self[i] == '.' || *self[i] == '\0'; i++){}
+	if(*self[i] == '.') fprintf(writer, "%s",(*self) + i + 1);
+	else				fprintf(writer, "%s", *self         ); 
 }
 
 void cgType(Type* self, FILE* writer){
@@ -606,6 +609,7 @@ void cgPreambles(Preambles* self, FILE* writer){
     PreamblePlayers* players = NULL;
     PreambleBoard* board = NULL;
     PreambleTile* tile = NULL;
+	PreambleGlobals* globals = NULL;
 
     YABL_LIST_FOREACH(Nonterminals*, self->children, 
         switch (*foreach_value)
@@ -619,6 +623,8 @@ void cgPreambles(Preambles* self, FILE* writer){
         case preamblePlayers:
             players = (PreamblePlayers*)foreach_value;
             break;
+		case preambleGlobals:
+			globals = (PreambleGlobals*)foreach_value;
         default:
             break;
         };
@@ -626,6 +632,7 @@ void cgPreambles(Preambles* self, FILE* writer){
     cgPreambleTile(tile, writer);
     cgPreambleBoard(board, writer);
     cgPreamblePlayers(players, writer);
+	cgPreambleGlobals(globals, writer);
 }
 
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
@@ -675,6 +682,14 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
     else{
         fprintf(writer, "struct Tile {};\n");
     }
+}
+
+void cgPreambleGlobals(PreambleGlobals* self, FILE* writer){
+	YABL_LIST_FOREACH(Initialization*, self->children, 
+		cgType(foreach_value->type, writer);
+		cgId(&foreach_value->variable, writer);
+		fprintf(writer, ";");
+	)
 }
 
 
