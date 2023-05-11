@@ -2,6 +2,7 @@
 #define CODE_GlOBALS
 #include "./string.c"
 //#
+int GAME_RUNNING = 1;
 //#
 #endif
 

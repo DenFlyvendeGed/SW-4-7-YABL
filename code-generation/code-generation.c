@@ -15,6 +15,10 @@ int SEEN_SETUP = 0;
 int SEEN_TURN = 0;
 int SEEN_CLOSE = 0;
 
+/////////////////// FUNCTION CALLS ////////////////
+
+int STMT_INCLUDES_CALL_WITH_N_STRING = 0;
+
 //////////////////// RETURN TYPE //////////////////
 
 Type* RETURN_TYPE;
@@ -92,7 +96,9 @@ void cgStmt(Stmt* self, FILE* writer){
     default:
         break;
     }
-    
+
+	for(; 0 != STMT_INCLUDES_CALL_WITH_N_STRING; STMT_INCLUDES_CALL_WITH_N_STRING--)
+		fprintf(writer, "destroyString(*--STRING_STACK);\n");
 }
 
 void cgBreakStmt(Break* self, FILE* writer){
@@ -110,6 +116,8 @@ void cgReturnStmt(ReturnStmt* self, FILE* writer){
 	cgType(RETURN_TYPE, writer);
 	fprintf(writer, " __RETURN__;\n");
     fprintf(writer, "return ( __RETURN__ = ");
+	if(self->expr->extension->type == bt_text)
+		fprintf(writer, "copyString");
     cgExpr(self->expr, writer);
 	YablStack top = CG_TEXT_STACK;
 	do {
@@ -207,7 +215,6 @@ void cgWhileLoop(WhileLoop* self, FILE* writer){
 void cgForLoop(ForLoop* self, FILE* writer){
     //På vej
     //fprintf(writer, "YABL_LIST_FOREACH()");
-
 }
 
 
@@ -276,7 +283,13 @@ void cgIdMutationChild(IdMutations* self, FILE* writer){
 
 void cgCall(IdMutationCall* self, FILE* writer){
     fprintf(writer, "(");
-    cgExprs(self->args, writer);
+	YABL_LIST_FOREACH(Expr*, self->args->children, 
+		if(foreach_value->extension->type == bt_text){
+			fprintf(writer, "*(STRING_STACK++) = copyString");
+			STMT_INCLUDES_CALL_WITH_N_STRING++;
+		}
+		cgExpr(foreach_value, writer);
+	)
     if(self->child != NULL){
         cgIdMutationChild(self->child, writer);
     }
@@ -556,6 +569,7 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
 
 
 void cgStart(Repeatable* tree, FILE* writer){
+	// CONSTANT CODE
     fprintf(writer, "%s", INCLUDES);
 	fprintf(writer, "%s", LIST);
 	fprintf(writer, "%s", STRING);
@@ -564,9 +578,15 @@ void cgStart(Repeatable* tree, FILE* writer){
     fprintf(writer, "%s", PRINT);
 	fprintf(writer, "%s", EVENTS_INITIALIZERS);
     fprintf(writer, "%s", TYPE_CAST);
+
+	// PREAMBLES
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
+
+	// BOARD CODE	
+	fprintf(writer, "%s", BOARD);
+
     YABL_LIST_FOREACH(Nonterminals*, funcsNode->children,
         if(*foreach_value == func){
             cgFuncProtoType((Func*)foreach_value, writer);
@@ -575,9 +595,9 @@ void cgStart(Repeatable* tree, FILE* writer){
     cgFuncs(funcsNode, writer);
     fprintf(writer, "\n");
     fprintf(writer, "%s", YABL_MAIN);
-	if(!SEEN_SETUP) fprintf(writer, "void setup(){}\n");
-	if(!SEEN_TURN ) fprintf(writer, "void turn(){}\n");
-	if(!SEEN_CLOSE) fprintf(writer, "void close(){}\n");
+	if(!SEEN_SETUP) fprintf(writer, "void yablEventSetup(){}\n");
+	if(!SEEN_TURN ) fprintf(writer, "void yablEventTurn(){ GAME_RUNNING = 0; }\n");
+	if(!SEEN_CLOSE) fprintf(writer, "void yablEventClose(){}\n");
 
 }
 
@@ -627,11 +647,18 @@ void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
 
 
 void cgPreambleBoard(PreambleBoard* self, FILE* writer){
+	int width, height;
+	width = height = 1;
     if(self != NULL){
-        fprintf(writer, "struct Tile board[%d][%d];\n",self->width, self->height);
-    }else{
-        fprintf(writer, "struct Tile board[1][1];\n");
+		width = self->width;
+		height = self->height;
     }
+    fprintf(writer, 
+		"#define YABL_BOARD_WIDTH %d\n"
+		"#define YABL_BOARD_HEIGHT %d\n"
+		"struct Tile board[YABL_BOARD_WIDTH][YABL_BOARD_HEIGHT];\n"
+	,	width, height 
+	);
 }
 
 void cgPreambleTile(PreambleTile* self, FILE* writer){
@@ -676,11 +703,14 @@ void cgFunc(Func* self, FILE* writer){
     }
     fprintf(writer, "%s (", self->name);
     if(self->args->children->item != NULL){
-        cgInitialization(self->args->children->item, writer);
+        Initialization* first = (Initialization*)self->args->children->item;
+		cgType(first->type, writer);
+		cgId(&first->variable, writer);
         if(self->args->children->next != NULL){
             YABL_LIST_FOREACH(Initialization*, self->args->children->next, 
                 fprintf(writer, ",");
-                cgInitialization(foreach_value, writer);
+                cgType(foreach_value->type, writer);
+                cgId(&foreach_value->variable, writer);
             );
         }
     }
@@ -697,11 +727,14 @@ void cgFuncProtoType(Func* self, FILE* writer){
     }
     fprintf(writer, "%s (", self->name);
     if(self->args->children->item != NULL){
-        cgInitialization(self->args->children->item, writer);
+        Initialization* first = (Initialization*)self->args->children->item;
+		cgType(first->type, writer);
+		cgId(&first->variable, writer);
         if(self->args->children->next != NULL){
             YABL_LIST_FOREACH(Initialization*, self->args->children->next, 
                 fprintf(writer, ",");
-                cgInitialization(foreach_value, writer);
+                cgType(foreach_value->type, writer);
+                cgId(&foreach_value->variable, writer);
             );
         }
     }
@@ -709,20 +742,20 @@ void cgFuncProtoType(Func* self, FILE* writer){
 }
 
 void cgEvent(Event* self, FILE* writer){
-    fprintf(writer, "void ");
+    fprintf(writer, "void yablEvent");
     switch (self->eventType)
     {
     case event_setup:
 		SEEN_SETUP = 1;
-        fprintf(writer, "setup()");
+        fprintf(writer, "Setup()");
         break;
     case event_turn:
 		SEEN_TURN = 1;
-        fprintf(writer, "turn()");
+        fprintf(writer, "Turn()");
         break;
     case event_close:
 		SEEN_CLOSE = 1;
-        fprintf(writer, "close()");
+        fprintf(writer, "Close()");
         break;
     default:
         break;

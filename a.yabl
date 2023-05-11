@@ -1,9 +1,14 @@
+!board 2x1
+
+
+function p(text a) returns text do
+	return a;
+end
 
 setup do
-    hej();
-    text a = input();
-    print("hej");
-    endgame();
+	text b = "Hello World";
+	text c = p(b);
+	print(c + "\n");
 end
 
 
