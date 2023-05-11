@@ -1,5 +1,7 @@
 #include "string.h"
 
+#define DEFAULT_STRING_SIZE 30
+
 String makeStringSize(char* string, int stringSize){
     char* string_ = (char*) malloc(stringSize);
     strcpy(string_, string);
@@ -8,7 +10,7 @@ String makeStringSize(char* string, int stringSize){
 }
 
 String makeString(char *string){
-	return makeStringSize(string, 30);
+	return makeStringSize(string, DEFAULT_STRING_SIZE);
 }
 
 void reallocString(String string, int stringSize){
@@ -18,12 +20,14 @@ void reallocString(String string, int stringSize){
 
 String strConcat(String string_1, String string_2){
     int newLen = strlen(string_1.string) + strlen(string_2.string)+1;
-    if(string_1.alloc > newLen){
-        strcat(string_1.string, string_2.string);
-    }else{
-        reallocString(string_1, newLen);
-        strcat(string_1.string, string_2.string);
-    }
-    return string_1;
+
+    String new = makeStringSize("", newLen >= DEFAULT_STRING_SIZE ? newLen : DEFAULT_STRING_SIZE);
+    strcat(new.string, string_1.string);
+    strcat(new.string, string_2.string);
+
+    return new;
 }
 
+void destroyString(String string){
+    free(string.string);
+}

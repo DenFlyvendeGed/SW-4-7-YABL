@@ -11,3 +11,4 @@ String makeString(char* string);
 String makeStringSize(char* string, int stringSize);
 void reallocString(String string, int stringSize);
 String strConcat(String string_1, String string_2);
+void destroyString(String string);

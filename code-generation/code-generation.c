@@ -1,28 +1,55 @@
 #include "../cfg/cfg.h"
 #include "code-generation.h"
 #include "../data-structures/list.h"
+#include "../data-structures/hashtable.h"
+#include "../data-structures/stack.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
+#include "./const-code/const-code.h"
 
-const char* HEADER = 
-    "#include <stdlib.h>\n"
-    "#include <stdio.h>\n"
-    "void print(char* value){"
-        "printf(\"%%s\",value);"
-    "}"
-;
+//////////////////// RETURN TYPE //////////////////
 
-const char* FOOTER = 
-    "int main(){"
-        "setup();"
-    "}\n"
-;
+Type* RETURN_TYPE;
+
+//////////////////// Text Stack ////////////////////
+
+YablStack CG_TEXT_STACK = YABL_STACK_CREATE;
+typedef enum CgStackItemType { cg_scope_start, cg_loop_start, cg_text } CgStackItemType;
+typedef struct GgStackItem {
+	CgStackItemType type;
+	char* name;
+} CgStackItem;
+
+CgStackItem* createCgStackItem(CgStackItemType type, char* name){
+	CgStackItem* rtn = malloc(sizeof(CgStackItem));
+	rtn->name = name;
+	rtn->type = type;
+	return rtn;
+}
+
+////////////////////////////////////////////////////
 
 void cgScope(Scope* self, FILE* writer){
+	CgStackItem* cgsi = malloc(sizeof(CgStackItem));
+	cgsi->type = cg_scope_start;
+	cgsi->name = NULL;
+	yablStackPush(&CG_TEXT_STACK, cgsi);
+
     fprintf(writer, "\n{\n");
-    YABL_LIST_FOREACH(Nonterminals*, self->children, cgStmt(foreach_value, writer););
-    fprintf(writer, "\n}\n");
+    YABL_LIST_FOREACH(Stmt*, self->children, cgStmt(foreach_value, writer););
+
+	while( (cgsi = yablStackPop(&CG_TEXT_STACK))->type != cg_scope_start ) {
+		fprintf(writer, "destroyString(");
+		cgId(&cgsi->name, writer);
+		fprintf(writer, ");");
+		free(cgsi);
+	}
+
+	free(cgsi);
+
+	fprintf(writer, "\n}\n");
 }
 
 
@@ -63,27 +90,55 @@ void cgStmt(Stmt* self, FILE* writer){
 }
 
 void cgBreakStmt(Break* self, FILE* writer){
+	YablStack top = CG_TEXT_STACK;
+	do {
+		CgStackItem* cgsi = top->item;
+		if(cgsi->type == cg_text){
+			fprintf(writer, "destroyString(%s);\n", cgsi->name);
+		}
+	} while(*(CgStackItemType*)((top = top->next)->item) != cg_loop_start);
     fprintf(writer, "break;\n");
 }
 
 void cgReturnStmt(ReturnStmt* self, FILE* writer){
-    fprintf(writer, "return");
+	cgType(RETURN_TYPE, writer);
+	fprintf(writer, " __RETURN__;\n");
+    fprintf(writer, "return ( __RETURN__ = ");
     cgExpr(self->expr, writer);
-    fprintf(writer, ";\n");
+	YablStack top = CG_TEXT_STACK;
+	do {
+		CgStackItem* cgsi = top->item;
+		if(cgsi->type == cg_scope_start) continue;
+		fprintf(writer, ", destroyString(%s)", cgsi->name);
+	} while((top = top->next) != NULL);
+
+    fprintf(writer, ", __RETURN__);\n");
 }
 
 void cgInitialization(Initialization* self, FILE* writer){
+	int isText = self->type->typeval->type == bt_text;
+	if(isText) {
+		CgStackItem* cgsi = malloc(sizeof(CgStackItem));
+		cgsi->type = cg_text;
+		cgsi->name = self->variable;
+		yablStackPush(&CG_TEXT_STACK, cgsi);
+	}
     cgType(self->type, writer);
-    cgId(self->variable, writer);
+    cgId(&self->variable, writer);
     if(self->initialValue != NULL){
-         fprintf(writer, " = ");
-        cgExpr(self->initialValue, writer);
-    }
-    
+		fprintf(writer, " = ");
+		if(self->initialValue->extension->type == bt_text 
+		&& self->initialValue->exprType == et_id_mutation){
+			fprintf(writer, "copyString");
+		} 
+		cgExpr(self->initialValue, writer);
+    } else if(isText) {
+		fprintf(writer, " = makeString(\"\")");
+	}
 }
 
 void cgId(Id* self, FILE* writer){
-    fprintf(writer, "%s",self);
+    fprintf(writer, "%s",*self);
 }
 
 void cgType(Type* self, FILE* writer){
@@ -96,7 +151,7 @@ void cgType(Type* self, FILE* writer){
         fprintf(writer, "int ");
         break;
     case bt_text:
-        fprintf(writer, "char* ");
+        fprintf(writer, "String* ");
         break;
     case bt_list:
         fprintf(writer, "list ");
@@ -110,6 +165,7 @@ void cgType(Type* self, FILE* writer){
 }
 
 void cgRepeatStmt(Repeat* self, FILE* writer){
+	yablStackPush(&CG_TEXT_STACK, createCgStackItem(cg_loop_start, NULL));
     switch (*(LoopType*)self->loopType)
     {
     case lt_timesloop:
@@ -128,6 +184,7 @@ void cgRepeatStmt(Repeat* self, FILE* writer){
         break;
     }
     cgScope(self->scope, writer);
+	yablStackPop(&CG_TEXT_STACK);
 }
 
 void cgRepeatLoop(RepeatLoop* self, FILE* writer){
@@ -162,14 +219,22 @@ void cgIfStmt(IfStmt* self, FILE* writer){
     cgScope(self->then, writer);
     fprintf(writer, "else");
     cgScope(self->elsestmt, writer);
-
 }
 
 
 void cgAssign(Assign* self, FILE* writer){
-    cgIdMutation(self->variable, writer);
-    fprintf(writer, "=");
-    cgExpr(self->expression, writer);
+	if(self->expression->extension->type == bt_text){
+		fprintf(writer, "destroyString(");
+		cgIdMutation(self->variable, writer);
+		fprintf(writer, ");\n");
+	}
+	cgIdMutation(self->variable, writer);
+	fprintf(writer, "=");
+	if(self->expression->extension->type == bt_text 
+	&& self->expression->exprType == et_id_mutation){
+		fprintf(writer, "copyString");
+	}
+	cgExpr(self->expression, writer);
     fprintf(writer, ";\n");
 }
 
@@ -214,10 +279,16 @@ void cgCall(IdMutationCall* self, FILE* writer){
 }
 
 void cgExprs(Exprs* self, FILE* writer){
-    YABL_LIST_FOREACH(Expr*, self->children,cgExpr(foreach_value, writer););
+	if(self->children->item != NULL){ 
+		cgExpr(self->children->item, writer);
+		if(self->children->next != NULL) {
+			YABL_LIST_FOREACH(Expr*, self->children->next,
+				fprintf(writer, ",");
+				cgExpr(foreach_value, writer);
+			);
+		}
+	}
 }
-
-
 
 void cgExpr(Expr* self, FILE* writer){
     fprintf(writer, "(");
@@ -257,6 +328,9 @@ void cgConstant(Constant* self, FILE* writer){
             fprintf(writer, "0");
         }
         break;
+	case td_text:
+        fprintf(writer, "makeString(%s)", self->value);
+		break;
     default:
         fprintf(writer, "%s", self->value);
         break;
@@ -265,13 +339,87 @@ void cgConstant(Constant* self, FILE* writer){
     
 }
 
-//Skal snakke med Simon
 void cgTypeCast(TypeCast* self, FILE* writer){
-    fprintf(writer, "(");
-    cgType(self->type, writer);
-    fprintf(writer, ")");
+    switch (self->cast->extension->type)
+    {
+    case bt_number:
+        if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcNumberToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcNumberToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_number){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    case  bt_text:
+        if(self->type->typeval->type == bt_number){
+            fprintf(writer, "tcTextToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            fprintf(writer, "tcTextToLogic(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    case bt_logic:
+        if(self->type->typeval->type == bt_number){
+            fprintf(writer, "tcLogicToNumber(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_text){
+            fprintf(writer, "tcLogicToText(");
+            cgExpr(self->cast, writer);
+            fprintf(writer, ")");
+        }else if(self->type->typeval->type == bt_logic){
+            cgExpr(self->cast, writer);
+        }
+        break;
+    default:
+        break;
+    }
+}
 
-    cgExpr(self->cast, writer);
+
+
+
+int cgIsConstantString(Expr* s){
+	switch (s->exprType) {
+		case et_constant:
+		case et_typecast:
+		case et_expression:
+		case et_binary_operator:
+		case et_unary_operator:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+void cgPlusString(Expr* right, Expr* left, FILE* writer){
+	int usetmp1 = cgIsConstantString(right);
+	int usetmp2 = cgIsConstantString(left);
+
+	fprintf(writer, "( STRING_RTN = strConcatCpy(");
+
+	if(usetmp1) fprintf(writer, "*(STRING_STACK++) = "); 
+	cgExpr(right, writer);
+
+	fprintf(writer, ",");
+
+	if(usetmp2) fprintf(writer, "*(STRING_STACK++) = "); 
+	cgExpr(left, writer);
+
+	fprintf(writer, ")");
+	if(usetmp2) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
+	if(usetmp1) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
+	fprintf(writer, ", STRING_RTN)");
 }
 
 void cgBinaryOperator(Expr* self, FILE* writer){
@@ -283,11 +431,7 @@ void cgBinaryOperator(Expr* self, FILE* writer){
             fprintf(writer, " + ");
             cgExpr(bo->childExpr2, writer);
         }else{
-            fprintf(writer, "strcat(");
-            cgExpr(bo->childExpr1, writer);
-            fprintf(writer, ",");
-            cgExpr(bo->childExpr2, writer);
-            fprintf(writer, ")");
+			cgPlusString(bo->childExpr1, bo->childExpr2, writer);
         }
         
         break;
@@ -317,14 +461,30 @@ void cgBinaryOperator(Expr* self, FILE* writer){
         cgExpr(bo->childExpr2, writer); 
         break;
     case bo_eq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " == ");
-        cgExpr(bo->childExpr2, writer); 
+         if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " == ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) == 0");
+        }
         break;
     case bo_neq:
-        cgExpr(bo->childExpr1, writer);
-        fprintf(writer, " != ");
-        cgExpr(bo->childExpr2, writer); 
+        if(bo->childExpr1->extension->type != bt_text){
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, " != ");
+            cgExpr(bo->childExpr2, writer);
+        }else{
+            fprintf(writer, "strcmp(");
+            cgExpr(bo->childExpr1, writer);
+            fprintf(writer, "->string, ");
+            cgExpr(bo->childExpr2, writer);
+            fprintf(writer, "->string) != 0");
+        }
         break;
     case bo_gt:
         cgExpr(bo->childExpr1, writer);
@@ -379,7 +539,13 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
 
 
 void cgStart(Repeatable* tree, FILE* writer){
-    fprintf(writer, HEADER);
+    fprintf(writer, "%s", INCLUDES);
+	fprintf(writer, "%s", LIST);
+	fprintf(writer, "%s", STRING);
+	fprintf(writer, "%s", GLOBALS);
+	fprintf(writer, "%s", GARBAGE_COLLECTION);
+    fprintf(writer, "%s", PRINT);
+    fprintf(writer, "%s", TYPE_CAST);
     Preambles* preamblesNode = tree->children->item;
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
@@ -390,7 +556,7 @@ void cgStart(Repeatable* tree, FILE* writer){
     );
     cgFuncs(funcsNode, writer);
     fprintf(writer, "\n");
-    fprintf(writer, FOOTER);
+    fprintf(writer, "%s", YABL_MAIN);
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
@@ -479,6 +645,7 @@ void cgFuncs(Funcs* self, FILE* writer){
 } 
 
 void cgFunc(Func* self, FILE* writer){
+	RETURN_TYPE = self->returntype;
     if(self->returntype != NULL){
         cgType(self->returntype, writer);
     }else{
@@ -496,6 +663,7 @@ void cgFunc(Func* self, FILE* writer){
     }
     fprintf(writer, ")");
     cgScope(self->scope, writer);
+	RETURN_TYPE = NULL;
 }
 
 void cgFuncProtoType(Func* self, FILE* writer){

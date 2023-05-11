@@ -56,7 +56,7 @@ FILE* openConfiguration(Configuration c){
 				close(fd[FD_WRITE]);
 				dup2(fd[FD_READ],STDIN_FILENO);
 				char command[100];
-				sprintf(command, "gcc -o %s -x c -", c.outputFilename == NULL ? "yabl.out" : c.outputFilename);
+				sprintf(command, "gcc -o %s -g -x c -", c.outputFilename == NULL ? "yabl.out" : c.outputFilename);
 				system(command);
 				close(fd[FD_READ]);
 				exit(EXIT_SUCCESS);
