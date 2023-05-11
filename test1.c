@@ -4,42 +4,43 @@
 #include <time.h>
 
 struct winsize size;
+int m = 20, n = 4;
 char buffer[20][4] = {};
 
-void printBoard(int, int);
-void redraw_screen_width();
-void redraw_screen_height();
-
-void updateBoard(int);
-
+void printBoard();
+void redraw_screen();
+void updateBoard();
 int endGame();
 
 int main()
 {
+    int i, j;
+    for(i = 0; i < m; i++)
+    {
+        for(j = 0; j < n; j++)
+        {
+            buffer[i][j] = ' ';
+        }
+    }
     //m,n = !iXj
-    printBoard(20, 4);
+    printBoard();
     while(endGame() != 1)
     {
-        updateBoard(4);
+        updateBoard();
     }
     return 0;
 }
 
-void printBoard(int m, int n)
+void printBoard()
 {
     ioctl(0, TIOCGWINSZ, &size);
     int width = size.ws_col;
     int height = size.ws_row;
     int i, j;
 
-    while(size.ws_col < m * 5)
+    while(size.ws_col < m * 5 || size.ws_row < n * 6)
     {
-        signal( SIGWINCH, redraw_screen_width);
-    }
-
-    while(size.ws_row < n * 6)
-    {
-        signal(SIGWINCH, redraw_screen_height);
+        signal( SIGWINCH, redraw_screen);
     }
 
     fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
@@ -54,22 +55,10 @@ void printBoard(int m, int n)
 
         for(i = 0; i < m; i++)
         {
-            fprintf(stdout, "\x1b[0m\x1b[2A╔═══╗\x1b[1B\x1b[5D║   ║\x1b[1B\x1b[5D╚═══╝");
+            fprintf(stdout, "\x1b[31m\x1b[2A╔═══╗\x1b[1B\x1b[5D║ %c ║\x1b[1B\x1b[5D╚═══╝", buffer[i][j]);
         }
 
         fprintf(stdout, "\x1b[3B\x1b[1000D");
-    }
-
-    //saves cursor position in the first tile position and then resets cursor position for next input
-    fprintf(stdout, "\x1b[0;0H");
-    for(i = 0; i < (width - m * 5) / 2; i++)
-    {
-        fprintf(stdout, "\x1b[1C");
-    }
-    fprintf(stdout, "\x1b[2C\x1b[1B\x1b[s\x1b[1000D\x1b[1000A");
-    for(i = 0; i < n; i++)
-    {
-        fprintf(stdout, "\x1b[3B");
     }
 
     for(i = 0; i < size.ws_col; i++)
@@ -108,31 +97,26 @@ void printBoard(int m, int n)
     */
 }
 
-void updateBoard(int dim_y)
+void updateBoard()
 {
     int column, row;
     int i, j;
+    char c;
 
-    fprintf(stdout, "Update token board positions by providing an integer for column(x) and one for row(y) aswell:\x1b[0m ");
-    scanf(" %d %d", &column, &row);
+    fprintf(stdout, "Update token board positions by providing an integer for column(x), one for row(y), aswell as a token to be printed:\x1b[0m ");
+    scanf(" %d %d %c", &column, &row, &c);
+    column = column -1;
+    row = row - 1;
+    buffer[column][row] = c;
     fprintf(stdout, "\x1b[32m");
     fprintf(stdout, "Column %d, row %d has been updated with your new token board position.", column, row);
-    fprintf(stdout, "\x1b[u");
-    for(i = 1; i < column; i++)
-    {
-        fprintf(stdout, "\x1b[5C");
-    }
-    for(j = 1; j < row; j++)
-    {
-        fprintf(stdout, "\x1b[3B");
-    }
-    fprintf(stdout, "X");
     fprintf(stdout, "\x1b[0;0H\x1b[32m");
-    for(i = 0; i < dim_y; i++)
+    for(i = 0; i < n; i++)
     {
         fprintf(stdout, "\x1b[3B");
     }
     fprintf(stdout, "\x1b[1B\x1b[0J");
+    printBoard();
 }
 
 int endGame()
@@ -140,30 +124,27 @@ int endGame()
     return 0;
 }
 
-void redraw_screen_width()
-{
-    ioctl(0, TIOCGWINSZ, &size);
-    fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
-    int i;
-    int height = size.ws_row;
-    for(i = 0; i < height / 2; i++)
-    {
-        fprintf(stdout, "\x1b[1B");
-    }
-    fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board size.");
-    fflush(stdout);
-}
-
-void redraw_screen_height()
+void redraw_screen()
 {
     ioctl(0, TIOCGWINSZ, &size);
     fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
     int i;
     int width = size.ws_col;
+    int height = size.ws_row;
+
+    for(i = 0; i < height / 2; i++)
+    {
+        fprintf(stdout, "\x1b[1B");
+    }
+    fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board size.");
+
+    fprintf(stdout, "\x1b[H");
+
     for(i = 0; i < (width - 88) / 2; i++)
     {
         fprintf(stdout, "\x1b[1C");
     }
-        fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
-        fflush(stdout);
+    fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
+
+    fflush(stdout);
 }
