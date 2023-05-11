@@ -738,11 +738,14 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     else{
         id = strcat(id, ".");
     }
+	Id name = self->child->name;
     self->child->name = strcat(id, self->child->name);
+
 
 
     //Data* name = visitId(NULL);
     Data* child = visitIdMutation(self->child);
+	self->child->name = name;
 
     rval = tcIdMutationDot(self, child);
     //free(name);

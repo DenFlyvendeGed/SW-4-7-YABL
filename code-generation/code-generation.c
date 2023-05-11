@@ -154,9 +154,9 @@ void cgInitialization(Initialization* self, FILE* writer){
 
 void cgId(Id* self, FILE* writer){
 	int i;
-	for(i = 0; *self[i] == '.' || *self[i] == '\0'; i++){}
-	if(*self[i] == '.') fprintf(writer, "%s",(*self) + i + 1);
-	else				fprintf(writer, "%s", *self         ); 
+	for(i = 0; (*self)[i] != '.' && (*self)[i] != '\0'; i++){}
+	if((*self)[i] == '.') fprintf(writer, "%s",(*self) + i + 1);
+	else				  fprintf(writer, "%s", *self         ); 
 }
 
 void cgType(Type* self, FILE* writer){
