@@ -96,7 +96,7 @@ Data* tcType(Type* self, Data* typeVal);
 Data* tcIdMutation(IdMutation* self, Data* child, Data* id);
 Data* tcIdMutationDot(IdMutationDot* self, Data* idMutation);
 Data* tcIdMutationCall(IdMutationCall* self, Data* idMutation, Data* args);
-Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation);
+Data* tcIdMutationIndex(IdMutationIndex* self, Data* expr, Data* idMutation, Data* type);
 
 Data* tcRepeat(Repeat* self, Data* loopHeader, Data* scope);
 Data* tcTimesLoop(TimesLoop* self, Data* goalExpr);
