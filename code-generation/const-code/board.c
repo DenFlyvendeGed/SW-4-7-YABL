@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <time.h>
+#include "./globals.c"
 
 #define YABL_BOARD_WIDTH 20
 #define YABL_BOARD_HEIGHT 4

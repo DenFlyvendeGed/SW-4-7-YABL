@@ -14,6 +14,7 @@
 int SEEN_SETUP = 0;
 int SEEN_TURN = 0;
 int SEEN_CLOSE = 0;
+int SEEN_GET_TOKEN = 0;
 
 /////////////////// FUNCTION CALLS ////////////////
 
@@ -152,7 +153,10 @@ void cgInitialization(Initialization* self, FILE* writer){
 }
 
 void cgId(Id* self, FILE* writer){
-    fprintf(writer, "%s",*self);
+	int i;
+	for(i = 0; *self[i] == '.' || *self[i] == '\0'; i++){}
+	if(*self[i] == '.') fprintf(writer, "%s",(*self) + i + 1);
+	else				fprintf(writer, "%s", *self         ); 
 }
 
 void cgType(Type* self, FILE* writer){
@@ -601,13 +605,14 @@ void cgStart(Repeatable* tree, FILE* writer){
 	if(!SEEN_SETUP) fprintf(writer, "void yablEventSetup(){}\n");
 	if(!SEEN_TURN ) fprintf(writer, "void yablEventTurn(){ GAME_RUNNING = 0; }\n");
 	if(!SEEN_CLOSE) fprintf(writer, "void yablEventClose(){}\n");
-
+	if(!SEEN_GET_TOKEN) fprintf(writer, "String* gettoken(int i, int j){ return makeString(\" \");}\n");
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
     PreamblePlayers* players = NULL;
     PreambleBoard* board = NULL;
     PreambleTile* tile = NULL;
+	PreambleGlobals* globals = NULL;
 
     YABL_LIST_FOREACH(Nonterminals*, self->children, 
         switch (*foreach_value)
@@ -621,6 +626,8 @@ void cgPreambles(Preambles* self, FILE* writer){
         case preamblePlayers:
             players = (PreamblePlayers*)foreach_value;
             break;
+		case preambleGlobals:
+			globals = (PreambleGlobals*)foreach_value;
         default:
             break;
         };
@@ -628,6 +635,7 @@ void cgPreambles(Preambles* self, FILE* writer){
     cgPreambleTile(tile, writer);
     cgPreambleBoard(board, writer);
     cgPreamblePlayers(players, writer);
+	cgPreambleGlobals(globals, writer);
 }
 
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
@@ -679,6 +687,14 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
     }
 }
 
+void cgPreambleGlobals(PreambleGlobals* self, FILE* writer){
+	YABL_LIST_FOREACH(Initialization*, self->children, 
+		cgType(foreach_value->type, writer);
+		cgId(&foreach_value->variable, writer);
+		fprintf(writer, ";");
+	)
+}
+
 
 
 void cgFuncs(Funcs* self, FILE* writer){
@@ -699,6 +715,9 @@ void cgFuncs(Funcs* self, FILE* writer){
 
 void cgFunc(Func* self, FILE* writer){
 	RETURN_TYPE = self->returntype;
+	if(!SEEN_GET_TOKEN && strcmp(self->name, "gettoken") == 0)
+		SEEN_GET_TOKEN = 1;
+
     if(self->returntype != NULL){
         cgType(self->returntype, writer);
     }else{

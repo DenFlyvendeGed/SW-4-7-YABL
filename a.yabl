@@ -1,3 +1,4 @@
+
 !board 1x1
 
 
@@ -8,6 +9,10 @@ end
 setup do
     gettoken(2,1);
 end
+
+
+
+
 
 
 
