@@ -2,14 +2,11 @@
 !tile number a
 
 function gettoken(number x, number y) returns text do
-	return "a";
+	text n = ((x + y + board[1][1].a) remains 10) as text;
+	return "\x1b[3" + n + "m" + n + "\x1b[31m";
 end
 
 setup do
-	number a = 5;
-	text b = a as text;
-	number c = board[1][1].a;
-	number d = board[1][1].a;
 end
 
 

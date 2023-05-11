@@ -614,7 +614,12 @@ Data* tcCopy(Data*in){
         // d->nonterminal = in->nonterminal;
         d->type = in->type;
         d->value = in->value;
-        d->list = in->list;
+        if(in->type == bt_list){
+            d->list = tcCopy(in->list);
+        }
+        else{
+            d->list = in->list;
+        }
         return d;
     }
     return NULL;

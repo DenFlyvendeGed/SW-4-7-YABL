@@ -524,7 +524,8 @@ Data* visitIdMutation(IdMutation* self){
         case im_index:
             char temp[40] = "index";
             strcat(temp, id->value);
-            symbolTablePush(temp, symbolTableGet(id->value)); //save local instance 
+            Data* data = symbolTableGet(id->value);
+            symbolTablePush(temp, data); //save local instance 
             child = visitIdMutationIndex(self->child, temp);
             break;
         default:
@@ -788,6 +789,7 @@ Data* visitIdMutationIndex(IdMutationIndex* self, Id id){
     Data* child = visitIdMutationChild(self->child, id); // suptype
 
     rval = tcIdMutationIndex(self, expr, child, typeCopy);
+    free(type);
     free(typeCopy);
     free(expr);
     free(child);
@@ -953,6 +955,7 @@ Data* visitEvent(Event* self){
     {
         prettyPrint("Event");
     }
+    Data* test = symbolTableGet("board"); // <---
     indent++;
     Data* rval;
 
