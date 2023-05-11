@@ -1,11 +1,16 @@
 !board 3x3
 !tile number a
 
+turn do
+    number a = board[2][2].a;
+end
+
 setup do
     number a = 5;
     text b = a as text;
     list text gg = board();
     number c = board[1][1].a;
+    number d = board[2][2].a;
 end
 
 
