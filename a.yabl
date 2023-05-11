@@ -1,9 +1,9 @@
 
-!board 7x3
+!board 3x3
 
 
 function gettoken(number x, number y) returns text do
-    return "1";
+    return "a";
 end
 
 setup do

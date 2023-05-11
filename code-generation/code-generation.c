@@ -668,8 +668,8 @@ void cgPreambleBoard(PreambleBoard* self, FILE* writer){
 		"#define YABL_BOARD_WIDTH %d\n"
 		"#define YABL_BOARD_HEIGHT %d\n"
 		"struct Tile board[YABL_BOARD_WIDTH][YABL_BOARD_HEIGHT];\n"
-	,	width, height 
-	);
+	,	width, height
+    );
 }
 
 void cgPreambleTile(PreambleTile* self, FILE* writer){

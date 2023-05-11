@@ -19,31 +19,11 @@ void printBoard();
 void redraw_screen();
 void updateBoard();
 int endGame();
-/*
-int main()
-{
-    int i, j;
-    for(i = 0; i < m; i++)
-    {
-        for(j = 0; j < n; j++)
-        {
-            buffer[i][j] = ' ';
-        }
-    }
-    printBoard();
-    while(endGame() != 1)
-    {
-        signal( SIGWINCH, printBoard);
-        //updateBoard();
-    }
-    return 0;
-}
-*/
+
 
 void printBoard()
 {
     int i, j;
-
     fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
 
     ioctl(0, TIOCGWINSZ, &size);
@@ -67,7 +47,6 @@ void printBoard()
         fprintf(stdout, "\x1b[3B\x1b[1000D");
         fflush(stdout);
 
-        
         for(j = 0; j < n; j++)
         { 
             for(i = 0; i < (size.ws_col - m * 5) / 2; i++)
@@ -75,7 +54,7 @@ void printBoard()
                 fprintf(stdout, "\x1b[1C");
                 fflush(stdout);
             }
-
+           
             if(YABL_BOARD_HEIGHT == 1 && YABL_BOARD_WIDTH == 1){
                 fprintf(stdout, "\x1b[31m\x1b[2A┌───┐\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┘", s->string);
 
@@ -107,7 +86,6 @@ void printBoard()
                             else{
                                 fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
                             }
-                            
                         }
                         else if (i == m - 1){
                             fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┤", s->string);
@@ -124,8 +102,6 @@ void printBoard()
                             }else{
                                 fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴", s->string);
                             }
-
-                            
                         }
                         else if (i == m - 1){
                             fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘", s->string);
@@ -143,8 +119,6 @@ void printBoard()
                             }else{
                                 fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
                             }
-
-                            
                         }
                         else if (i == m - 1){
                             fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
@@ -224,6 +198,8 @@ void redraw_screen()
     fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
     fflush(stdout);
 }
+
+
 
 //#
 
