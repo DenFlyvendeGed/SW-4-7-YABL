@@ -128,7 +128,7 @@ PreambleGlobals:
 ;
 
 PreambleGlobalsTypes:
-	DeclarationInitialization PreambleTileTypes { preambleGlobalsAddInitialiation($2, $1); $$ = $2; }
+	DeclarationInitialization PreambleGlobalsTypes { preambleGlobalsAddInitialiation($2, $1); $$ = $2; }
 |   %empty { $$ = createPreambleGlobals(); }
 ;
 
