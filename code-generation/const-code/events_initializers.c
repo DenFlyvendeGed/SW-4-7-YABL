@@ -1,6 +1,6 @@
 //#
-void setup();
-void turn();
-void close();
+void yablEventSetup();
+void yablEventTurn();
+void yablEventClose();
 //#
 

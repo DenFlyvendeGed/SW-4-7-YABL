@@ -1,9 +1,14 @@
-!tile
-	number b
-	logic c
+!board 2x1
+
+
+function p(text a) returns text do
+	return a;
+end
 
 setup do
-	board[0][0].b = 10;
+	text b = "Hello World";
+	text c = p(b);
+	print(c + "\n");
 end
 
 
