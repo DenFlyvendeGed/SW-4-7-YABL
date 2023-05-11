@@ -638,3 +638,17 @@ PreambleBoard* createPreambleBoard(char* size){
 void destroyPreambleBoard(PreambleBoard* self){
 	free(self);
 }
+
+PreambleGlobals* createPreambleGlobals(){
+	return createRepeatable(preambleGlobals);
+}
+
+PreambleTile* preambleGlobalsAddInitialiation(PreambleGlobals* self, Initialization* variable){
+	return repeatablePushChild(self, variable);
+}
+
+void destroyPreambleGlobals(PreambleGlobals* self){
+	destroyRepeatable(self);
+}
+
+

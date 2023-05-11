@@ -1,5 +1,6 @@
 !board 10x3
 !tile number n
+!globals number t
 
 function gettoken(number x, number y) returns text do
 	text n = ((x + y + board[0][0].n) remains 10) as text; 

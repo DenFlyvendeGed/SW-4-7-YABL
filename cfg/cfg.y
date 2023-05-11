@@ -44,6 +44,7 @@
 	PreambleTile*    preambleTile;
 	PreambleBoard*   preambleBoard;
 	PreamblePlayers* preamblePlayers;
+	PreambleGlobals* preambleGlobals;
 }
 
 %token returnskeyword funckeyword 
@@ -51,7 +52,7 @@
 %token setupevent turnevent closeevent
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
-%token setpreamble board player tile
+%token setpreamble board player tile globals
 %token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
 %token addition minus multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
@@ -80,6 +81,7 @@
 %type<preambleTile> PreambleTile PreambleTileTypes
 %type<preambleBoard> PreambleBoard
 %type<preamblePlayers> PreamblePlayers PreamblePlayer
+%type<preambleGlobals> PreambleGlobals PreambleGlobalsTypes
 
 %%
 Start : 
@@ -92,10 +94,11 @@ Start :
 ;
 
 Preambles:
-	PreambleBoard  Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   PreamblePlayer Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   PreambleTile   Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   %empty					  { $$ = createPreambles(); }
+	PreambleBoard   Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreamblePlayer  Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleTile    Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleGlobals Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   %empty					   { $$ = createPreambles(); }
 ;
 
 PreambleBoard:
@@ -118,6 +121,15 @@ PreambleTile:
 PreambleTileTypes:
 	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); $$ = $2; }
 |   %empty { $$ = createPreambleTile(); }
+;
+
+PreambleGlobals:
+	globals PreambleGlobalsTypes { $$ = $2; }
+;
+
+PreambleGlobalsTypes:
+	DeclarationInitialization PreambleTileTypes { preambleGlobalsAddInitialiation($2, $1); $$ = $2; }
+|   %empty { $$ = createPreambleGlobals(); }
 ;
 
 Funcs :

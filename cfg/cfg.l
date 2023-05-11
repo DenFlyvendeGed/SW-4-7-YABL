@@ -14,8 +14,9 @@ int yywrap();
 %%
 !board  { PRINT("board"); return board; }
 [1-9][0-9]*x[1-9][0-9]* { PRINT("board-size");yylval.text = copystringalloc(yytext); return boardsize; }
-!tile   { PRINT("tile"); return tile; }
-!player { PRINT("player"); return player; }
+!tile    { PRINT("tile"); return tile; }
+!player  { PRINT("player"); return player; }
+!globals { PRINT("globals"); return globals; }
 setup { PRINT("setup"); return setupevent; }
 turn { PRINT("turn"); return turnevent; }
 close { PRINT("close"); return closeevent; }
