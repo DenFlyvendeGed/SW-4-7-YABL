@@ -675,6 +675,7 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
         YABL_LIST_FOREACH(Initialization*, self->children, 
 			cgType(foreach_value->type, writer);
 			cgId(&foreach_value->variable, writer);
+            cgInitialization(foreach_value, writer); 
             fprintf(writer, ";");
         );
         fprintf(writer, "};\n");
@@ -793,3 +794,4 @@ void cgEvent(Event* self, FILE* writer){
     }
     cgScope(self->scope, writer);
 }
+

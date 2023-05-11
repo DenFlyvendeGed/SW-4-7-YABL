@@ -12,12 +12,11 @@ function gettoken(number x, number y) returns text do
 	board[1][1].a;
 	board[1][1].a;
 	board[1][1].a;
+	text n = ((x + y + board[1][1].a) remains 10) as text;
+	return "\x1b[3" + n + "m" + n + "\x1b[31m";
 end
 
 setup do
 end
-
-
-
 
 

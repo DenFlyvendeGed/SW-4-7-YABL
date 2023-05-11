@@ -705,3 +705,4 @@ void symbolFreeFunc(void* item){
     if(((YablHash*)item)->hashFunc != stringHash)
         free(item);
 }
+

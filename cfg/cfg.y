@@ -52,7 +52,11 @@
 %token setupevent turnevent closeevent
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
+<<<<<<< HEAD
 %token setpreamble board player tile globals
+=======
+%token setpreamble board player tile
+>>>>>>> main
 %token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
 %token addition minus multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
@@ -81,7 +85,10 @@
 %type<preambleTile> PreambleTile PreambleTileTypes
 %type<preambleBoard> PreambleBoard
 %type<preamblePlayers> PreamblePlayers PreamblePlayer
+<<<<<<< HEAD
 %type<preambleGlobals> PreambleGlobals PreambleGlobalsTypes
+=======
+>>>>>>> main
 
 %%
 Start : 
@@ -94,11 +101,18 @@ Start :
 ;
 
 Preambles:
+<<<<<<< HEAD
 	PreambleBoard   Preambles  { $$ = preamblesPushPreamble($2, $1); }
 |   PreamblePlayer  Preambles  { $$ = preamblesPushPreamble($2, $1); }
 |   PreambleTile    Preambles  { $$ = preamblesPushPreamble($2, $1); }
 |   PreambleGlobals Preambles  { $$ = preamblesPushPreamble($2, $1); }
 |   %empty					   { $$ = createPreambles(); }
+=======
+	PreambleBoard  Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreamblePlayer Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleTile   Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   %empty					  { $$ = createPreambles(); }
+>>>>>>> main
 ;
 
 PreambleBoard:
@@ -123,6 +137,7 @@ PreambleTileTypes:
 |   %empty { $$ = createPreambleTile(); }
 ;
 
+<<<<<<< HEAD
 PreambleGlobals:
 	globals PreambleGlobalsTypes { $$ = $2; }
 ;
@@ -132,6 +147,8 @@ PreambleGlobalsTypes:
 |   %empty { $$ = createPreambleGlobals(); }
 ;
 
+=======
+>>>>>>> main
 Funcs :
     Func Funcs { $$ = funcsAddFunc($2, $1); }
 |   %empty     { $$ = createFuncs(); }

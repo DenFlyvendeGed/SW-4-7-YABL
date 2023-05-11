@@ -8,7 +8,6 @@
 
 typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, preambleGlobals, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
-
 typedef struct Typedcl{
 	Nonterminals nonterminal;	
 	TypeValue* typeval;	

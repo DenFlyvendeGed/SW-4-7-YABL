@@ -37,7 +37,6 @@ CONST_CODE_FILES := \
 	./code-generation/const-code/events_initializers.c \
 	./code-generation/const-code/board.c \
 	./code-generation/const-code/type_cast.c
-	
 
 $(DESTINATION):
 	if [ ! -d $(DESTINATION) ] ; then mkdir $(DESTINATION) ; fi;
