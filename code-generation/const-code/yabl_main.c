@@ -3,6 +3,8 @@
 
 
 void setup();
+void turn();
+void close();
 //#
 int main(){
 	setup();

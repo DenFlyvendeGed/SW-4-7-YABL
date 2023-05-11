@@ -30,6 +30,8 @@ void cgTypeCast(TypeCast* self, FILE* writer);
 void cgCall(IdMutationCall* self, FILE* writer);
 void cgExprs(Exprs* self, FILE* writer);
 void cgIdMutationChild(IdMutations* self, FILE* writer);
+void cgIndex(IdMutationIndex* self, FILE* writer);
+void cgDot(IdMutationDot* self, FILE* writer);
 void cgFunc(Func* self, FILE* writer);
 void cgPreambles(Preambles* self, FILE* writer);
 void cgPreambleTile(PreambleTile* self, FILE* writer);
