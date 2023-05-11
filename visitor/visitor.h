@@ -46,6 +46,7 @@ Data*visitPreambleBoard(PreambleBoard* self);
 Data*visitPreambleTileItem(Type* self);
 Data*visitPreambleTile(PreambleTile* self);
 Data*visitPreamblePlayer(PreamblePlayers* self);
+Data* visitPreambleGlobal(Repeatable* self);
 
 #endif // !VISITOR_H
 

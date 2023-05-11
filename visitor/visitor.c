@@ -86,7 +86,21 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                     //Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
                     Data* args = prototypeArgs(foreach_value->args);
                    
+                    if(strcmp(key, "gettoken")== 0){
+                        Data* tmp = createData(bt_number);
+                        Data* tmp2 = createData(bt_number);
+                        tmp->list=tmp2;
+                        if(type->type != bt_text && tcCmpArgs(args, tmp) != ECnoError){
+                            printf("Illegal instance of gettoken\n");
+                            free(tmp);
+                            free(tmp2);
+                            free(createError(ECnameSpaceClash));
+                            return ;   
 
+                        }
+                        free(tmp);
+                            free(tmp2);
+                    }
                     type->list = args;
                     if(symbolTableGetLocal(key) == NULL)
                         symbolTablePush(key, type); //might need to push args + return type
@@ -161,6 +175,9 @@ Data* visitPreamble(Preambles* self){
         case preamblePlayers:
             visitPreamblePlayer(self);
             break;
+
+        case preambleGlobals:
+            visitPreambleGlobal(self);
         default:
             return createError(ECoutOfRange);
 
@@ -1003,8 +1020,21 @@ Data* visitPreambleTileItem(Type* self){//<--- not used
     return tcAccept();
 }
 
+Data* visitPreambleGlobal(Repeatable* self){
+    if(PPRINTFLAG == 1)
+    {
+        prettyPrint("Globals");
+    }
+    indent++;
+    FOREACH(Initialization*, self,
+        visitInitialization(foreach_value);
+    )
+    indent--;
+    return tcAccept();
+}
+
 Data* visitPreambleTile(PreambleTile* self){
-     if(PPRINTFLAG == 1)
+    if(PPRINTFLAG == 1)
     {
         prettyPrint("Tile");
     }

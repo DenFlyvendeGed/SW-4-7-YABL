@@ -118,5 +118,7 @@ Data* tcPreambleTileItem(Type* self);
 Data* tcPreambleTile(PreambleTile* self);
 Data* tcPreamblePlayer(PreamblePlayers* self);
 
+Data* tcCmpArgs(Data* list1, Data* list2);
+
 #endif // !TYPE_CHECKER_H
 

@@ -6,7 +6,7 @@
 #include "../data-structures/list.h"
 #include "cfg-basic-types.h"
 
-typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
+typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt, preambleGlobals} Nonterminals;
 
 
 typedef struct Typedcl{

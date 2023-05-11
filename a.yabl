@@ -1,18 +1,13 @@
 !board 3x3
 !tile number a
 
-turn do
-    number a = board[2][2].a;
+function gettoken(number x, number y) returns text do
+	text n = ((x + y + board[1][1].a) remains 10) as text;
+	return "\x1b[3" + n + "m" + n + "\x1b[31m";
 end
 
 setup do
-    number a = 5;
-    text b = a as text;
-    list text gg = board();
-    number c = board[1][1].a;
-    number d = board[2][2].a;
 end
-
 
 
 
