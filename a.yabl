@@ -1,15 +1,12 @@
 
+!board 1x2
+!tile text b number c
+!player "p1" "p2"
 
 setup do
-    repeat 5 times
-    do
-        number a = 5;
-    end
-    number a = 5;
-    repeat while a == 5
-    do
-        a = 6;
-    end
+    text a = input();
+    output("hej");
+    endgame();
 end
 
 

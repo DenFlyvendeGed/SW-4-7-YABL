@@ -43,11 +43,39 @@ void symbolTableAddKeywords(){
     symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-    Data* list = createData(bt_list);
-    list->list = createData(bt_text);
+    //Reserved output
+    Data* outputList = createData(bt_list);
+    outputList->list = createData(bt_text);
+    symbolTablePush("output", outputList);
+
+    //Reserved input
+    Data* indputList = createData(bt_text);
+    symbolTablePush("input", indputList);
+
+    //Reserved endgame
+    Data* endgameList = createData(bt_text);
+    symbolTablePush("endgame", endgameList);
+
+    //Reserved board
+    Data* boardList = createData(bt_list);
+    boardList->list = createData(bt_text);
+    symbolTablePush("board", boardList );//<--- list list tile
+
+    //Reserved tile
+    Data* tileList = createData(bt_list);
+    tileList->list = createData(bt_text);
+    symbolTablePush("tile", tileList);
     
-    symbolTablePush("board", list );//<--- list list tile
+    //Reserved player
+    Data* playerList = createData(bt_list);
+    playerList->list = createData(bt_text);
+    symbolTablePush("player", playerList);
+
+    //Reserved curretplayer
     symbolTablePush("currentPlayer", createData(bt_text));
+
+
+
 
     prettyPrint("------------------------------------\n");
 }
