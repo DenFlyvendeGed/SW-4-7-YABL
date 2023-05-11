@@ -58,6 +58,16 @@ void printBoard()
         //prints the board according to dimensions of the preamble, when the window size can accommodate it
         String* s = gettoken(i,j);
 
+        for(i = 0; i < size.ws_col; i++)
+        {
+            fprintf(stdout, "\x1b[32m*");
+            fflush(stdout);
+        }
+        
+        fprintf(stdout, "\x1b[3B\x1b[1000D");
+        fflush(stdout);
+
+        
         for(j = 0; j < n; j++)
         { 
             for(i = 0; i < (size.ws_col - m * 5) / 2; i++)
@@ -144,10 +154,7 @@ void printBoard()
                         }
                     }
                 }
-                
-                    
             }
-            
 
             fprintf(stdout, "\x1b[3B\x1b[1000D");
             fflush(stdout);
