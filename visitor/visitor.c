@@ -370,11 +370,7 @@ Data*  visitExpr(Expr* self){
     switch (self->exprType)
     {
     case et_constant:
-        //need a way to check type
-        child = tcAccept();
-        // if((Nonterminals*)self->child == listConstant)
-        //     child = visitExprs(self->child);
-        
+        child = tcAccept();       
         break;
     case et_id_mutation:
         child = visitIdMutation(self->child);
@@ -393,10 +389,9 @@ Data*  visitExpr(Expr* self){
         break;
     case et_typecast:
         child = visitTypeCast(self->child);
-        //<---
         break;
     default:
-        createError(ECoutOfRange);
+        return createError(ECoutOfRange);
         break;
     }
     rval = tcExpr(self, child);
@@ -533,6 +528,10 @@ Data* visitIdMutation(IdMutation* self){
     }
     
     rval = tcIdMutation(self, child, id);
+    if(PPRINTFLAG == 1)
+    {
+        free(createData(rval->type));
+    }
     free(child);
     free(id);
     indent--;
