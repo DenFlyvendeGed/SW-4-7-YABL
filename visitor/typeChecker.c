@@ -84,7 +84,7 @@ Data* tcFunc(Func* self, Data* args, Data* returntype, Data* scope, Data* id){
     //     return createError(ECtypeExeption);
     // }
 
-    return returntype;
+    return tcCopy(returntype);
 }
 
 Data* tcEvent(Event* self, Data* scope){ 
@@ -93,10 +93,9 @@ Data* tcEvent(Event* self, Data* scope){
         return createError(ECempty);
     }
         
-    if(scope->errorCode)
-        return scope;
 
-    return scope;
+
+    return tcCopy(scope);
 }
 
 Data* tcUnaryop(UnaryOperator* self, Data* expr)
@@ -107,7 +106,7 @@ Data* tcUnaryop(UnaryOperator* self, Data* expr)
         return createError(ECoutOfRange);
     }
 
-    return expr; //error or not expr contains relavent data
+    return  tcCopy(expr);
 }
 Data* tcBinaryOp(BinaryOperator* self, Data* expr1, Data* expr2){
     if(self == NULL)
@@ -222,7 +221,7 @@ Data* tcTypeCast(TypeCast* self, Data* expr, Data* type){
     else{
         return createError(ECmissingChild);
     }
-    return type;
+    return tcCopy(type);
 }
 
 Data* tcAssign(Assign* self, Data* id, Data* expr){
