@@ -204,7 +204,7 @@ Data* visitPreamble(Preambles* self){
             break;
         case preambleGlobals:
             visitPreambleGlobal(self);
-			break;
+            break;
         default:
             return createError(ECoutOfRange);
 
@@ -460,6 +460,7 @@ Data* visitTypeCast(TypeCast* self){
     Data* rval = tcTypeCast(self, expr, type);
     indent--;
     free(expr);
+    free(type);
     return rval;
 }
 
@@ -521,7 +522,7 @@ Data* visitFunc(Func* self){
 			
 			rval = tcFunc(self, args, returnType, scope, id);
 			free(args);
-			//free(returnType);
+			free(returnType);
 			free(scope);
 			free(id);
 			break;
@@ -565,7 +566,9 @@ Data* visitIdMutation(IdMutation* self){
             child = visitIdMutationCall(self->child);
             break;
         case im_index:
-            char temp[40] = "index";
+
+            char temp[40] = "YABLINDEX";
+
             strcat(temp, id->value);
             Data* data = symbolTableGet(id->value);
             symbolTablePush(temp, data); //save local instance 
@@ -765,7 +768,9 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     indent++;
     Data* rval;
     Data* type;
-    if(strstr(id, "index") != NULL){
+
+    if(strstr(id, "YABLINDEX") != NULL){
+
         type = symbolTableGet(id);
         id += 5;
     }
@@ -774,21 +779,25 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     }
     
     if(type->type == bt_custom){
-        char customType[30];
+
+        char customType[40];
+
         strcpy(customType,type->value);
         id = strcat(customType, ".");
     }
     else{
         id = strcat(id, ".");
     }
-	Id name = self->child->name;
+	  Id name = self->child->name;
     self->child->name = strcat(id, self->child->name);
 
 
 
     //Data* name = visitId(NULL);
+
     Data* child = visitIdMutation(self->child);
-	self->child->name = name;
+	  self->child->name = name;
+
 
     rval = tcIdMutationDot(self, child);
     //free(name);
@@ -1007,7 +1016,7 @@ Data* visitEvent(Event* self){
 
     Data* scope = visitScope(self->scope, NULL);
     rval = tcEvent(self, scope);
-    // free(scope);
+    free(scope);
 
     indent--;
     return rval;
@@ -1104,5 +1113,4 @@ Data* visitPreamblePlayer(PreamblePlayers* self){
     indent--;
     return tcAccept();
 }
-
 
