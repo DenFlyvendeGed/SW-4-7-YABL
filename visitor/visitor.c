@@ -263,7 +263,7 @@ Data* visitExprs(Exprs* self){
         return tcAccept();
     }
     indent++;
-    Data* temp = malloc(sizeof(Data));
+    Data* temp = tcAccept();
     Data* temp2; // = createData(bt_unset);
     Data* rval = temp;
 	FOREACH(Expr*, self, 

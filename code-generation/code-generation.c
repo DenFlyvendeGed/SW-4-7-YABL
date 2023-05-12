@@ -657,16 +657,20 @@ void cgPreamblePlayers(PreamblePlayers* self, FILE* writer){
 
 
 void cgPreambleBoard(PreambleBoard* self, FILE* writer){
-	int width, height;
-	width = height = 1;
+	int width, height, writeWidth, writeHeight;
+	width = height = writeWidth = writeHeight = 1;
     if(self != NULL){
 		width = self->width;
 		height = self->height;
+		writeWidth = self->writeWidth;
+		writeHeight = self->writerHeight;
     }
     fprintf(writer, 
 		"#define YABL_BOARD_WIDTH %d\n"
 		"#define YABL_BOARD_HEIGHT %d\n"
-	,	width, height
+		"#define YABL_BOARD_WRITE_WIDTH %d\n"
+		"#define YABL_BOARD_WRITE_HEIGHT %d\n"
+	,	width, height, writeWidth, writeHeight
     );
 }
 

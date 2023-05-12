@@ -225,6 +225,7 @@ typedef struct {
 typedef struct {
 	Nonterminals nonterminal;
 	int width, height;
+	int writeWidth, writerHeight;
 } PreambleBoard;
 
 

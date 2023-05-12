@@ -58,6 +58,8 @@
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
 
+%type<text> PreambleBoardTileLen
+
 %type<exprs> Exprs List ExprsContinue
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
 %type<stmts> Stmts
@@ -102,7 +104,12 @@ Preambles:
 ;
 
 PreambleBoard:
-	board boardsize { $$ = createPreambleBoard($2); free($2); }
+	board boardsize PreambleBoardTileLen { $$ = createPreambleBoard($2, $3); free($2); free($3); }
+;
+
+PreambleBoardTileLen:
+	boardsize { $$ = $1; }
+|   %empty { $$ = malloc(4); $$[0] = '1'; $$[1] = 'x'; $$[2] = '1'; $$[3] = '\0'; }
 ;
 
 PreamblePlayer:

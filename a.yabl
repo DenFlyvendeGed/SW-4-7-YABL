@@ -1,12 +1,6 @@
-!tile text t
-!board 30x4
-!globals text a
+!board 5x5 2x2
 
-function gettoken(number x, number y) returns text do
-	return a;
-end
-
-turn do
-	text a = input();
+function gettoken(number a, number b) returns text do
+	return (a as text) + (b as text);
 end
 
