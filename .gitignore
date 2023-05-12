@@ -3,7 +3,15 @@
 yabl
 test
 code
+<<<<<<< HEAD
+todo.txt
+yabl.c
+yabl.out
+code-generation/const-code/const-code.h
+code-generation/const-code/const-code.c
+=======
 *.txt
 yabl.c
 yabl.out
+>>>>>>> main
 

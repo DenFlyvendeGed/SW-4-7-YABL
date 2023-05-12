@@ -44,6 +44,7 @@
 	PreambleTile*    preambleTile;
 	PreambleBoard*   preambleBoard;
 	PreamblePlayers* preamblePlayers;
+	PreambleGlobals* preambleGlobals;
 }
 
 %token returnskeyword funckeyword 
@@ -51,11 +52,13 @@
 %token setupevent turnevent closeevent
 %token<text> text id number logic boardsize
 %token scopebegin scopeend endofstatement 
-%token setpreamble board player tile
+%token setpreamble board player tile globals
 %token forkeyword in repeat ifkeyword elifkeyword elsekeyword whilekeyword times onkeyword then as
 %token addition minus multiplication division modulus not neq eq gt gteq lt lteq assignoperator and or returnkeyword
 %token lparen rparen lsparen rsparen lcparen rcparen dot comma
 %token<stmt> breakkeyword
+
+%type<text> PreambleBoardTileLen
 
 %type<exprs> Exprs List ExprsContinue
 %type<expr>  Expr P0 P1 P2 P3 P4 P5 P6 Condition Factor AssignInitialization
@@ -80,6 +83,7 @@
 %type<preambleTile> PreambleTile PreambleTileTypes
 %type<preambleBoard> PreambleBoard
 %type<preamblePlayers> PreamblePlayers PreamblePlayer
+%type<preambleGlobals> PreambleGlobals PreambleGlobalsTypes
 
 %%
 Start : 
@@ -92,14 +96,20 @@ Start :
 ;
 
 Preambles:
-	PreambleBoard  Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   PreamblePlayer Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   PreambleTile   Preambles  { $$ = preamblesPushPreamble($2, $1); }
-|   %empty					  { $$ = createPreambles(); }
+	PreambleBoard   Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreamblePlayer  Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleTile    Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   PreambleGlobals Preambles  { $$ = preamblesPushPreamble($2, $1); }
+|   %empty					   { $$ = createPreambles(); }
 ;
 
 PreambleBoard:
-	board boardsize { $$ = createPreambleBoard($2); free($2); }
+	board boardsize PreambleBoardTileLen { $$ = createPreambleBoard($2, $3); free($2); free($3); }
+;
+
+PreambleBoardTileLen:
+	boardsize { $$ = $1; }
+|   %empty { $$ = malloc(4); $$[0] = '1'; $$[1] = 'x'; $$[2] = '1'; $$[3] = '\0'; }
 ;
 
 PreamblePlayer:
@@ -118,6 +128,15 @@ PreambleTile:
 PreambleTileTypes:
 	DeclarationInitialization PreambleTileTypes { preambleTileAddInitialiation($2, $1); $$ = $2; }
 |   %empty { $$ = createPreambleTile(); }
+;
+
+PreambleGlobals:
+	globals PreambleGlobalsTypes { $$ = $2; }
+;
+
+PreambleGlobalsTypes:
+	DeclarationInitialization PreambleGlobalsTypes { preambleGlobalsAddInitialiation($2, $1); $$ = $2; }
+|   %empty { $$ = createPreambleGlobals(); }
 ;
 
 Funcs :

@@ -9,7 +9,7 @@ extern Repeatable* YABL_AST;
 
 
 int cfgSetupEventTest(){
-	yy_scan_string("setup do end eof");
+	yy_scan_string("setup do end");
 	yyparse();
 	int result = 1;	
 
@@ -20,7 +20,7 @@ int cfgSetupEventTest(){
 }
 
 int cfgEventsTest(){
-	yy_scan_string("setup do end\nturn do end\nclose do end eof");
+	yy_scan_string("setup do end\nturn do end\nclose do end");
 	yyparse();
 
 	int result = 1;
@@ -40,7 +40,7 @@ int cfgEventsTest(){
 }
 
 int cfgVoidFunctionTest(){
-	yy_scan_string("function test() do end eof");
+	yy_scan_string("function test() do end");
 	yyparse();
 
 	int result = 1;

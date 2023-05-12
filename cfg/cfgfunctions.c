@@ -627,14 +627,30 @@ void destroyPreamblePlayers(PreamblePlayers* self){
 	free(self);
 }
 
-PreambleBoard* createPreambleBoard(char* size){
+PreambleBoard* createPreambleBoard(char* size, char* len){
 	PreambleBoard* self = malloc(sizeof(PreambleBoard));
 	self->nonterminal = preambleBoard;
 	self->width = atoi(strtok(size, "x"));
 	self->height= atoi(strtok(NULL, "\0"));
+	self->writeWidth = atoi(strtok(len, "x"));
+	self->writerHeight = atoi(strtok(NULL, "\0"));
 	return self;
 }
 
 void destroyPreambleBoard(PreambleBoard* self){
 	free(self);
 }
+
+PreambleGlobals* createPreambleGlobals(){
+	return createRepeatable(preambleGlobals);
+}
+
+PreambleTile* preambleGlobalsAddInitialiation(PreambleGlobals* self, Initialization* variable){
+	return repeatablePushChild(self, variable);
+}
+
+void destroyPreambleGlobals(PreambleGlobals* self){
+	destroyRepeatable(self);
+}
+
+

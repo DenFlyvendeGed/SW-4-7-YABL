@@ -1,4 +1,5 @@
 #include "visitor.h"
+#include "typeChecker.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -43,14 +44,41 @@ void symbolTableAddKeywords(){
     symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-    Data* list = createData(bt_list);
-    list->list = createData(bt_list);
+
+
+    //Reserved input
+    Data* indputList = createData(bt_text);
+    symbolTablePush("input", indputList);
+
+    //Reserved endgame
+    Data* endgameList = createData(bt_text);
+    symbolTablePush("endgame", endgameList);
+
+    //Reserved board
+    
+
+    //Reserved tile
+    Data* tileList = createData(bt_list);
+    tileList->list = createData(bt_text);
+    symbolTablePush("tile", tileList);
+
+    Data* boardList = createData(bt_list);
+    boardList->list = createData(bt_list);
     Data* tileType = createData(bt_custom);
     tileType->value = "tile";
-    ((Data*)list->list)->list = tileType; //<---
+    ((Data*)boardList->list)->list = tileType; //<---
+    symbolTablePush("board", boardList );//<--- list list tile
     
-    symbolTablePush("board", list );//<--- list list tile
+    //Reserved player
+    Data* playerList = createData(bt_list);
+    playerList->list = createData(bt_text);
+    symbolTablePush("player", playerList);
+
+    //Reserved curretplayer
     symbolTablePush("currentPlayer", createData(bt_text));
+
+
+
 
     prettyPrint("------------------------------------\n");
 }
@@ -85,7 +113,6 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                     Data* type = visitType(foreach_value->returntype);
                     //Data* args = visitArgs(foreach_value->args); //saves next arg in Data->list
                     Data* args = prototypeArgs(foreach_value->args);
-                   
                     if(strcmp(key, "gettoken")== 0){
                         Data* tmp = createData(bt_number);
                         Data* tmp2 = createData(bt_number);
@@ -175,11 +202,9 @@ Data* visitPreamble(Preambles* self){
         case preamblePlayers:
             visitPreamblePlayer(self);
             break;
-
         case preambleGlobals:
             visitPreambleGlobal(self);
             break;
-
         default:
             return createError(ECoutOfRange);
 
@@ -238,7 +263,7 @@ Data* visitExprs(Exprs* self){
         return tcAccept();
     }
     indent++;
-    Data* temp = malloc(sizeof(Data));
+    Data* temp = tcAccept();
     Data* temp2; // = createData(bt_unset);
     Data* rval = temp;
 	FOREACH(Expr*, self, 
@@ -469,6 +494,9 @@ Data* visitStmt(Nonterminals* self){
      case returnstmt: 
         rtn = visitReturnStmt((ReturnStmt*)self);
         break;
+	case breakstmt:
+		rtn = tcAccept();
+		break;
     default:
         return createError(ECoutOfRange);
         break;
@@ -760,12 +788,15 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     else{
         id = strcat(id, ".");
     }
+	  Id name = self->child->name;
     self->child->name = strcat(id, self->child->name);
+
 
 
     //Data* name = visitId(NULL);
 
-    Data* child = visitIdMutation(self->child); //<-- dosent support double dotted
+    Data* child = visitIdMutation(self->child);
+	  self->child->name = name;
 
 
     rval = tcIdMutationDot(self, child);

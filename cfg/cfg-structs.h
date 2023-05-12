@@ -6,8 +6,7 @@
 #include "../data-structures/list.h"
 #include "cfg-basic-types.h"
 
-typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt, preambleGlobals} Nonterminals;
-
+typedef enum {start, exprs, scope, expr, stmts, stmt, funcs, func, args, arg, event, ifstmt, repeatstmt, idMutation, variable, preambleTile, preamblePlayers, preambleBoard, preambleGlobals, assign, initialization, unaryOperator, binaryOperator, typecast, listConstants, listConstant, preambles, type, constant, returnstmt, breakstmt} Nonterminals;
 
 typedef struct Typedcl{
 	Nonterminals nonterminal;	
@@ -55,6 +54,8 @@ typedef Repeatable Preambles;
 typedef Repeatable PreambleTile;
 
 typedef Repeatable PreamblePlayers;
+
+typedef Repeatable PreambleGlobals;
 
 typedef char* Id;
 
@@ -224,6 +225,7 @@ typedef struct {
 typedef struct {
 	Nonterminals nonterminal;
 	int width, height;
+	int writeWidth, writerHeight;
 } PreambleBoard;
 
 

@@ -118,8 +118,12 @@ PreamblePlayers* createPreamblePlayers();
 PreamblePlayers* preamblePlayersAddPlayer(PreamblePlayers* self, char* player);
 void destroyPreamblePlayers(PreamblePlayers* self);
 
-PreambleBoard* createPreambleBoard(char* size);
+PreambleBoard* createPreambleBoard(char* size, char* len);
 void destroyPreambleBoard(PreambleBoard* self);
+
+PreambleGlobals* createPreambleGlobals();
+PreambleTile* preambleGlobalsAddInitialiation(PreambleGlobals* self, Initialization* variable);
+void destroyPreambleGlobals(PreambleGlobals* self);
 
 #endif // !YABL_CFG_FUNCS_H
 
