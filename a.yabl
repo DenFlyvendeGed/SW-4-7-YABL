@@ -1,3 +1,4 @@
+
 !board 5x4 
 !player "simon" "nicky"  
 
@@ -11,3 +12,4 @@ turn do
         endgame();     
     end 
 end
+

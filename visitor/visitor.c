@@ -179,6 +179,7 @@ Data* visitPreamble(Preambles* self){
         case preambleGlobals:
             visitPreambleGlobal(self);
             break;
+
         default:
             return createError(ECoutOfRange);
 
@@ -537,7 +538,9 @@ Data* visitIdMutation(IdMutation* self){
             child = visitIdMutationCall(self->child);
             break;
         case im_index:
+
             char temp[40] = "YABLINDEX";
+
             strcat(temp, id->value);
             Data* data = symbolTableGet(id->value);
             symbolTablePush(temp, data); //save local instance 
@@ -737,7 +740,9 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     indent++;
     Data* rval;
     Data* type;
+
     if(strstr(id, "YABLINDEX") != NULL){
+
         type = symbolTableGet(id);
         id += 5;
     }
@@ -746,7 +751,9 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
     }
     
     if(type->type == bt_custom){
+
         char customType[40];
+
         strcpy(customType,type->value);
         id = strcat(customType, ".");
     }
@@ -757,7 +764,9 @@ Data*  visitIdMutationDot(IdMutationDot* self, Id id){
 
 
     //Data* name = visitId(NULL);
+
     Data* child = visitIdMutation(self->child); //<-- dosent support double dotted
+
 
     rval = tcIdMutationDot(self, child);
     //free(name);
@@ -1073,5 +1082,4 @@ Data* visitPreamblePlayer(PreamblePlayers* self){
     indent--;
     return tcAccept();
 }
-
 
