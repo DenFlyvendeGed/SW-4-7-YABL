@@ -1,17 +1,12 @@
-!board 30x10
-!globals number N
+!tile text t
+!board 30x4
+!globals text a
 
 function gettoken(number x, number y) returns text do
-	return "\x1b[3" + (N as text) + "m" + "|";
-end
-
-setup do
-	N = 0;
+	return a;
 end
 
 turn do
-	N = (N + 1) remains 10;
+	text a = input();
 end
-
-
 

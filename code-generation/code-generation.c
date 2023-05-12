@@ -588,6 +588,9 @@ void cgStart(Repeatable* tree, FILE* writer){
     Funcs* funcsNode = tree->children->next->item;
     cgPreambles(preamblesNode, writer);
 
+    //Init reserved keywords
+    fprintf(writer, "%s", RESERVED_KEYWORD);
+
 	// BOARD CODE	
 	fprintf(writer, "%s", BOARD);
 
@@ -629,8 +632,7 @@ void cgPreambles(Preambles* self, FILE* writer){
             break;
         };
     );
-    cgPreambleTile(tile, writer);
-    cgPreambleBoard(board, writer);
+    cgPreambleTile(tile, board, writer);
     cgPreamblePlayers(players, writer);
 	cgPreambleGlobals(globals, writer);
 }
@@ -664,18 +666,19 @@ void cgPreambleBoard(PreambleBoard* self, FILE* writer){
     fprintf(writer, 
 		"#define YABL_BOARD_WIDTH %d\n"
 		"#define YABL_BOARD_HEIGHT %d\n"
-		"struct Tile board[YABL_BOARD_WIDTH][YABL_BOARD_HEIGHT];\n"
-	,	width, height 
-	);
+	,	width, height
+    );
 }
 
-void cgPreambleTile(PreambleTile* self, FILE* writer){
+void cgPreambleTile(PreambleTile* self, PreambleBoard* board, FILE* writer){
+	YablStack s = YABL_STACK_CREATE;
     if(self != NULL){
         fprintf(writer, "struct Tile {");
         YABL_LIST_FOREACH(Initialization*, self->children, 
+			if(foreach_value->type->typeval->type == bt_text)
+				yablStackPush(&s, foreach_value);
 			cgType(foreach_value->type, writer);
 			cgId(&foreach_value->variable, writer);
-            cgInitialization(foreach_value, writer); 
             fprintf(writer, ";");
         );
         fprintf(writer, "};\n");
@@ -683,6 +686,16 @@ void cgPreambleTile(PreambleTile* self, FILE* writer){
     else{
         fprintf(writer, "struct Tile {};\n");
     }
+    cgPreambleBoard(board, writer);
+	fprintf(writer, "struct Tile board[YABL_BOARD_WIDTH][YABL_BOARD_HEIGHT];\n");
+	fprintf(writer, "void __INITIATE_TILES__(){ for(int i = 0; i < YABL_BOARD_WIDTH; i++) {\nfor(int j = 0; j < YABL_BOARD_HEIGHT; j++){\n");
+	while(s != NULL){
+		Initialization* str = yablStackPop(&s);
+		fprintf(writer, "board[i][j].");
+		cgId(&str->variable, writer);
+		fprintf(writer, " = makeString(\" \");\n");
+	} 
+	fprintf(writer, "}\n}\n}\n");
 }
 
 void cgPreambleGlobals(PreambleGlobals* self, FILE* writer){

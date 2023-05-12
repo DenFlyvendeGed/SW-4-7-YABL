@@ -34,7 +34,7 @@ void cgIndex(IdMutationIndex* self, FILE* writer);
 void cgDot(IdMutationDot* self, FILE* writer);
 void cgFunc(Func* self, FILE* writer);
 void cgPreambles(Preambles* self, FILE* writer);
-void cgPreambleTile(PreambleTile* self, FILE* writer);
+void cgPreambleTile(PreambleTile* self, PreambleBoard* board, FILE* writer);
 void cgPreambleBoard(PreambleBoard* self, FILE* writer);
 void cgPreamblePlayers(PreamblePlayers* self, FILE* writer);
 void cgPreambleGlobals(PreambleGlobals* self, FILE* writer);

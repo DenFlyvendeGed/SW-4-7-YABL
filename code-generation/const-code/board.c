@@ -19,31 +19,11 @@ void printBoard();
 void redraw_screen();
 void updateBoard();
 int endGame();
-/*
-int main()
-{
-    int i, j;
-    for(i = 0; i < m; i++)
-    {
-        for(j = 0; j < n; j++)
-        {
-            buffer[i][j] = ' ';
-        }
-    }
-    printBoard();
-    while(endGame() != 1)
-    {
-        signal( SIGWINCH, printBoard);
-        //updateBoard();
-    }
-    return 0;
-}
-*/
+
 
 void printBoard()
 {
     int i, j;
-
     fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
 
     ioctl(0, TIOCGWINSZ, &size);
@@ -56,6 +36,17 @@ void printBoard()
     else
     {
         //prints the board according to dimensions of the preamble, when the window size can accommodate it
+        String* s = gettoken(i,j);
+
+        for(i = 0; i < size.ws_col; i++)
+        {
+            fprintf(stdout, "\x1b[32m*");
+            fflush(stdout);
+        }
+        
+        fprintf(stdout, "\x1b[3B\x1b[1000D");
+        fflush(stdout);
+
         for(j = 0; j < n; j++)
         { 
             for(i = 0; i < (size.ws_col - m * 5) / 2; i++)
@@ -63,18 +54,87 @@ void printBoard()
                 fprintf(stdout, "\x1b[1C");
                 fflush(stdout);
             }
+           
+            if(YABL_BOARD_HEIGHT == 1 && YABL_BOARD_WIDTH == 1){
+                fprintf(stdout, "\x1b[31m\x1b[2A┌───┐\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┘", s->string);
 
-            for(i = 0; i < m; i++)
-            {
-				String* s = gettoken(i, j);
-                fprintf(stdout, "\x1b[31m\x1b[2A╔═══╗\x1b[1B\x1b[5D║ %s ║\x1b[1B\x1b[5D╚═══╝", s->string);
-				destroyString(s);
                 fflush(stdout);
+            }
+            else if(YABL_BOARD_HEIGHT == 1 && YABL_BOARD_WIDTH != 1){
+                for(i = 0; i < m; i++)
+                {
+                    if(i == 0){
+                        fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴", s->string);
+                    }
+                    else if (i == m - 1){
+                        fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘", s->string);
+                    }
+                    else{
+                        fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┴", s->string);
+                    }
+                    
+                }
+                fflush(stdout);
+            }
+            else{
+                if(j == 0){
+                    for(i = 0; i < m; i++){
+                        if(i == 0){
+                            if(YABL_BOARD_WIDTH == 1){
+                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┐\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┤", s->string);
+                            }
+                            else{
+                                fprintf(stdout, "\x1b[31m\x1b[2A┌───┬\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
+                            }
+                        }
+                        else if (i == m - 1){
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┐\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┤", s->string);
+                        }
+                        else{
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┬\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
+                        }
+                    }
+                }else if(j == n - 1){
+                    for(i = 0; i < m; i++){
+                        if(i == 0){
+                            if(YABL_BOARD_WIDTH == 1){
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┘", s->string);
+                            }else{
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D└───┴", s->string);
+                            }
+                        }
+                        else if (i == m - 1){
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┘", s->string);
+                        }
+                        else{
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┴", s->string);
+                        }
+                    }
+                }
+                else{
+                    for(i = 0; i < m; i++){
+                        if(i == 0){
+                            if(YABL_BOARD_WIDTH == 1){
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┤\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┤", s->string);
+                            }else{
+                                fprintf(stdout, "\x1b[31m\x1b[3A├───┼\x1b[1B\x1b[5D│ %s │\x1b[1B\x1b[5D├───┼", s->string);
+                            }
+                        }
+                        else if (i == m - 1){
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┤\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
+                        }
+                        else{
+                            fprintf(stdout, "\x1b[31m\x1b[2A───┼\x1b[1B\x1b[4D %s │\x1b[1B\x1b[4D───┼", s->string);
+                        }
+                    }
+                }
             }
 
             fprintf(stdout, "\x1b[3B\x1b[1000D");
             fflush(stdout);
         }
+
+        destroyString(s);
 
         for(i = 0; i < size.ws_col; i++)
         {
@@ -138,6 +198,8 @@ void redraw_screen()
     fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
     fflush(stdout);
 }
+
+
 
 //#
 
