@@ -1,16 +1,15 @@
-!board 3x3
-!tile number a
+
+!board 5x4 
+!player "simon" "nicky"  
 
 function gettoken(number x, number y) returns text do
-	text n = ((x + y + board[1][1].a) remains 10) as text;
-	return "\x1b[3" + n + "m" + n + "\x1b[31m";
+    return "x"; 
+end   
+
+turn do     
+    print(currentPlayer());     
+    if currentPlayer == "nicky" do         
+        endgame();     
+    end 
 end
-
-setup do
-end
-
-
-
-
-
 
