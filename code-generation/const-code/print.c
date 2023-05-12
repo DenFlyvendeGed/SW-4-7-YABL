@@ -12,7 +12,6 @@ String* input(){
     char in[100];
     scanf("%[^\n]s", in);
 	getc(stdin);
-    printf("\x1b[u\x1b[2K");
     return makeString(in);
 }
 //#

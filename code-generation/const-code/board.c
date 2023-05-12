@@ -49,23 +49,27 @@ void printBoard()
 	const int WIDTH  = ( TILE_WIDTH ) * YABL_BOARD_WIDTH + 1;
 	const int TILE_HEIGHT= (1 + YABL_BOARD_WRITE_HEIGHT);
 	const int HEIGHT = ( TILE_HEIGHT ) * YABL_BOARD_HEIGHT + 1;
-    fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
 
     ioctl(0, TIOCGWINSZ, &size);
 
 	// CHECK FOR SIZE
     while(size.ws_col < WIDTH || size.ws_row < HEIGHT) {
         redraw_screen();
+		fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
 		signal(SIGWINCH, &NULL_FUNC);
 		ioctl(0, TIOCGWINSZ, &size);
     } 
 
+    fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
+
 	int drawStart = size.ws_col / 2 - WIDTH / 2;
 
 	// DRAW THE BOARD
+	printf("\x1b[?25l");
 	for(int j = 0; j < HEIGHT; j++){
 		printf("\x1b[E");
 		for(int i = 0; i < WIDTH; i++){
+			printf("\x1b[%dG", i + drawStart);
 			char* p;
 			int flags = 0;
 			if      ( i == 0 )               flags |= EDGE_WIDTH_CORNER | EDGE_WIDTH_CORNER_NEAR;
@@ -74,7 +78,6 @@ void printBoard()
 			else                             flags |= EDGE_WIDTH_STRAIGHT;
 
 			if      ( i % TILE_WIDTH == TILE_WIDTH / 2 )  flags |= EDGE_WIDTH_DRAW;
-			else if ( i % TILE_WIDTH >  TILE_WIDTH / 2 )  flags |= EDGE_WIDTH_SKIP;
 
 			if      ( j == 0 )               flags |= EDGE_HEIGHT_CORNER | EDGE_HEIGHT_CORNER_NEAR;
 			else if ( j == HEIGHT - 1 )      flags |= EDGE_HEIGHT_CORNER | EDGE_HEIGHT_CORNER_FAR;
@@ -105,15 +108,25 @@ void printBoard()
 				printf("┴");
 			else if(flags & EDGE_WIDTH_BEND && flags & EDGE_HEIGHT_CORNER_NEAR)
 				printf("┬");
-			else if( flags & EDGE_WIDTH_DRAW && flags & EDGE_HEIGHT_DRAW )
-				printf("a");
-			else if( flags & ( EDGE_WIDTH_DRAW | EDGE_HEIGHT_DRAW ) )
-				printf(" ");
-			else
-				printf("");
-			
+			else if( flags & EDGE_WIDTH_DRAW && flags & EDGE_HEIGHT_DRAW ){
+				int x = i - YABL_BOARD_WRITE_WIDTH  / 2 - 1;
+				x = x / (YABL_BOARD_WRITE_WIDTH + 3);
+				int y = j - YABL_BOARD_WRITE_HEIGHT / 2;
+				y = y / (YABL_BOARD_WRITE_HEIGHT + 1);
+				String* s = gettoken(x, y);
+				printf("%s", s->string);
+				destroyString(s);
+			}
 		}
 	}
+
+	// DRAW THE DISPLACER
+	printf("\x1b[E\x1b[0G\x1b[32m");
+	for(int i = 0; i < size.ws_col; i++ ){
+		putchar('*');
+	}
+	printf("\x1b[E\x1b[0G\x1b[m");
+	printf("\x1b[?25h");
 }
 
 void updateBoard()

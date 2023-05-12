@@ -1,6 +1,14 @@
-!board 5x5 2x2
+!board 10x10
+!globals number N
 
 function gettoken(number a, number b) returns text do
-	return (a as text) + (b as text);
+	number n = (a + b + N) remains 10;
+	text t = n as text;
+	return "\x1b[3" + t + "m" + t + "\x1b[m";
+end
+
+turn do
+	N = N + 1;
+	input();
 end
 

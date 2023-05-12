@@ -91,6 +91,8 @@ void cgStmt(Stmt* self, FILE* writer){
         cgBreakStmt(self, writer);
         break;
     case expr:
+		if(((Expr*)self)->extension->type == bt_text)
+			fprintf(writer, "destroyString");
         cgExpr(self, writer);
         fprintf(writer, ";\n");
         break;
