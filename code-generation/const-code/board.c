@@ -43,24 +43,30 @@ void NULL_FUNC(int i){}
 #define EDGE_WIDTH_SKIP         (1 <<14)
 #define EDGE_HEIGHT_SKIP        (1 <<15)
 
+const int TILE_WIDTH = (3 + YABL_BOARD_WRITE_WIDTH);
+const int WIDTH  = ( TILE_WIDTH ) * YABL_BOARD_WIDTH + 1;
+const int TILE_HEIGHT= (1 + YABL_BOARD_WRITE_HEIGHT);
+const int HEIGHT = ( TILE_HEIGHT ) * YABL_BOARD_HEIGHT + 1;
+#define HEIGHT_PADDING 10
+
 void printBoard()
 {
-	const int TILE_WIDTH = (3 + YABL_BOARD_WRITE_WIDTH);
-	const int WIDTH  = ( TILE_WIDTH ) * YABL_BOARD_WIDTH + 1;
-	const int TILE_HEIGHT= (1 + YABL_BOARD_WRITE_HEIGHT);
-	const int HEIGHT = ( TILE_HEIGHT ) * YABL_BOARD_HEIGHT + 1;
+	sigset_t set;
+	int* set_ptr = (int*)&set;
+	sigaddset(&set, SIGWINCH);
 
     ioctl(0, TIOCGWINSZ, &size);
 
 	// CHECK FOR SIZE
-    while(size.ws_col < WIDTH || size.ws_row < HEIGHT) {
+    while(size.ws_col < WIDTH || size.ws_row < HEIGHT + HEIGHT_PADDING) {
         redraw_screen();
 		fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
 		signal(SIGWINCH, &NULL_FUNC);
+		pause();
 		ioctl(0, TIOCGWINSZ, &size);
     } 
 
-    fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
+    fprintf(stdout, "\x1b[m\x1b[H\x1b[2J\x1b[3J");
 
 	int drawStart = size.ws_col / 2 - WIDTH / 2;
 
@@ -164,13 +170,16 @@ void redraw_screen()
     int width = size.ws_col;
     int height = size.ws_row;
 
-    for(i = 0; i < height / 2; i++)
-    {
-        fprintf(stdout, "\x1b[1B");
-        fflush(stdout);
-    }
-    fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board size.");
-    fflush(stdout);
+	if( (width < WIDTH) ){
+		for(i = 0; i < height / 2; i++)
+		{
+			fprintf(stdout, "\x1b[1B");
+			fflush(stdout);
+		}
+
+		fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board size.");
+		fflush(stdout);
+	}
 
     fprintf(stdout, "\x1b[H");
     fflush(stdout);
@@ -180,8 +189,11 @@ void redraw_screen()
         fprintf(stdout, "\x1b[1C");
         fflush(stdout);
     }
-    fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
-    fflush(stdout);
+
+	if( (height < HEIGHT + HEIGHT_PADDING) ){
+		fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
+		fflush(stdout);
+	}
 }
 
 

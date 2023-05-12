@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <time.h>
+#include <unistd.h>
 //#
 #endif
 
