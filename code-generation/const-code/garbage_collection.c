@@ -11,14 +11,14 @@ typedef YablList GarbageCollector;
 void _gcFluch(GarbageCollector gc){
 	if(gc == NULL) return;
 	_gcFluch(gc->next);
-	destroyString(gc->item);
+	__DESTROY_STRING__(gc->item);
 	free(gc);
 }
 
 void gcFlush(GarbageCollector gc){
 	if(gc->item == NULL) return;
 	_gcFluch(gc->next);
-	destroyString(gc->item);
+	__DESTROY_STRING__(gc->item);
 }
 //#
 #endif

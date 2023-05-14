@@ -9,13 +9,13 @@
 //#
 
 
-int tcTextToNumber(String* string){
+int __TEXT_TO_NUMBER__(__STRING__T* string){
     int res;
     res = atoi(string->string);
     return res;
 }
 
-int tcTextToLogic(String* string){
+int __TEXT_TO_LOGIC__(__STRING__T* string){
     int res;
     if(strcmp(string->string, "true") == 0){
         res = 1;
@@ -29,37 +29,34 @@ int tcTextToLogic(String* string){
     return res;
 }
 
-String* tcNumberToText(int number){
-    String* res = makeString("");
+__STRING__T* __NUMBER_TO_TEXT__(int number){
+    __STRING__T* res = __MAKE_STRING__("");
     sprintf(res->string, "%d", number);
     return res;
 }
 
-int tcNumberToLogic(int number){
+int __NUMBER_TO_LOGIC__(int number){
     return !!number;
 }
 
 
-String* tcLogicToText(int number){
-    String* res;
+__STRING__T* __LOGIC_TO_TEXT__(int number){
+    __STRING__T* res;
     if(number == 1){
-        res = makeString("true");
+        res = __MAKE_STRING__("true");
     }else if(number == 0){
-        res = makeString("false");
+        res = __MAKE_STRING__("false");
     }else{
-        res = makeString("true");
+        res = __MAKE_STRING__("true");
     }
     return res;
 
 }
 
-int tcLogicToNumber(int number){
+int __LOGIC_TO_NUMBER__(int number){
     int res = number;
     return res;
 }
-
-
-
 
 
 //#

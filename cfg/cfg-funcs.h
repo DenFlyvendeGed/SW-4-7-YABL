@@ -125,5 +125,6 @@ PreambleGlobals* createPreambleGlobals();
 PreambleTile* preambleGlobalsAddInitialiation(PreambleGlobals* self, Initialization* variable);
 void destroyPreambleGlobals(PreambleGlobals* self);
 
+int isNamePredefined(char* name);
 #endif // !YABL_CFG_FUNCS_H
 

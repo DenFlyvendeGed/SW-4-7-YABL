@@ -9,8 +9,8 @@ void endgame(){
     GAME_RUNNING = 0;
 }
 
-String* currentPlayer(){
-    return makeString(PLAYERS[PLAYER_INDEX]);
+__STRING__T* currentPlayer(){
+    return __MAKE_STRING__(PLAYERS[PLAYER_INDEX]);
 }
 
 

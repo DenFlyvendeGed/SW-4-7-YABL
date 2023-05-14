@@ -52,7 +52,7 @@ void cgScope(Scope* self, FILE* writer){
     YABL_LIST_FOREACH(Stmt*, self->children, cgStmt(foreach_value, writer););
 
 	while( (cgsi = yablStackPop(&CG_TEXT_STACK))->type != cg_scope_start ) {
-		fprintf(writer, "destroyString(");
+		fprintf(writer, "__DESTROY_STRING__(");
 		cgId(&cgsi->name, writer);
 		fprintf(writer, ");");
 		free(cgsi);
@@ -92,7 +92,7 @@ void cgStmt(Stmt* self, FILE* writer){
         break;
     case expr:
 		if(((Expr*)self)->extension->type == bt_text)
-			fprintf(writer, "destroyString");
+			fprintf(writer, "__DESTROY_STRING__");
         cgExpr(self, writer);
         fprintf(writer, ";\n");
         break;
@@ -101,7 +101,7 @@ void cgStmt(Stmt* self, FILE* writer){
     }
 
 	for(; 0 != STMT_INCLUDES_CALL_WITH_N_STRING; STMT_INCLUDES_CALL_WITH_N_STRING--)
-		fprintf(writer, "destroyString(*--STRING_STACK);\n");
+		fprintf(writer, "__DESTROY_STRING__(*--STRING_STACK);\n");
 }
 
 void cgBreakStmt(Break* self, FILE* writer){
@@ -109,7 +109,7 @@ void cgBreakStmt(Break* self, FILE* writer){
 	do {
 		CgStackItem* cgsi = top->item;
 		if(cgsi->type == cg_text){
-			fprintf(writer, "destroyString(%s);\n", cgsi->name);
+			fprintf(writer, "__DESTROY_STRING__(%s);\n", cgsi->name);
 		}
 	} while(*(CgStackItemType*)((top = top->next)->item) != cg_loop_start);
     fprintf(writer, "break;\n");
@@ -120,13 +120,13 @@ void cgReturnStmt(ReturnStmt* self, FILE* writer){
 	fprintf(writer, " __RETURN__;\n");
     fprintf(writer, "return ( __RETURN__ = ");
 	if(self->expr->extension->type == bt_text)
-		fprintf(writer, "copyString");
+		fprintf(writer, "__COPY_STRING__");
     cgExpr(self->expr, writer);
 	YablStack top = CG_TEXT_STACK;
 	do {
 		CgStackItem* cgsi = top->item;
 		if(cgsi->type == cg_scope_start) continue;
-		fprintf(writer, ", destroyString(%s)", cgsi->name);
+		fprintf(writer, ", __DESTROY_STRING__(%s)", cgsi->name);
 	} while((top = top->next) != NULL);
 
     fprintf(writer, ", __RETURN__);\n");
@@ -146,11 +146,11 @@ void cgInitialization(Initialization* self, FILE* writer){
 		fprintf(writer, " = ");
 		if(self->initialValue->extension->type == bt_text 
 		&& self->initialValue->exprType == et_id_mutation){
-			fprintf(writer, "copyString");
+			fprintf(writer, "__COPY_STRING__");
 		} 
 		cgExpr(self->initialValue, writer);
     } else if(isText) {
-		fprintf(writer, " = makeString(\"\")");
+		fprintf(writer, " = __MAKE_STRING__(\"\")");
 	}
 }
 
@@ -171,7 +171,7 @@ void cgType(Type* self, FILE* writer){
         fprintf(writer, "int ");
         break;
     case bt_text:
-        fprintf(writer, "String* ");
+        fprintf(writer, "__STRING__T* ");
         break;
     case bt_list:
         fprintf(writer, "list ");
@@ -243,7 +243,7 @@ void cgIfStmt(IfStmt* self, FILE* writer){
 
 void cgAssign(Assign* self, FILE* writer){
 	if(self->expression->extension->type == bt_text){
-		fprintf(writer, "destroyString(");
+		fprintf(writer, "__DESTROY_STRING__(");
 		cgIdMutation(self->variable, writer);
 		fprintf(writer, ");\n");
 	}
@@ -251,7 +251,7 @@ void cgAssign(Assign* self, FILE* writer){
 	fprintf(writer, "=");
 	if(self->expression->extension->type == bt_text 
 	&& self->expression->exprType == et_id_mutation){
-		fprintf(writer, "copyString");
+		fprintf(writer, "__COPY_STRING__");
 	}
 	cgExpr(self->expression, writer);
     fprintf(writer, ";\n");
@@ -291,7 +291,7 @@ void cgCall(IdMutationCall* self, FILE* writer){
     fprintf(writer, "(");
 	YABL_LIST_FOREACH(Expr*, self->args->children, 
 		if(foreach_value->extension->type == bt_text){
-			fprintf(writer, "*(STRING_STACK++) = copyString");
+			fprintf(writer, "*(STRING_STACK++) = __COPY_STRING__");
 			STMT_INCLUDES_CALL_WITH_N_STRING++;
 		}
 		cgExpr(foreach_value, writer);
@@ -365,7 +365,7 @@ void cgConstant(Constant* self, FILE* writer){
         }
         break;
 	case td_text:
-        fprintf(writer, "makeString(%s)", self->value);
+        fprintf(writer, "__MAKE_STRING__(%s)", self->value);
 		break;
     default:
         fprintf(writer, "%s", self->value);
@@ -380,11 +380,11 @@ void cgTypeCast(TypeCast* self, FILE* writer){
     {
     case bt_number:
         if(self->type->typeval->type == bt_text){
-            fprintf(writer, "tcNumberToText(");
+            fprintf(writer, "__NUMBER_TO_TEXT__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_logic){
-            fprintf(writer, "tcNumberToLogic(");
+            fprintf(writer, "__NUMBER_TO_LOGIC__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_number){
@@ -393,11 +393,11 @@ void cgTypeCast(TypeCast* self, FILE* writer){
         break;
     case  bt_text:
         if(self->type->typeval->type == bt_number){
-            fprintf(writer, "tcTextToNumber(");
+            fprintf(writer, "__TEXT_TO_NUMBER__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_logic){
-            fprintf(writer, "tcTextToLogic(");
+            fprintf(writer, "__TEXT_TO_LOGIC__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_text){
@@ -406,11 +406,11 @@ void cgTypeCast(TypeCast* self, FILE* writer){
         break;
     case bt_logic:
         if(self->type->typeval->type == bt_number){
-            fprintf(writer, "tcLogicToNumber(");
+            fprintf(writer, "__LOGIC_TO_NUMBER__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_text){
-            fprintf(writer, "tcLogicToText(");
+            fprintf(writer, "__LOGIC_TO__TEXT__(");
             cgExpr(self->cast, writer);
             fprintf(writer, ")");
         }else if(self->type->typeval->type == bt_logic){
@@ -425,7 +425,7 @@ void cgTypeCast(TypeCast* self, FILE* writer){
 
 
 
-int cgIsConstantString(Expr* s){
+int cgIsConstant__STRING__T(Expr* s){
 	switch (s->exprType) {
 		case et_constant:
 		case et_typecast:
@@ -438,11 +438,11 @@ int cgIsConstantString(Expr* s){
 	}
 }
 
-void cgPlusString(Expr* right, Expr* left, FILE* writer){
-	int usetmp1 = cgIsConstantString(right);
-	int usetmp2 = cgIsConstantString(left);
+void cgPlus__STRING__T(Expr* right, Expr* left, FILE* writer){
+	int usetmp1 = cgIsConstant__STRING__T(right);
+	int usetmp2 = cgIsConstant__STRING__T(left);
 
-	fprintf(writer, "( STRING_RTN = strConcatCpy(");
+	fprintf(writer, "( STRING_RTN = __STR_CONCAT_CPY__(");
 
 	if(usetmp1) fprintf(writer, "*(STRING_STACK++) = "); 
 	cgExpr(right, writer);
@@ -453,8 +453,8 @@ void cgPlusString(Expr* right, Expr* left, FILE* writer){
 	cgExpr(left, writer);
 
 	fprintf(writer, ")");
-	if(usetmp2) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
-	if(usetmp1) fprintf(writer, ", destroyString(*(--STRING_STACK))"); 
+	if(usetmp2) fprintf(writer, ", __DESTROY_STRING__(*(--STRING_STACK))"); 
+	if(usetmp1) fprintf(writer, ", __DESTROY_STRING__(*(--STRING_STACK))"); 
 	fprintf(writer, ", STRING_RTN)");
 }
 
@@ -467,7 +467,7 @@ void cgBinaryOperator(Expr* self, FILE* writer){
             fprintf(writer, " + ");
             cgExpr(bo->childExpr2, writer);
         }else{
-			cgPlusString(bo->childExpr1, bo->childExpr2, writer);
+			cgPlus__STRING__T(bo->childExpr1, bo->childExpr2, writer);
         }
         
         break;
@@ -604,10 +604,10 @@ void cgStart(Repeatable* tree, FILE* writer){
     cgFuncs(funcsNode, writer);
     fprintf(writer, "\n");
     fprintf(writer, "%s", YABL_MAIN);
-	if(!SEEN_SETUP) fprintf(writer, "void yablEventSetup(){}\n");
-	if(!SEEN_TURN ) fprintf(writer, "void yablEventTurn(){ GAME_RUNNING = 0; }\n");
-	if(!SEEN_CLOSE) fprintf(writer, "void yablEventClose(){}\n");
-	if(!SEEN_GET_TOKEN) fprintf(writer, "String* gettoken(int i, int j){ return makeString(\" \");}\n");
+	if(!SEEN_SETUP) fprintf(writer, "void __EVENT_SETUP__(){}\n");
+	if(!SEEN_TURN ) fprintf(writer, "void __EVENT_TURN__(){ GAME_RUNNING = 0; }\n");
+	if(!SEEN_CLOSE) fprintf(writer, "void __EVENT_CLOSE__(){}\n");
+	if(!SEEN_GET_TOKEN) fprintf(writer, "__STRING__T* gettoken(int i, int j){ return __MAKE_STRING__(\"\");}\n");
 }
 
 void cgPreambles(Preambles* self, FILE* writer){
@@ -699,7 +699,7 @@ void cgPreambleTile(PreambleTile* self, PreambleBoard* board, FILE* writer){
 		Initialization* str = yablStackPop(&s);
 		fprintf(writer, "board[i][j].");
 		cgId(&str->variable, writer);
-		fprintf(writer, " = makeString(\" \");\n");
+		fprintf(writer, " = __MAKE_STRING__(\" \");\n");
 	} 
 	fprintf(writer, "}\n}\n}\n");
 }
@@ -718,7 +718,7 @@ void cgPreambleGlobals(PreambleGlobals* self, FILE* writer){
 	while(s != NULL){
 		Initialization* str = yablStackPop(&s);
 		cgId(&str->variable, writer);
-		fprintf(writer, " = makeString(\"\");\n");
+		fprintf(writer, " = __MAKE_STRING__(\"\");\n");
 	} 
 	fprintf(writer, "}\n");
 
@@ -793,20 +793,20 @@ void cgFuncProtoType(Func* self, FILE* writer){
 }
 
 void cgEvent(Event* self, FILE* writer){
-    fprintf(writer, "void yablEvent");
+    fprintf(writer, "void __EVENT_");
     switch (self->eventType)
     {
     case event_setup:
 		SEEN_SETUP = 1;
-        fprintf(writer, "Setup()");
+        fprintf(writer, "SETUP__()");
         break;
     case event_turn:
 		SEEN_TURN = 1;
-        fprintf(writer, "Turn()");
+        fprintf(writer, "TURN__()");
         break;
     case event_close:
 		SEEN_CLOSE = 1;
-        fprintf(writer, "Close()");
+        fprintf(writer, "CLOSE__()");
         break;
     default:
         break;
