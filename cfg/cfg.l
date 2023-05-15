@@ -60,7 +60,18 @@ true { PRINT("true"); yylval.text= copystringalloc(yytext); return logic; }
 false { PRINT("false"); yylval.text= copystringalloc(yytext); return logic; }
 \"([^\"]|\\\")*\" { PRINT("string"); yylval.text = copystringalloc(yytext); return text; }
 [0-9]+ { PRINT("number"); yylval.text = copystringalloc(yytext); return number;   }
-[a-zA-Z][0-9a-zA-Z]* { PRINT("id"); yylval.text = copystringalloc(yytext); return id; }
+[a-zA-Z_][0-9a-zA-Z_]* { 
+	PRINT("id"); 
+	if(isNamePredefined(yytext)){
+		yylval.text = copystringalloc(yytext); 
+	} else {
+		char* rtn = malloc(sizeof("yabl_user_") + strlen(yytext) + 1);
+		strcpy(rtn, "yabl_user_");
+		strcat(rtn, yytext);
+		yylval.text = rtn;
+	}
+	return id; 
+}
 \( {PRINT("L NORMAL Paren"); return lparen; }
 \) {PRINT("R NORMAL Paren"); return rparen; }
 \[ {PRINT("L SQUARE Paren"); return lsparen; }

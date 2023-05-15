@@ -653,4 +653,15 @@ void destroyPreambleGlobals(PreambleGlobals* self){
 	destroyRepeatable(self);
 }
 
+#define IS_EQ(X) (strcmp(X, name) == 0)
+int isNamePredefined(char* name){
+	if(
+		IS_EQ("print")
+	||  IS_EQ("input")
+	||  IS_EQ("currentPlayer")
+	||  IS_EQ("gettoken")
+	||  IS_EQ("endgame")
+	)    return 1;
+	else return 0;
+}
 

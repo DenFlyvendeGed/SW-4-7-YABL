@@ -6,7 +6,7 @@ int GAME_RUNNING = 1;
 
 int PLAYER_INDEX = 0;
 
-String* gettoken(int, int);
+__STRING__T* gettoken(int, int);
 
 //#
 #endif

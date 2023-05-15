@@ -15,16 +15,11 @@
 #define YABL_BOARD_WRITE_HEIGHT 4
 
 //#
-struct winsize size;
-const int m = YABL_BOARD_WIDTH, n = YABL_BOARD_HEIGHT;
-char buffer[YABL_BOARD_WIDTH][YABL_BOARD_HEIGHT] = {};
+struct winsize SIZE;
 
 void printBoard();
-void redraw_screen();
-void updateBoard();
-int endGame();
-
-void NULL_FUNC(int i){}
+void __REDRAW_SCREEN__();
+void __NULL_FUNC__(int i){};
 
 #define EDGE_WIDTH_CORNER_FAR   (1 << 0)
 #define EDGE_WIDTH_CORNER_NEAR  (1 << 1)
@@ -51,24 +46,20 @@ const int HEIGHT = ( TILE_HEIGHT ) * YABL_BOARD_HEIGHT + 1;
 
 void printBoard()
 {
-	sigset_t set;
-	int* set_ptr = (int*)&set;
-	sigaddset(&set, SIGWINCH);
-
-    ioctl(0, TIOCGWINSZ, &size);
+    ioctl(0, TIOCGWINSZ, &SIZE);
 
 	// CHECK FOR SIZE
-    while(size.ws_col < WIDTH || size.ws_row < HEIGHT + HEIGHT_PADDING) {
-        redraw_screen();
+    while(SIZE.ws_col < WIDTH || SIZE.ws_row < HEIGHT + HEIGHT_PADDING) {
+        __REDRAW_SCREEN__();
 		fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
-		signal(SIGWINCH, &NULL_FUNC);
+		signal(SIGWINCH, &__NULL_FUNC__);
 		pause();
-		ioctl(0, TIOCGWINSZ, &size);
+		ioctl(0, TIOCGWINSZ, &SIZE);
     } 
 
     fprintf(stdout, "\x1b[m\x1b[H\x1b[2J\x1b[3J");
 
-	int drawStart = size.ws_col / 2 - WIDTH / 2;
+	int drawStart = SIZE.ws_col / 2 - WIDTH / 2;
 
 	// DRAW THE BOARD
 	printf("\x1b[?25l");
@@ -76,7 +67,6 @@ void printBoard()
 		printf("\x1b[E");
 		for(int i = 0; i < WIDTH; i++){
 			printf("\x1b[%dG", i + drawStart);
-			char* p;
 			int flags = 0;
 			if      ( i == 0 )               flags |= EDGE_WIDTH_CORNER | EDGE_WIDTH_CORNER_NEAR;
 			else if ( i == WIDTH -1 )        flags |= EDGE_WIDTH_CORNER | EDGE_WIDTH_CORNER_FAR;
@@ -119,56 +109,29 @@ void printBoard()
 				x = x / (YABL_BOARD_WRITE_WIDTH + 3);
 				int y = j - YABL_BOARD_WRITE_HEIGHT / 2;
 				y = y / (YABL_BOARD_WRITE_HEIGHT + 1);
-				String* s = gettoken(x, y);
+				__STRING__T* s = gettoken(x, y);
 				printf("%s", s->string);
-				destroyString(s);
+				__DESTROY_STRING__(s);
 			}
 		}
 	}
 
 	// DRAW THE DISPLACER
 	printf("\x1b[E\x1b[0G\x1b[32m");
-	for(int i = 0; i < size.ws_col; i++ ){
+	for(int i = 0; i < SIZE.ws_col; i++ ){
 		putchar('*');
 	}
 	printf("\x1b[E\x1b[0G\x1b[m");
 	printf("\x1b[?25h");
 }
 
-void updateBoard()
+void __REDRAW_SCREEN__()
 {
-    int column, row;
-    int i, j;
-    char c;
-
-    fprintf(stdout, "Update token board positions by providing an integer for column(x), one for row(y), aswell as a token to be printed:\x1b[0m ");
-    scanf(" %d %d %c", &column, &row, &c);
-    column = column -1;
-    row = row - 1;
-    buffer[column][row] = c;
-    fprintf(stdout, "\x1b[32m");
-    fprintf(stdout, "Column %d, row %d has been updated with your new token board position.", column, row);
-    fprintf(stdout, "\x1b[0;0H\x1b[32m");
-    for(i = 0; i < n; i++)
-    {
-        fprintf(stdout, "\x1b[3B");
-    }
-    fprintf(stdout, "\x1b[1B\x1b[0J");
-    printBoard();
-}
-
-int endGame()
-{
-    return 0;
-}
-
-void redraw_screen()
-{
-    ioctl(0, TIOCGWINSZ, &size);
+    ioctl(0, TIOCGWINSZ, &SIZE);
     fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
     int i;
-    int width = size.ws_col;
-    int height = size.ws_row;
+    int width = SIZE.ws_col;
+    int height = SIZE.ws_row;
 
 	if( (width < WIDTH) ){
 		for(i = 0; i < height / 2; i++)
@@ -177,7 +140,7 @@ void redraw_screen()
 			fflush(stdout);
 		}
 
-		fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board size.");
+		fprintf(stdout, "\x1b[31m🡄 You need to increase the width of the terminal to accommodate the chosen board SIZE.");
 		fflush(stdout);
 	}
 
@@ -191,7 +154,7 @@ void redraw_screen()
     }
 
 	if( (height < HEIGHT + HEIGHT_PADDING) ){
-		fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board size.🡅");
+		fprintf(stdout, "\x1b[31m🡅 You need to increase the height of the terminal to accommodate the chosen board SIZE.🡅");
 		fflush(stdout);
 	}
 }

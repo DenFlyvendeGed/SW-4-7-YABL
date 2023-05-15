@@ -2,10 +2,8 @@
 #define CODE_MAIN
 
 #include "board.c"
+#include "./events_initializers.c"
 
-void yablEventSetup();
-void yablEventTurn();
-void yablEventClose();
 extern int GAME_RUNNING;
 void __INITIATE_GLOABLS__();
 void __INITIATE_TILES__();
@@ -14,13 +12,13 @@ extern char PLAYERS[3];
 int main(){
 	__INITIATE_GLOABLS__();
 	__INITIATE_TILES__();
-	yablEventSetup();
+	__EVENT_SETUP__();
 	do {
 		printBoard();
-		yablEventTurn();
+		__EVENT_TURN__();
 		PLAYER_INDEX = (++PLAYER_INDEX) % (sizeof(PLAYERS)/sizeof(char*));
 	} while(GAME_RUNNING);
-	yablEventClose();
+	__EVENT_CLOSE__();
 }
 //#
 #endif

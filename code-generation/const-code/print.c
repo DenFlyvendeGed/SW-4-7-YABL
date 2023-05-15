@@ -4,15 +4,15 @@
 #include "./string.c"
 
 //#
-void print(String* input){
+void print(__STRING__T* input){
     printf("%s\n", input->string);
 }
 
-String* input(){
+__STRING__T* input(){
     char in[100];
     scanf("%[^\n]s", in);
 	getc(stdin);
-    return makeString(in);
+    return __MAKE_STRING__(in);
 }
 //#
 #endif
