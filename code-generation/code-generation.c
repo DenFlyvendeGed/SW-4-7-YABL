@@ -69,31 +69,31 @@ void cgStmt(Stmt* self, FILE* writer){
     switch (*(Nonterminals*)self)
     {
     case assign:
-        cgAssign(self, writer);
+        cgAssign((Assign*)self, writer);
         break;
     case ifstmt:
-        cgIfStmt(self, writer);
+        cgIfStmt((IfStmt*)self, writer);
         break;
     case repeatstmt:
-        cgRepeatStmt(self, writer);
+        cgRepeatStmt((Repeat*)self, writer);
         break;
     case initialization:
-        cgInitialization(self, writer);
+        cgInitialization((Initialization*)self, writer);
         fprintf(writer, ";\n");
         break;
     case scope:
-        cgScope(self, writer);
+        cgScope((Scope*)self, writer);
         break;
     case returnstmt:
-        cgReturnStmt(self, writer);
+        cgReturnStmt((ReturnStmt*)self, writer);
         break;
     case breakstmt:
-        cgBreakStmt(self, writer);
+        cgBreakStmt((Break*)self, writer);
         break;
     case expr:
 		if(((Expr*)self)->extension->type == bt_text)
 			fprintf(writer, "__DESTROY_STRING__");
-        cgExpr(self, writer);
+        cgExpr((Expr*)self, writer);
         fprintf(writer, ";\n");
         break;
     default:
@@ -425,7 +425,7 @@ void cgTypeCast(TypeCast* self, FILE* writer){
 
 
 
-int cgIsConstant__STRING__T(Expr* s){
+int cgIsConstantSTRING(Expr* s){
 	switch (s->exprType) {
 		case et_constant:
 		case et_typecast:
@@ -438,9 +438,9 @@ int cgIsConstant__STRING__T(Expr* s){
 	}
 }
 
-void cgPlus__STRING__T(Expr* right, Expr* left, FILE* writer){
-	int usetmp1 = cgIsConstant__STRING__T(right);
-	int usetmp2 = cgIsConstant__STRING__T(left);
+void cgPlusSTRING(Expr* right, Expr* left, FILE* writer){
+	int usetmp1 = cgIsConstantSTRING(right);
+	int usetmp2 = cgIsConstantSTRING(left);
 
 	fprintf(writer, "( STRING_RTN = __STR_CONCAT_CPY__(");
 
@@ -467,7 +467,7 @@ void cgBinaryOperator(Expr* self, FILE* writer){
             fprintf(writer, " + ");
             cgExpr(bo->childExpr2, writer);
         }else{
-			cgPlus__STRING__T(bo->childExpr1, bo->childExpr2, writer);
+			cgPlusSTRING(bo->childExpr1, bo->childExpr2, writer);
         }
         
         break;
@@ -731,10 +731,10 @@ void cgFuncs(Funcs* self, FILE* writer){
         switch (*foreach_value)
         {
         case event:
-            cgEvent(foreach_value, writer);
+            cgEvent((Event*)foreach_value, writer);
             break;
         case func:
-            cgFunc(foreach_value, writer);
+            cgFunc((Func*)foreach_value, writer);
             break;
         default:
             break;
