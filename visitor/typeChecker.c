@@ -321,7 +321,9 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
         switch (*((IdMutations*)self->child)) {
              case im_call:
                 // Data* args;
-                
+                if (var->value == NULL || strcmp(var->value, "func") != 0) {
+                    return createError(ECargumentExeption);
+                }
                 Data* args = tcListTypeCheck(var)->list;
                 
                 
@@ -341,6 +343,9 @@ Data* tcIdMutation(IdMutation* self, Data* child, Data* id){
                 var = tcCopy(child);
                 break;
         }
+    }
+    else if(var->value != NULL && strcmp(var->value, "func") == 0){
+        return createError(ECargumentExeption);
     }
     Data* rval = var;
     // tcListTypeCheck(rval);
