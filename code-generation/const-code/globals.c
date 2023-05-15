@@ -4,7 +4,7 @@
 //#
 int GAME_RUNNING = 1;
 
-int PLAYER_INDEX = 0;
+int PLAYER_INDEX = -1;
 
 __STRING__T* gettoken(int, int);
 

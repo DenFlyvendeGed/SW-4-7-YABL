@@ -14,9 +14,9 @@ int main(){
 	__INITIATE_TILES__();
 	__EVENT_SETUP__();
 	do {
+		PLAYER_INDEX = (++PLAYER_INDEX) % (sizeof(PLAYERS)/sizeof(char*));
 		printBoard();
 		__EVENT_TURN__();
-		PLAYER_INDEX = (++PLAYER_INDEX) % (sizeof(PLAYERS)/sizeof(char*));
 	} while(GAME_RUNNING);
 	printBoard();
 	__EVENT_CLOSE__();
