@@ -661,6 +661,7 @@ int isNamePredefined(char* name){
 	||  IS_EQ("currentPlayer")
 	||  IS_EQ("gettoken")
 	||  IS_EQ("endgame")
+	||  IS_EQ("board")
 	)    return 1;
 	else return 0;
 }

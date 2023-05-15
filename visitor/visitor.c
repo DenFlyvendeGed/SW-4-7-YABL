@@ -44,14 +44,14 @@ void symbolTableAddKeywords(){
     symbolTablePush("print", rtnType);
     symbolTablePush("quit", createData(bt_NULL));
 
-
+    
 
     //Reserved input
     Data* indputList = createData(bt_text);
     symbolTablePush("input", indputList);
 
     //Reserved endgame
-    Data* endgameList = createData(bt_text);
+    Data* endgameList = createData(bt_NULL);
     symbolTablePush("endgame", endgameList);
 
     //Reserved board

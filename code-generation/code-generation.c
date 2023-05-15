@@ -125,7 +125,7 @@ void cgReturnStmt(ReturnStmt* self, FILE* writer){
 	YablStack top = CG_TEXT_STACK;
 	do {
 		CgStackItem* cgsi = top->item;
-		if(cgsi->type == cg_scope_start) continue;
+		if(cgsi->type != cg_text) continue;
 		fprintf(writer, ", __DESTROY_STRING__(%s)", cgsi->name);
 	} while((top = top->next) != NULL);
 

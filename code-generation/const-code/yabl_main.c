@@ -18,6 +18,7 @@ int main(){
 		__EVENT_TURN__();
 		PLAYER_INDEX = (++PLAYER_INDEX) % (sizeof(PLAYERS)/sizeof(char*));
 	} while(GAME_RUNNING);
+	printBoard();
 	__EVENT_CLOSE__();
 }
 //#
