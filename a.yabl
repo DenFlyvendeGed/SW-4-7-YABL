@@ -11,5 +11,6 @@ end
 turn do
 	N = N + 1;
 	input();
+    N();
 end
 

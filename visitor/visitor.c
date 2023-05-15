@@ -32,36 +32,40 @@ void prettyPrint(char string[]){
 Data* visitor(){
 	return tcAccept();
 }
+void prototypeFunc(Id key, Data* value){
+    char func[5] = "func";
+    value->value = func;
+
+    symbolTablePush(key, value);
+}
 
 void symbolTableAddKeywords(){
     prettyPrint("stdlip keywords: -----------------\n");
-    symbolTablePush("input", createData(bt_text));
+    prototypeFunc("input", createData(bt_text));
 
 
     Data* rtnType = createData(bt_NULL);
     Data* args = createData(bt_text);
     rtnType->list = args;
-    symbolTablePush("print", rtnType);
-    symbolTablePush("quit", createData(bt_NULL));
+    prototypeFunc("print", rtnType);
+    prototypeFunc("quit", createData(bt_NULL));
 
     
 
     //Reserved input
     Data* indputList = createData(bt_text);
-    symbolTablePush("input", indputList);
+    prototypeFunc("input", indputList);
 
     //Reserved endgame
     Data* endgameList = createData(bt_NULL);
-    symbolTablePush("endgame", endgameList);
-
-    //Reserved board
-    
+    prototypeFunc("endgame", endgameList);
 
     //Reserved tile
     Data* tileList = createData(bt_list);
     tileList->list = createData(bt_text);
     symbolTablePush("tile", tileList);
 
+    //Reserved board
     Data* boardList = createData(bt_list);
     boardList->list = createData(bt_list);
     Data* tileType = createData(bt_custom);
@@ -75,13 +79,14 @@ void symbolTableAddKeywords(){
     symbolTablePush("player", playerList);
 
     //Reserved curretplayer
-    symbolTablePush("currentPlayer", createData(bt_text));
+    prototypeFunc("currentPlayer", createData(bt_text));
 
 
 
 
     prettyPrint("------------------------------------\n");
 }
+
 
 Data* prototypeArgs(Args* self)
 {
@@ -129,8 +134,9 @@ void symbolTablePrototypes(Repeatable* self){ //put prototypes in symbolTable
                             free(tmp2);
                     }
                     type->list = args;
+ 
                     if(symbolTableGetLocal(key) == NULL)
-                        symbolTablePush(key, type); //might need to push args + return type
+                        prototypeFunc(key, type); 
                     else{
                         createError(ECnameSpaceClash);
                     }
