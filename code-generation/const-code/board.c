@@ -46,16 +46,13 @@ const int HEIGHT = ( TILE_HEIGHT ) * YABL_BOARD_HEIGHT + 1;
 
 void printBoard()
 {
-	sigset_t set;
-	int* set_ptr = (int*)&set;
-	sigaddset(&set, SIGWINCH);
-
     ioctl(0, TIOCGWINSZ, &SIZE);
 
 	// CHECK FOR SIZE
     while(SIZE.ws_col < WIDTH || SIZE.ws_row < HEIGHT + HEIGHT_PADDING) {
         __REDRAW_SCREEN__();
 		fprintf(stdout, "\x1b[H\x1b[2J\x1b[3J");
+		signal(SIGWINCH, &__NULL_FUNC__);
 		pause();
 		ioctl(0, TIOCGWINSZ, &SIZE);
     } 
@@ -70,7 +67,6 @@ void printBoard()
 		printf("\x1b[E");
 		for(int i = 0; i < WIDTH; i++){
 			printf("\x1b[%dG", i + drawStart);
-			char* p;
 			int flags = 0;
 			if      ( i == 0 )               flags |= EDGE_WIDTH_CORNER | EDGE_WIDTH_CORNER_NEAR;
 			else if ( i == WIDTH -1 )        flags |= EDGE_WIDTH_CORNER | EDGE_WIDTH_CORNER_FAR;
