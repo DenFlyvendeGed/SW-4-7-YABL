@@ -1,19 +1,7 @@
-
-!board 3x3
-
+!board 5x4
+!player "simon" "nicky"
 
 function gettoken(number x, number y) returns text do
-    return "a";
+    return "x";
 end
-
-setup do
-    
-end
-
-
-
-
-
-
-
 
