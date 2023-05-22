@@ -102,7 +102,7 @@ Data* tcUnaryop(UnaryOperator* self, Data* expr)
 {
     if(self == NULL)
         return createError(ECempty);
-     if(self->uo != 0){
+     if(self->uo > 1 || self->uo < 0){
         return createError(ECoutOfRange);
     }
 
