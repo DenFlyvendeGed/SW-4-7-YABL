@@ -564,9 +564,11 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
     {
     case uo_negate:
         fprintf(writer, "-");
+		cgExpr(self->childExpr, writer);
         break;
     case uo_not:
         fprintf(writer, "!");
+		cgExpr(self->childExpr, writer);
         break;
     default:
         break;
