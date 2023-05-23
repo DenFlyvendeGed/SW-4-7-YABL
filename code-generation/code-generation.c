@@ -16,6 +16,10 @@ int SEEN_TURN = 0;
 int SEEN_CLOSE = 0;
 int SEEN_GET_TOKEN = 0;
 
+/////////////////// ASSIGN COUNTER /////////////////
+
+static unsigned int ASSIGN_COUNTER;
+
 /////////////////// FUNCTION CALLS ////////////////
 
 int STMT_INCLUDES_CALL_WITH_N_STRING = 0;
@@ -125,7 +129,7 @@ void cgReturnStmt(ReturnStmt* self, FILE* writer){
 	YablStack top = CG_TEXT_STACK;
 	do {
 		CgStackItem* cgsi = top->item;
-		if(cgsi->type == cg_scope_start) continue;
+		if(cgsi->type != cg_text) continue;
 		fprintf(writer, ", __DESTROY_STRING__(%s)", cgsi->name);
 	} while((top = top->next) != NULL);
 
@@ -242,10 +246,12 @@ void cgIfStmt(IfStmt* self, FILE* writer){
 
 
 void cgAssign(Assign* self, FILE* writer){
+
 	if(self->expression->extension->type == bt_text){
-		fprintf(writer, "__DESTROY_STRING__(");
+        ASSIGN_COUNTER++;
+		fprintf(writer, "__STRING__T* tmp%u =", ASSIGN_COUNTER);
 		cgIdMutation(self->variable, writer);
-		fprintf(writer, ");\n");
+        fprintf(writer, ";\n", ASSIGN_COUNTER);
 	}
 	cgIdMutation(self->variable, writer);
 	fprintf(writer, "=");
@@ -255,6 +261,9 @@ void cgAssign(Assign* self, FILE* writer){
 	}
 	cgExpr(self->expression, writer);
     fprintf(writer, ";\n");
+    if(self->expression->extension->type == bt_text){
+        fprintf(writer, "; __DESTROY_STRING__(tmp%u);\n", ASSIGN_COUNTER);
+	}
 }
 
 void cgIdMutation(IdMutation* self, FILE* writer){
@@ -295,6 +304,9 @@ void cgCall(IdMutationCall* self, FILE* writer){
 			STMT_INCLUDES_CALL_WITH_N_STRING++;
 		}
 		cgExpr(foreach_value, writer);
+		if(_l->next != NULL){
+			fprintf(writer, ",");
+		}
 	)
     if(self->child != NULL){
         cgIdMutationChild(self->child, writer);
@@ -564,9 +576,11 @@ void cgUnaryOperator(UnaryOperator* self, FILE* writer){
     {
     case uo_negate:
         fprintf(writer, "-");
+		cgExpr(self->childExpr, writer);
         break;
     case uo_not:
         fprintf(writer, "!");
+		cgExpr(self->childExpr, writer);
         break;
     default:
         break;

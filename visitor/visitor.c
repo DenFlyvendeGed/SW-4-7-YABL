@@ -33,7 +33,8 @@ Data* visitor(){
 	return tcAccept();
 }
 void prototypeFunc(Id key, Data* value){
-    char func[5] = "func";
+    char* func = malloc(sizeof(char[5]));
+    strcpy(func, "func");
     value->value = func;
 
     symbolTablePush(key, value);
@@ -50,14 +51,16 @@ void symbolTableAddKeywords(){
     prototypeFunc("print", rtnType);
     prototypeFunc("quit", createData(bt_NULL));
 
-
+    //Printboard
+    Data* printBoard = createData(bt_NULL);
+    prototypeFunc("printBoard", printBoard);
 
     //Reserved input
     Data* indputList = createData(bt_text);
     prototypeFunc("input", indputList);
 
     //Reserved endgame
-    Data* endgameList = createData(bt_text);
+    Data* endgameList = createData(bt_NULL);
     prototypeFunc("endgame", endgameList);
 
     //Reserved tile

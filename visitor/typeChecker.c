@@ -102,7 +102,9 @@ Data* tcUnaryop(UnaryOperator* self, Data* expr)
 {
     if(self == NULL)
         return createError(ECempty);
-     if(self->uo > 1 || self->uo < 0){
+  
+    if(self->uo > 1 || self->uo < 0 ){
+
         return createError(ECoutOfRange);
     }
 
@@ -273,7 +275,7 @@ Data* tcInitialization(Initialization* self, Data* id, Data* type, Data* val){ /
         if(type->type != val->type)
             return createError(ECtypeExeption);
         if(var == NULL)
-            symbolTablePush(id->value, tcCopy(val));
+            symbolTablePush(id->value, tcCopy(type));
         else
             return createError(ECnameSpaceClash);
 
