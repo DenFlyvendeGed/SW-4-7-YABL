@@ -16,6 +16,10 @@ int SEEN_TURN = 0;
 int SEEN_CLOSE = 0;
 int SEEN_GET_TOKEN = 0;
 
+/////////////////// ASSIGN COUNTER /////////////////
+
+static unsigned int ASSIGN_COUNTER;
+
 /////////////////// FUNCTION CALLS ////////////////
 
 int STMT_INCLUDES_CALL_WITH_N_STRING = 0;
@@ -242,10 +246,12 @@ void cgIfStmt(IfStmt* self, FILE* writer){
 
 
 void cgAssign(Assign* self, FILE* writer){
+
 	if(self->expression->extension->type == bt_text){
-		fprintf(writer, "__DESTROY_STRING__(");
+        ASSIGN_COUNTER++;
+		fprintf(writer, "__STRING__T* tmp%u =", ASSIGN_COUNTER);
 		cgIdMutation(self->variable, writer);
-		fprintf(writer, ");\n");
+        fprintf(writer, ";\n", ASSIGN_COUNTER);
 	}
 	cgIdMutation(self->variable, writer);
 	fprintf(writer, "=");
@@ -255,6 +261,9 @@ void cgAssign(Assign* self, FILE* writer){
 	}
 	cgExpr(self->expression, writer);
     fprintf(writer, ";\n");
+    if(self->expression->extension->type == bt_text){
+        fprintf(writer, "; __DESTROY_STRING__(tmp%u);\n", ASSIGN_COUNTER);
+	}
 }
 
 void cgIdMutation(IdMutation* self, FILE* writer){
