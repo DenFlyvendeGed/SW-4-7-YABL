@@ -1,0 +1,81 @@
+setup
+do  
+    //logic 
+        logic test1 = 5;        
+        logic test2 = 5 + 5;        
+        
+        logic test3 = "test";    
+        logic test4 = 5 or 2;      
+
+    //number 
+        number test5 = "test";          
+        number test6 = true;          
+        number test7 = false;          
+        number test8 = "hello" + "world";         
+        number test9 = true or false;  
+
+    //returns logic       
+        logic test12 = true>false;           
+        logic test13 = "2">=2;          
+        logic test14 = 2<false;                  
+
+    //text 
+        text test16 = "test" > "world"; 
+        text test17 = "test" == "world"; 
+        text test18 = "test" != "world"; 
+        text test19 = "test" or "world"; 
+        text test19 = "test" and "world"; 
+
+    //mutation call test
+        functiontest1;
+        test1();
+        functiontestarg();
+
+end
+    //mutation call tests
+function functiontest1() returns text do
+    return "a";
+end
+function functiontestarg(text a) do
+end
+
+
+    //return text test
+function functiontest4() returns text do
+    return 5;
+end
+
+function  functiontest5() returns text do
+    return true;
+end
+
+    //return logic test
+function functiontest6() returns logic do
+    return "a";
+end
+
+function functiontest7() returns logic do
+    return 5;
+end
+
+    //return number test
+function functiontest8() returns number do
+    return "a";
+end
+
+function functiontest9() returns number do
+    return true;
+end
+
+    //return null test
+function functiontest10() do
+    return "a";
+end
+
+function functiontest11() do
+    return 5;
+end
+
+function functiontest12() do
+    return true;
+end
