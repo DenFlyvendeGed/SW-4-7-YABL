@@ -304,6 +304,9 @@ void cgCall(IdMutationCall* self, FILE* writer){
 			STMT_INCLUDES_CALL_WITH_N_STRING++;
 		}
 		cgExpr(foreach_value, writer);
+		if(_l->next != NULL){
+			fprintf(writer, ",");
+		}
 	)
     if(self->child != NULL){
         cgIdMutationChild(self->child, writer);
