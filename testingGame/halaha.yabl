@@ -1,0 +1,154 @@
+!tile number stones
+!board 7x2 2x1
+!player "P1" "P2"
+
+function gettoken(number x, number y) 
+returns text do
+	text rtn = "";
+	if board[x][y].stones < 10 do 
+		rtn = " "; 
+	end
+	if x == 0 and y == 1 or x == 6 and y == 0 do
+		rtn = "\x1b[31m" + rtn;
+	end
+	return rtn + board[x][y].stones as text + "\x1b[0m";
+end
+
+function move(number pos, number player_index) returns logic do
+	number i = pos + player_index;
+	logic increment = true;
+	if player_index == 1 do increment = not increment; 
+	end
+
+	number y = player_index;
+	number x = i;
+	number hand = 0;
+
+	repeat do
+		hand = board[x][y].stones;
+		board[x][y].stones = 0;
+
+		repeat while hand > 0 do
+			if increment do 
+				x = x + 1;
+				if x > 6 do
+					y = (y + 1) remains 2;
+					x = 6;
+					increment = not increment;
+				end
+			else 
+				x = x - 1;
+				if x < 0 do
+					y = (y - 1) remains 2;
+					x = 0;
+					increment = not increment;
+				end
+			end
+			if not ((player_index == 0 and x == 0 and y == 1) or (player_index == 1 and x == 6 and y == 0)) do
+				board[x][y].stones = board[x][y].stones + 1;
+				hand = hand - 1;
+			end
+		end
+		if (player_index == 1 and x == 0 and y == 1) or (player_index == 0 and x == 6 and y == 0) do
+			return false;
+		end
+		if board[x][y].stones == 1 do 
+			return true;
+		end
+	end
+end
+
+function first_pass(number player_index) returns logic do
+	number i = 0;
+	repeat while i < 6 do
+		if board[i + player_index][player_index].stones != 0 do
+			return false;
+		end
+		i = i + 1;
+	end
+	return true;
+end
+
+function second_pass(number previous_player) returns logic do
+	number i = 0;
+	repeat while i < 6 do
+		if board[i + previous_player][previous_player].stones != 0 do
+			return false;
+		end
+		i = i + 1;
+	end
+	return true;
+end
+
+setup do 
+	number t = 6;
+	number y = 0;
+	repeat while y < 2 do
+		number x = 1;
+		if y == 1 do 
+			t = 7; 
+		else 
+			x = 0;
+		end
+		repeat while x < t do
+			board[x][y].stones = 5;
+			x = x + 1;
+		end
+		y = y + 1;
+	end
+end
+
+turn do 
+	number i;
+	logic pass = false;
+	number player_index;
+	number previous_player;
+
+	if currentPlayer() == "P1" do 
+		player_index = 0;
+		previous_player = 1;
+	else 
+		player_index = 1;
+		previous_player = 0;
+	end
+	
+	repeat do
+		if first_pass(player_index) do
+			if second_pass(previous_player) do
+				endgame();
+			end
+			pass = true;
+			break;
+		else
+			pass = false;
+		end
+
+		repeat do
+			print(currentPlayer() + " Make your move by selecting a column between 1 and 6");
+			i = input() as number - 1;
+			if i < 0 or i > 5 do 
+				print("Wrong Input");
+			else if board[player_index + i][player_index].stones == 0 do 
+				print("Space is empty");
+			else 
+				break;
+			end
+		end
+
+		logic c = move(i, player_index);
+		if c do 
+			break;
+		end
+		printBoard();
+	end
+end
+
+close do
+	if board[1][0].stones > board[6][0].stones do
+		print("Player 2 has won!");
+	else if board[1][0].stones < board[6][0].stones do
+		print("Player 1 has won!");
+	else
+		print("It is a tie!");
+	end
+end
