@@ -11,5 +11,7 @@ code-generation/const-code/const-code.c
 
 !artTest.yabl
 !errorTest.yabl
+!tictactoe.yabl
+!halaha.yabl
 
 
