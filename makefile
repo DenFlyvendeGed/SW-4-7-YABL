@@ -23,6 +23,7 @@ OFILES := \
 	$(VISITOR)/typeChecker.o \
 	$(VISITOR)/visitor.o \
 	$(CODE_GENERATION)/code-generation.o \
+	$(CODE_GENERATION)/code-generation-test.o \
 	$(CONFIGURATION)/configuration.o\
 	$(CONST_CODE)/const-code.o
 
